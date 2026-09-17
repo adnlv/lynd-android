@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.PayoutItem
+import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -144,13 +145,33 @@ fun PayoutsScreen(
                 ) {
                     groupedPayouts.forEach { (date, payoutsForDate) ->
                         item(key = "header_$date") {
-                            Text(
-                                text = date.format(dateFormatter),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.DarkGray,
-                                modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
-                            )
+                            val totalSum = remember(payoutsForDate) {
+                                payoutsForDate.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.payoutAmount) }
+                                    .setScale(2, RoundingMode.HALF_UP)
+                                    .toPlainString()
+                            }
+                            val currency = payoutsForDate.firstOrNull()?.currency.orEmpty()
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp, bottom = 2.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = date.format(dateFormatter),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.DarkGray
+                                )
+                                Text(
+                                    text = "$totalSum $currency",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.DarkGray
+                                )
+                            }
                         }
                         items(
                             items = payoutsForDate,
