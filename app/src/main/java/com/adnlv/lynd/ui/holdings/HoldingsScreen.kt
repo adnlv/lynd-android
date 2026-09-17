@@ -97,29 +97,16 @@ fun HoldingsScreen(
     Scaffold(
         modifier = modifier,
         floatingActionButton = {
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                contentAlignment = Alignment.BottomEnd
+                    .padding(start = 16.dp, end = 0.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                FloatingActionButton(
-                    onClick = {
-                        revealedHoldingId = null
-                        if (addHoldingContent != null) {
-                            editingHolding = null
-                            showHoldingSheet = true
-                        } else {
-                            onNavigateToAdd?.invoke()
-                        }
-                    }
-                ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
-                }
-
                 SnackbarHost(
                     hostState = snackbarHostState,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.weight(1f)
                 ) { data ->
                     val totalSeconds = 4
                     var remainingSeconds by remember(data) { mutableStateOf(totalSeconds) }
@@ -200,6 +187,20 @@ fun HoldingsScreen(
                             )
                         }
                     }
+                }
+
+                FloatingActionButton(
+                    onClick = {
+                        revealedHoldingId = null
+                        if (addHoldingContent != null) {
+                            editingHolding = null
+                            showHoldingSheet = true
+                        } else {
+                            onNavigateToAdd?.invoke()
+                        }
+                    }
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
                 }
             }
         }
