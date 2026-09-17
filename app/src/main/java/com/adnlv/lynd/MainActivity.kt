@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -51,6 +52,7 @@ sealed class Screen(val route: String, val title: String) {
     data object AddHolding : Screen("add_holding", "Add Holding")
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp(appContainer: AppContainer) {
     val navController = rememberNavController()
@@ -112,7 +114,7 @@ fun MainApp(appContainer: AppContainer) {
                 )
                 HoldingsScreen(
                     viewModel = holdingsViewModel,
-                    addHoldingContent = { onDismiss ->
+                    addHoldingContent = { sheetState, onDismiss ->
                         val addHoldingViewModel: AddHoldingViewModel = viewModel(
                             factory = AddHoldingViewModel.provideFactory(
                                 nbuRepository = appContainer.nbuRepository,
@@ -121,7 +123,8 @@ fun MainApp(appContainer: AppContainer) {
                         )
                         AddHoldingScreen(
                             viewModel = addHoldingViewModel,
-                            onNavigateBack = onDismiss
+                            onNavigateBack = onDismiss,
+                            sheetState = sheetState
                         )
                     }
                 )
