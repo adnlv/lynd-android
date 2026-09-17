@@ -56,6 +56,9 @@ class AddHoldingViewModel(
     private var isinLookupJob: kotlinx.coroutines.Job? = null
 
     fun onIsinChanged(value: String) {
+        if (value.length > 12) {
+            return
+        }
         val trimmed = value.trim()
         _uiState.update { it.copy(isin = value, fetchState = FetchState.Idle) }
 
