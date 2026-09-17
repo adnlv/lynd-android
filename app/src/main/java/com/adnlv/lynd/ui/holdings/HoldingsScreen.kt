@@ -31,6 +31,7 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -72,6 +74,7 @@ fun HoldingsScreen(
     val holdings by viewModel.holdings.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
     var showAddHoldingSheet by rememberSaveable { mutableStateOf(false) }
+    var revealedHoldingId by remember { mutableStateOf<Int?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val isSheetActive = showAddHoldingSheet && sheetState.targetValue != SheetValue.Hidden
@@ -86,6 +89,7 @@ fun HoldingsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
+                    revealedHoldingId = null
                     if (addHoldingContent != null) {
                         showAddHoldingSheet = true
                     } else {
@@ -103,6 +107,19 @@ fun HoldingsScreen(
                 .padding(innerPadding)
                 .then(
                     if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier
+                )
+                .then(
+                    if (revealedHoldingId != null) {
+                        Modifier.pointerInput(revealedHoldingId) {
+                            detectTapGestures(
+                                onPress = {
+                                    revealedHoldingId = null
+                                }
+                            )
+                        }
+                    } else {
+                        Modifier
+                    }
                 )
         ) {
             if (isSyncing) {
@@ -134,8 +151,21 @@ fun HoldingsScreen(
                     items(items = holdings, key = { it.id }) { holding ->
                         HoldingCard(
                             holding = holding,
-                            onEdit = { onEditHolding?.invoke(holding) },
-                            onDelete = { viewModel.deleteHolding(holding.id) }
+                            isRevealed = revealedHoldingId == holding.id,
+                            onExpand = { revealedHoldingId = holding.id },
+                            onCollapse = {
+                                if (revealedHoldingId == holding.id) {
+                                    revealedHoldingId = null
+                                }
+                            },
+                            onEdit = {
+                                revealedHoldingId = null
+                                onEditHolding?.invoke(holding)
+                            },
+                            onDelete = {
+                                revealedHoldingId = null
+                                viewModel.deleteHolding(holding.id)
+                            }
                         )
                     }
                 }
@@ -153,6 +183,9 @@ fun HoldingsScreen(
 @Composable
 fun HoldingCard(
     holding: HoldingItem,
+    isRevealed: Boolean,
+    onExpand: () -> Unit,
+    onCollapse: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -162,7 +195,13 @@ fun HoldingCard(
     val actionButtonsWidthDp = 152.dp
     val actionButtonsWidthPx = with(density) { actionButtonsWidthDp.toPx() }
     val offsetX = remember { Animatable(0f) }
-    val isRevealed = offsetX.value <= -actionButtonsWidthPx / 2
+
+    LaunchedEffect(isRevealed) {
+        val target = if (isRevealed) -actionButtonsWidthPx else 0f
+        if (offsetX.value != target) {
+            offsetX.animateTo(target)
+        }
+    }
 
     Box(
         modifier = modifier
@@ -177,10 +216,7 @@ fun HoldingCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = {
-                    coroutineScope.launch { offsetX.animateTo(0f) }
-                    onEdit()
-                },
+                onClick = onEdit,
                 modifier = Modifier.width(76.dp)
             ) {
                 Column(
@@ -200,10 +236,7 @@ fun HoldingCard(
                 }
             }
             IconButton(
-                onClick = {
-                    coroutineScope.launch { offsetX.animateTo(0f) }
-                    onDelete()
-                },
+                onClick = onDelete,
                 modifier = Modifier.width(76.dp)
             ) {
                 Column(
@@ -238,14 +271,24 @@ fun HoldingCard(
                         },
                         onDragEnd = {
                             coroutineScope.launch {
-                                val target = if (offsetX.value < -actionButtonsWidthPx / 3) -actionButtonsWidthPx else 0f
-                                offsetX.animateTo(target)
+                                if (offsetX.value < -actionButtonsWidthPx / 3) {
+                                    onExpand()
+                                    offsetX.animateTo(-actionButtonsWidthPx)
+                                } else {
+                                    onCollapse()
+                                    offsetX.animateTo(0f)
+                                }
                             }
                         },
                         onDragCancel = {
                             coroutineScope.launch {
-                                val target = if (offsetX.value < -actionButtonsWidthPx / 3) -actionButtonsWidthPx else 0f
-                                offsetX.animateTo(target)
+                                if (offsetX.value < -actionButtonsWidthPx / 3) {
+                                    onExpand()
+                                    offsetX.animateTo(-actionButtonsWidthPx)
+                                } else {
+                                    onCollapse()
+                                    offsetX.animateTo(0f)
+                                }
                             }
                         }
                     )
@@ -253,9 +296,7 @@ fun HoldingCard(
                 .then(
                     if (isRevealed) {
                         Modifier.clickable {
-                            coroutineScope.launch {
-                                offsetX.animateTo(0f)
-                            }
+                            onCollapse()
                         }
                     } else {
                         Modifier
