@@ -95,71 +95,74 @@ fun HoldingsScreen(
 
     Scaffold(
         modifier = modifier,
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                val totalSeconds = 4
-                var remainingSeconds by remember(data) { mutableStateOf(totalSeconds) }
-                val progress = remember(data) { Animatable(1f) }
+        floatingActionButton = {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SnackbarHost(hostState = snackbarHostState) { data ->
+                    val totalSeconds = 4
+                    var remainingSeconds by remember(data) { mutableStateOf(totalSeconds) }
+                    val progress = remember(data) { Animatable(1f) }
 
-                LaunchedEffect(data) {
-                    launch {
-                        while (remainingSeconds > 0) {
-                            kotlinx.coroutines.delay(1000L)
-                            remainingSeconds -= 1
+                    LaunchedEffect(data) {
+                        launch {
+                            while (remainingSeconds > 0) {
+                                kotlinx.coroutines.delay(1000L)
+                                remainingSeconds -= 1
+                            }
+                        }
+                        progress.animateTo(
+                            targetValue = 0f,
+                            animationSpec = tween(durationMillis = totalSeconds * 1000, easing = androidx.compose.animation.core.LinearEasing)
+                        )
+                    }
+
+                    Snackbar(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        action = {
+                            data.visuals.actionLabel?.let { label ->
+                                TextButton(onClick = { data.performAction() }) {
+                                    Text(label)
+                                }
+                            }
+                        }
+                    ) {
+                        Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(text = data.visuals.message, modifier = Modifier.weight(1f))
+                                Text(
+                                    text = "${remainingSeconds}s",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            LinearProgressIndicator(
+                                progress = { progress.value },
+                                modifier = Modifier.fillMaxWidth().height(2.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
                         }
                     }
-                    progress.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(durationMillis = totalSeconds * 1000, easing = androidx.compose.animation.core.LinearEasing)
-                    )
                 }
-
-                Snackbar(
-                    modifier = Modifier.padding(12.dp),
-                    action = {
-                        data.visuals.actionLabel?.let { label ->
-                            TextButton(onClick = { data.performAction() }) {
-                                Text(label)
-                            }
+                FloatingActionButton(
+                    onClick = {
+                        revealedHoldingId = null
+                        if (addHoldingContent != null) {
+                            editingHolding = null
+                            showHoldingSheet = true
+                        } else {
+                            onNavigateToAdd?.invoke()
                         }
                     }
                 ) {
-                    Column {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(text = data.visuals.message, modifier = Modifier.weight(1f))
-                            Text(
-                                text = "${remainingSeconds}s",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        LinearProgressIndicator(
-                            progress = { progress.value },
-                            modifier = Modifier.fillMaxWidth().height(2.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    }
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
                 }
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    revealedHoldingId = null
-                    if (addHoldingContent != null) {
-                        editingHolding = null
-                        showHoldingSheet = true
-                    } else {
-                        onNavigateToAdd?.invoke()
-                    }
-                }
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
             }
         }
     ) { innerPadding ->
