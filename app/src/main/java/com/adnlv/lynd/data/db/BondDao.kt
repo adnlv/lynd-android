@@ -16,6 +16,12 @@ interface BondDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertPayments(payments: List<BondPaymentEntity>)
 
+    @Query("DELETE FROM bond_payments WHERE bond_isin = :isin")
+    suspend fun deletePaymentsForBond(isin: String)
+
+    @Query("DELETE FROM bond_payments")
+    suspend fun deleteAllPayments()
+
     @Query("SELECT * FROM bonds WHERE isin = :isin LIMIT 1")
     suspend fun getBond(isin: String): BondEntity?
 }

@@ -66,6 +66,7 @@ class NbuRepository(
                 bondDao.upsertBonds(bonds)
             }
             if (payments.isNotEmpty()) {
+                bondDao.deleteAllPayments()
                 bondDao.upsertPayments(payments)
             }
 
@@ -121,6 +122,7 @@ class NbuRepository(
 
             bondDao.upsertBond(bondEntity)
             if (payments.isNotEmpty()) {
+                bondDao.deletePaymentsForBond(trimmedIsin)
                 bondDao.upsertPayments(payments)
             }
 
