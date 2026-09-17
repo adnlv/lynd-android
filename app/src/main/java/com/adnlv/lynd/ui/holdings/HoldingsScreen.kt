@@ -1,5 +1,6 @@
 package com.adnlv.lynd.ui.holdings
 
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -65,6 +67,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import kotlinx.coroutines.launch
@@ -285,6 +288,7 @@ fun HoldingsScreen(
                 ) {
                     items(items = holdings, key = { it.id }) { holding ->
                         HoldingCard(
+                            modifier = Modifier.animateItem(),
                             holding = holding,
                             isRevealed = revealedHoldingId == holding.id,
                             onExpand = { revealedHoldingId = holding.id },
@@ -347,8 +351,12 @@ fun HoldingCard(
     val actionButtonsWidthDp = 152.dp
     val actionButtonsWidthPx = with(density) { actionButtonsWidthDp.toPx() }
     val offsetX = remember { Animatable(0f) }
+    val slideAwayOffsetX = remember { Animatable(0f) }
+    var itemWidthPx by remember { mutableFloatStateOf(0f) }
+    var isDeleting by remember { mutableStateOf(false) }
 
-    LaunchedEffect(isRevealed) {
+    LaunchedEffect(isRevealed, isDeleting) {
+        if (isDeleting) return@LaunchedEffect
         val target = if (isRevealed) -actionButtonsWidthPx else 0f
         if (offsetX.value != target) {
             offsetX.animateTo(target)
@@ -358,6 +366,8 @@ fun HoldingCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .onSizeChanged { itemWidthPx = it.width.toFloat() }
+            .offset { IntOffset(slideAwayOffsetX.value.roundToInt(), 0) }
             .clip(RoundedCornerShape(12.dp))
     ) {
         Row(
@@ -388,7 +398,19 @@ fun HoldingCard(
                 }
             }
             IconButton(
-                onClick = onDelete,
+                onClick = {
+                    if (!isDeleting) {
+                        isDeleting = true
+                        coroutineScope.launch {
+                            val targetOffset = if (itemWidthPx > 0f) -itemWidthPx - with(density) { 32.dp.toPx() } else -1500f
+                            slideAwayOffsetX.animateTo(
+                                targetValue = targetOffset,
+                                animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
+                            )
+                            onDelete()
+                        }
+                    }
+                },
                 modifier = Modifier.width(76.dp)
             ) {
                 Column(
@@ -413,7 +435,8 @@ fun HoldingCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                .pointerInput(actionButtonsWidthPx) {
+                .pointerInput(actionButtonsWidthPx, isDeleting) {
+                    if (isDeleting) return@pointerInput
                     detectHorizontalDragGestures(
                         onHorizontalDrag = { _, dragAmount ->
                             coroutineScope.launch {
