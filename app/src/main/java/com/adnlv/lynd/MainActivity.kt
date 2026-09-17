@@ -6,42 +6,130 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.adnlv.lynd.ui.addholding.AddHoldingScreen
+import com.adnlv.lynd.ui.addholding.AddHoldingViewModel
+import com.adnlv.lynd.ui.holdings.HoldingsScreen
+import com.adnlv.lynd.ui.holdings.HoldingsViewModel
+import com.adnlv.lynd.ui.payouts.PayoutsScreen
+import com.adnlv.lynd.ui.payouts.PayoutsViewModel
 import com.adnlv.lynd.ui.theme.LyndTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val appContainer = (application as LyndApplication).container
+
         setContent {
             LyndTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                MainApp(appContainer = appContainer)
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+sealed class Screen(val route: String, val title: String) {
+    data object Holdings : Screen("holdings", "Holdings")
+    data object Payouts : Screen("payouts", "Payouts")
+    data object AddHolding : Screen("add_holding", "Add Holding")
 }
 
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    LyndTheme {
-        Greeting("Android")
+fun MainApp(appContainer: AppContainer) {
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val bottomTabs = listOf(Screen.Holdings, Screen.Payouts)
+    val showBottomBar = currentRoute in bottomTabs.map { it.route }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar {
+                    bottomTabs.forEach { screen ->
+                        val selected = currentRoute == screen.route
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                when (screen) {
+                                    Screen.Holdings -> Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.List,
+                                        contentDescription = screen.title
+                                    )
+                                    Screen.Payouts -> Icon(
+                                        imageVector = Icons.Default.DateRange,
+                                        contentDescription = screen.title
+                                    )
+                                    else -> {}
+                                }
+                            },
+                            label = { Text(screen.title) }
+                        )
+                    }
+                }
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Holdings.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Holdings.route) {
+                val holdingsViewModel: HoldingsViewModel = viewModel(
+                    factory = HoldingsViewModel.provideFactory(appContainer.database.holdingDao())
+                )
+                HoldingsScreen(
+                    viewModel = holdingsViewModel,
+                    onNavigateToAdd = { navController.navigate(Screen.AddHolding.route) }
+                )
+            }
+            composable(Screen.Payouts.route) {
+                val payoutsViewModel: PayoutsViewModel = viewModel(
+                    factory = PayoutsViewModel.provideFactory(appContainer.database.payoutDao())
+                )
+                PayoutsScreen(viewModel = payoutsViewModel)
+            }
+            composable(Screen.AddHolding.route) {
+                val addHoldingViewModel: AddHoldingViewModel = viewModel(
+                    factory = AddHoldingViewModel.provideFactory(
+                        nbuRepository = appContainer.nbuRepository,
+                        holdingDao = appContainer.database.holdingDao()
+                    )
+                )
+                AddHoldingScreen(
+                    viewModel = addHoldingViewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+        }
     }
 }
