@@ -44,12 +44,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingItem
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HoldingsScreen(
     viewModel: HoldingsViewModel,
     modifier: Modifier = Modifier,
     onNavigateToAdd: (() -> Unit)? = null,
+    onEditHolding: ((HoldingItem) -> Unit)? = null,
     addHoldingContent: (@Composable (sheetState: SheetState, onDismiss: () -> Unit) -> Unit)? = null
 ) {
     val holdings by viewModel.holdings.collectAsState()
@@ -117,6 +134,7 @@ fun HoldingsScreen(
                     items(items = holdings, key = { it.id }) { holding ->
                         HoldingCard(
                             holding = holding,
+                            onEdit = { onEditHolding?.invoke(holding) },
                             onDelete = { viewModel.deleteHolding(holding.id) }
                         )
                     }
@@ -135,21 +153,121 @@ fun HoldingsScreen(
 @Composable
 fun HoldingCard(
     holding: HoldingItem,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    val density = LocalDensity.current
+    val coroutineScope = rememberCoroutineScope()
+    val actionButtonsWidthDp = 152.dp
+    val actionButtonsWidthPx = with(density) { actionButtonsWidthDp.toPx() }
+    val offsetX = remember { Animatable(0f) }
+    val isRevealed = offsetX.value <= -actionButtonsWidthPx / 2
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .matchParentSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            IconButton(
+                onClick = {
+                    coroutineScope.launch { offsetX.animateTo(0f) }
+                    onEdit()
+                },
+                modifier = Modifier.width(76.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit Holding",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Edit",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            IconButton(
+                onClick = {
+                    coroutineScope.launch { offsetX.animateTo(0f) }
+                    onDelete()
+                },
+                modifier = Modifier.width(76.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete Holding",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Text(
+                        text = "Delete",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                .pointerInput(actionButtonsWidthPx) {
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { _, dragAmount ->
+                            coroutineScope.launch {
+                                val newOffset = (offsetX.value + dragAmount).coerceIn(-actionButtonsWidthPx, 0f)
+                                offsetX.snapTo(newOffset)
+                            }
+                        },
+                        onDragEnd = {
+                            coroutineScope.launch {
+                                val target = if (offsetX.value < -actionButtonsWidthPx / 3) -actionButtonsWidthPx else 0f
+                                offsetX.animateTo(target)
+                            }
+                        },
+                        onDragCancel = {
+                            coroutineScope.launch {
+                                val target = if (offsetX.value < -actionButtonsWidthPx / 3) -actionButtonsWidthPx else 0f
+                                offsetX.animateTo(target)
+                            }
+                        }
+                    )
+                }
+                .then(
+                    if (isRevealed) {
+                        Modifier.clickable {
+                            coroutineScope.launch {
+                                offsetX.animateTo(0f)
+                            }
+                        }
+                    } else {
+                        Modifier
+                    }
+                ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
                 Text(
                     text = holding.bondName,
                     style = MaterialTheme.typography.titleMedium,
@@ -169,13 +287,6 @@ fun HoldingCard(
                     text = "Purchased: ${holding.purchaseDate}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete Holding",
-                    tint = MaterialTheme.colorScheme.error
                 )
             }
         }
