@@ -1,7 +1,9 @@
 package com.adnlv.lynd.ui.holdings
 
 import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -383,11 +385,16 @@ fun HoldingCard(
     var itemWidthPx by remember { mutableFloatStateOf(0f) }
     var isDeleting by remember { mutableStateOf(false) }
 
+    val swipeSpringSpec = spring<Float>(
+        dampingRatio = 0.6f,
+        stiffness = Spring.StiffnessMediumLow
+    )
+
     LaunchedEffect(isRevealed, isDeleting) {
         if (isDeleting) return@LaunchedEffect
         val target = if (isRevealed) -actionButtonsWidthPx else 0f
         if (offsetX.value != target) {
-            offsetX.animateTo(target)
+            offsetX.animateTo(target, animationSpec = swipeSpringSpec)
         }
     }
 
@@ -459,6 +466,8 @@ fun HoldingCard(
             }
         }
 
+        val maxDragPx = actionButtonsWidthPx + with(density) { 20.dp.toPx() }
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -474,7 +483,13 @@ fun HoldingCard(
                         onHorizontalDrag = { _, dragAmount ->
                             if (!canSwipe) return@detectHorizontalDragGestures
                             coroutineScope.launch {
-                                val newOffset = (offsetX.value + dragAmount).coerceIn(-actionButtonsWidthPx, 0f)
+                                val candidate = offsetX.value + dragAmount
+                                val newOffset = if (candidate < -actionButtonsWidthPx) {
+                                    val overdrag = candidate - (-actionButtonsWidthPx)
+                                    (-actionButtonsWidthPx + overdrag * 0.35f).coerceAtLeast(-maxDragPx)
+                                } else {
+                                    candidate.coerceIn(-actionButtonsWidthPx, 0f)
+                                }
                                 offsetX.snapTo(newOffset)
                             }
                         },
@@ -483,10 +498,10 @@ fun HoldingCard(
                             coroutineScope.launch {
                                 if (offsetX.value < -actionButtonsWidthPx / 3) {
                                     onExpand()
-                                    offsetX.animateTo(-actionButtonsWidthPx)
+                                    offsetX.animateTo(-actionButtonsWidthPx, animationSpec = swipeSpringSpec)
                                 } else {
                                     onCollapse()
-                                    offsetX.animateTo(0f)
+                                    offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
                                 }
                             }
                         },
@@ -495,10 +510,10 @@ fun HoldingCard(
                             coroutineScope.launch {
                                 if (offsetX.value < -actionButtonsWidthPx / 3) {
                                     onExpand()
-                                    offsetX.animateTo(-actionButtonsWidthPx)
+                                    offsetX.animateTo(-actionButtonsWidthPx, animationSpec = swipeSpringSpec)
                                 } else {
                                     onCollapse()
-                                    offsetX.animateTo(0f)
+                                    offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
                                 }
                             }
                         }
