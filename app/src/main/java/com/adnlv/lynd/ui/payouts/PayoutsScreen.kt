@@ -18,6 +18,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,6 +43,22 @@ fun PayoutsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            TabRow(
+                selectedTabIndex = uiState.selectedTab.ordinal,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Tab(
+                    selected = uiState.selectedTab == PayoutTab.UPCOMING,
+                    onClick = { viewModel.selectTab(PayoutTab.UPCOMING) },
+                    text = { Text("Upcoming") }
+                )
+                Tab(
+                    selected = uiState.selectedTab == PayoutTab.RECEIVED,
+                    onClick = { viewModel.selectTab(PayoutTab.RECEIVED) },
+                    text = { Text("Received") }
+                )
+            }
+
             if (uiState.availableCurrencies.size > 1) {
                 LazyRow(
                     modifier = Modifier
@@ -63,8 +81,12 @@ fun PayoutsScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
+                    val emptyMessage = when (uiState.selectedTab) {
+                        PayoutTab.UPCOMING -> "No upcoming payouts found."
+                        PayoutTab.RECEIVED -> "No received payouts found."
+                    }
                     Text(
-                        text = "No scheduled payouts found.",
+                        text = emptyMessage,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
