@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.PayoutItem
+import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -185,8 +186,11 @@ fun PayoutCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
+            val formattedAmount = remember(payout.payoutAmount) {
+                payout.payoutAmount.setScale(2, RoundingMode.HALF_UP).toPlainString()
+            }
             Text(
-                text = "${payout.payoutAmount} ${payout.currency}",
+                text = "$formattedAmount ${payout.currency}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
