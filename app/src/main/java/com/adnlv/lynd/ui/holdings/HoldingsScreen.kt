@@ -28,11 +28,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -93,7 +95,58 @@ fun HoldingsScreen(
 
     Scaffold(
         modifier = modifier,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                val totalSeconds = 4
+                var remainingSeconds by remember(data) { mutableStateOf(totalSeconds) }
+                val progress = remember(data) { Animatable(1f) }
+
+                LaunchedEffect(data) {
+                    launch {
+                        while (remainingSeconds > 0) {
+                            kotlinx.coroutines.delay(1000L)
+                            remainingSeconds -= 1
+                        }
+                    }
+                    progress.animateTo(
+                        targetValue = 0f,
+                        animationSpec = tween(durationMillis = totalSeconds * 1000, easing = androidx.compose.animation.core.LinearEasing)
+                    )
+                }
+
+                Snackbar(
+                    modifier = Modifier.padding(12.dp),
+                    action = {
+                        data.visuals.actionLabel?.let { label ->
+                            TextButton(onClick = { data.performAction() }) {
+                                Text(label)
+                            }
+                        }
+                    }
+                ) {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(text = data.visuals.message, modifier = Modifier.weight(1f))
+                            Text(
+                                text = "${remainingSeconds}s",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        LinearProgressIndicator(
+                            progress = { progress.value },
+                            modifier = Modifier.fillMaxWidth().height(2.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    }
+                }
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
