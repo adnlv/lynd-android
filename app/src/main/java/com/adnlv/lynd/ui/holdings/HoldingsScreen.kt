@@ -162,8 +162,8 @@ fun HoldingsScreen(
                                 )
                             },
                         shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.inverseSurface,
-                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         shadowElevation = 6.dp
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
@@ -182,13 +182,13 @@ fun HoldingsScreen(
                                     Text(
                                         text = data.visuals.message,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.inverseOnSurface,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                                         maxLines = 1
                                     )
                                     Text(
                                         text = "${remainingSeconds}s",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f)
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                                     )
                                 }
 
@@ -201,7 +201,7 @@ fun HoldingsScreen(
                                             text = label,
                                             style = MaterialTheme.typography.labelLarge,
                                             fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.inversePrimary
+                                            color = MaterialTheme.colorScheme.primary
                                         )
                                     }
                                 }
@@ -213,8 +213,8 @@ fun HoldingsScreen(
                                     .fillMaxWidth()
                                     .height(3.dp)
                                     .align(Alignment.BottomCenter),
-                                color = MaterialTheme.colorScheme.inversePrimary,
-                                trackColor = MaterialTheme.colorScheme.inverseSurface
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.primaryContainer
                             )
                         }
                     }
