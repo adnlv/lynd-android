@@ -97,11 +97,30 @@ fun HoldingsScreen(
     Scaffold(
         modifier = modifier,
         floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.BottomEnd
             ) {
-                SnackbarHost(hostState = snackbarHostState) { data ->
+                FloatingActionButton(
+                    onClick = {
+                        revealedHoldingId = null
+                        if (addHoldingContent != null) {
+                            editingHolding = null
+                            showHoldingSheet = true
+                        } else {
+                            onNavigateToAdd?.invoke()
+                        }
+                    }
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
+                }
+
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier.fillMaxWidth()
+                ) { data ->
                     val totalSeconds = 4
                     var remainingSeconds by remember(data) { mutableStateOf(totalSeconds) }
                     val progress = remember(data) { Animatable(1f) }
@@ -124,7 +143,7 @@ fun HoldingsScreen(
 
                     Snackbar(
                         modifier = Modifier
-                            .padding(horizontal = 8.dp)
+                            .fillMaxWidth()
                             .offset { IntOffset(swipeOffsetX.value.roundToInt(), 0) }
                             .alpha(1f - (kotlin.math.abs(swipeOffsetX.value) / (dismissThresholdPx * 2f)).coerceIn(0f, 1f))
                             .pointerInput(data) {
@@ -181,19 +200,6 @@ fun HoldingsScreen(
                             )
                         }
                     }
-                }
-                FloatingActionButton(
-                    onClick = {
-                        revealedHoldingId = null
-                        if (addHoldingContent != null) {
-                            editingHolding = null
-                            showHoldingSheet = true
-                        } else {
-                            onNavigateToAdd?.invoke()
-                        }
-                    }
-                ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
                 }
             }
         }
