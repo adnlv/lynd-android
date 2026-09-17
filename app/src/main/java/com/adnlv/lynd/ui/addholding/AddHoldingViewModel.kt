@@ -44,8 +44,23 @@ class AddHoldingViewModel(
     private val _saveSuccessEvent = MutableSharedFlow<Unit>()
     val saveSuccessEvent: SharedFlow<Unit> = _saveSuccessEvent.asSharedFlow()
 
+    private var isinLookupJob: kotlinx.coroutines.Job? = null
+
     fun onIsinChanged(value: String) {
+        val trimmed = value.trim()
         _uiState.update { it.copy(isin = value, fetchState = FetchState.Idle) }
+
+        isinLookupJob?.cancel()
+        if (trimmed.isBlank()) {
+            return
+        }
+
+        isinLookupJob = viewModelScope.launch {
+            if (trimmed.length != 12) {
+                kotlinx.coroutines.delay(500)
+            }
+            fetchBond(trimmed)
+        }
     }
 
     fun onQuantityChanged(value: String) {
@@ -60,22 +75,14 @@ class AddHoldingViewModel(
         _uiState.update { it.copy(purchaseDate = date) }
     }
 
-    fun fetchBond() {
-        val currentIsin = _uiState.value.isin.trim()
-        if (currentIsin.isBlank()) {
-            _uiState.update { it.copy(fetchState = FetchState.Error("Please enter an ISIN code")) }
-            return
-        }
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(fetchState = FetchState.Loading) }
-            val bond = nbuRepository.getLocalBond(currentIsin)
-            if (bond != null) {
-                _uiState.update { it.copy(fetchState = FetchState.Success(bond)) }
-            } else {
-                _uiState.update {
-                    it.copy(fetchState = FetchState.Error("Bond with ISIN $currentIsin not found in local database"))
-                }
+    private suspend fun fetchBond(isinToFetch: String) {
+        _uiState.update { it.copy(fetchState = FetchState.Loading) }
+        val bond = nbuRepository.getLocalBond(isinToFetch)
+        if (bond != null) {
+            _uiState.update { it.copy(fetchState = FetchState.Success(bond)) }
+        } else {
+            _uiState.update {
+                it.copy(fetchState = FetchState.Error("Bond with ISIN $isinToFetch not found in local database"))
             }
         }
     }

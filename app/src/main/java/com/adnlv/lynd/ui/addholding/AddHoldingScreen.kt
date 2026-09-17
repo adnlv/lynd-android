@@ -103,33 +103,22 @@ fun AddHoldingScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
+            OutlinedTextField(
+                value = uiState.isin,
+                onValueChange = viewModel::onIsinChanged,
+                label = { Text("ISIN Code") },
+                placeholder = { Text("e.g. UA4000187348") },
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = uiState.isin,
-                    onValueChange = viewModel::onIsinChanged,
-                    label = { Text("ISIN Code") },
-                    placeholder = { Text("e.g. UA4000187348") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedButton(
-                    onClick = viewModel::fetchBond,
-                    enabled = uiState.fetchState !is FetchState.Loading
-                ) {
+                singleLine = true,
+                trailingIcon = {
                     if (uiState.fetchState is FetchState.Loading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp
                         )
-                    } else {
-                        Text("Fetch")
                     }
                 }
-            }
+            )
 
             if (uiState.fetchState is FetchState.Success) {
                 val bond = (uiState.fetchState as FetchState.Success).bond
