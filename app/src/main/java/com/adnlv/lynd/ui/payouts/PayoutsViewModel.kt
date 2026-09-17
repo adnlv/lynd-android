@@ -12,10 +12,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
+import java.time.LocalDate
+
+enum class PayoutTab {
+    UPCOMING,
+    RECEIVED
+}
 
 data class PayoutsUiState(
     val availableCurrencies: List<String> = emptyList(),
     val selectedCurrency: String = "",
+    val selectedTab: PayoutTab = PayoutTab.UPCOMING,
     val payouts: List<PayoutItem> = emptyList()
 )
 
@@ -26,9 +33,12 @@ class PayoutsViewModel(
     private val _selectedCurrency = MutableStateFlow("")
     val selectedCurrency: StateFlow<String> = _selectedCurrency.asStateFlow()
 
+    private val _selectedTab = MutableStateFlow(PayoutTab.UPCOMING)
+    val selectedTab: StateFlow<PayoutTab> = _selectedTab.asStateFlow()
+
     private val allPayouts = payoutDao.getAllPayoutRows()
 
-    val uiState: StateFlow<PayoutsUiState> = combine(allPayouts, _selectedCurrency) { rows, selectedCurr ->
+    val uiState: StateFlow<PayoutsUiState> = combine(allPayouts, _selectedCurrency, _selectedTab) { rows, selectedCurr, currentTab ->
         val items = rows.map { row ->
             val totalPayout = row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong()))
             val label = when (row.payType.lowercase()) {
@@ -59,10 +69,25 @@ class PayoutsViewModel(
             items.filter { it.currency.equals(effectiveCurrency, ignoreCase = true) }
         }
 
+        val today = LocalDate.now()
+        val upcomingItems = filtered
+            .filter { !it.payDate.isBefore(today) }
+            .sortedBy { it.payDate }
+
+        val receivedItems = filtered
+            .filter { it.payDate.isBefore(today) }
+            .sortedByDescending { it.payDate }
+
+        val activePayouts = when (currentTab) {
+            PayoutTab.UPCOMING -> upcomingItems
+            PayoutTab.RECEIVED -> receivedItems
+        }
+
         PayoutsUiState(
             availableCurrencies = currencies,
             selectedCurrency = effectiveCurrency,
-            payouts = filtered
+            selectedTab = currentTab,
+            payouts = activePayouts
         )
     }.stateIn(
         scope = viewModelScope,
@@ -72,6 +97,10 @@ class PayoutsViewModel(
 
     fun selectCurrency(currency: String) {
         _selectedCurrency.value = currency
+    }
+
+    fun selectTab(tab: PayoutTab) {
+        _selectedTab.value = tab
     }
 
     companion object {
