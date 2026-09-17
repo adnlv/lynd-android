@@ -64,7 +64,6 @@ fun AddHoldingScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel.saveSuccessEvent) {
@@ -73,16 +72,8 @@ fun AddHoldingScreen(
         }
     }
 
-    LaunchedEffect(uiState.fetchState) {
-        val state = uiState.fetchState
-        if (state is FetchState.Error) {
-            snackbarHostState.showSnackbar(state.message)
-        }
-    }
-
     Scaffold(
         modifier = modifier,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Add Bond Holding") },
@@ -112,6 +103,10 @@ fun AddHoldingScreen(
                 placeholder = { Text("e.g. UA4000187348") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = uiState.fetchState is FetchState.Error,
+                supportingText = (uiState.fetchState as? FetchState.Error)?.message?.let {
+                    { Text(it) }
+                },
                 trailingIcon = {
                     if (uiState.fetchState is FetchState.Loading) {
                         CircularProgressIndicator(
@@ -167,7 +162,11 @@ fun AddHoldingScreen(
                     label = { Text("Quantity") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
-                    singleLine = true
+                    singleLine = true,
+                    isError = uiState.quantityError != null,
+                    supportingText = uiState.quantityError?.let {
+                        { Text(it) }
+                    }
                 )
 
                 IconButton(
@@ -184,7 +183,11 @@ fun AddHoldingScreen(
                 placeholder = { Text("e.g. 1025.50") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                isError = uiState.priceError != null,
+                supportingText = uiState.priceError?.let {
+                    { Text(it) }
+                }
             )
 
             val calculatedTotal = remember(uiState.pricePerBond, uiState.quantity) {

@@ -30,7 +30,9 @@ data class AddHoldingUiState(
     val quantity: String = "1",
     val pricePerBond: String = "",
     val purchaseDate: LocalDate = LocalDate.now(),
-    val fetchState: FetchState = FetchState.Idle
+    val fetchState: FetchState = FetchState.Idle,
+    val quantityError: String? = null,
+    val priceError: String? = null
 )
 
 class AddHoldingViewModel(
@@ -61,23 +63,23 @@ class AddHoldingViewModel(
     }
 
     fun onQuantityChanged(value: String) {
-        _uiState.update { it.copy(quantity = value) }
+        _uiState.update { it.copy(quantity = value, quantityError = null) }
     }
 
     fun incrementQuantity() {
         val current = _uiState.value.quantity.toIntOrNull() ?: 0
-        _uiState.update { it.copy(quantity = (current + 1).toString()) }
+        _uiState.update { it.copy(quantity = (current + 1).toString(), quantityError = null) }
     }
 
     fun decrementQuantity() {
         val current = _uiState.value.quantity.toIntOrNull() ?: 1
         if (current > 1) {
-            _uiState.update { it.copy(quantity = (current - 1).toString()) }
+            _uiState.update { it.copy(quantity = (current - 1).toString(), quantityError = null) }
         }
     }
 
     fun onPricePerBondChanged(value: String) {
-        _uiState.update { it.copy(pricePerBond = value) }
+        _uiState.update { it.copy(pricePerBond = value, priceError = null) }
     }
 
     fun onPurchaseDateChanged(date: LocalDate) {
@@ -106,16 +108,21 @@ class AddHoldingViewModel(
             null
         }
 
+        var hasError = false
         if (state.fetchState !is FetchState.Success) {
             _uiState.update { it.copy(fetchState = FetchState.Error("Please fetch a valid bond first")) }
-            return
+            hasError = true
         }
         if (quantity == null || quantity <= 0) {
-            _uiState.update { it.copy(fetchState = FetchState.Error("Quantity must be a positive integer")) }
-            return
+            _uiState.update { it.copy(quantityError = "Quantity must be a positive integer") }
+            hasError = true
         }
         if (pricePerBond == null || pricePerBond <= BigDecimal.ZERO) {
-            _uiState.update { it.copy(fetchState = FetchState.Error("Please enter a valid price per bond")) }
+            _uiState.update { it.copy(priceError = "Please enter a valid price per bond") }
+            hasError = true
+        }
+
+        if (hasError || quantity == null || pricePerBond == null) {
             return
         }
 
