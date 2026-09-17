@@ -61,6 +61,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -104,6 +105,7 @@ fun HoldingsScreen(
                     val totalSeconds = 4
                     var remainingSeconds by remember(data) { mutableStateOf(totalSeconds) }
                     val progress = remember(data) { Animatable(1f) }
+                    val swipeOffsetX = remember(data) { Animatable(0f) }
 
                     LaunchedEffect(data) {
                         launch {
@@ -118,8 +120,38 @@ fun HoldingsScreen(
                         )
                     }
 
+                    val dismissThresholdPx = with(LocalDensity.current) { 96.dp.toPx() }
+
                     Snackbar(
-                        modifier = Modifier.padding(horizontal = 8.dp),
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .offset { IntOffset(swipeOffsetX.value.roundToInt(), 0) }
+                            .alpha(1f - (kotlin.math.abs(swipeOffsetX.value) / (dismissThresholdPx * 2f)).coerceIn(0f, 1f))
+                            .pointerInput(data) {
+                                detectHorizontalDragGestures(
+                                    onHorizontalDrag = { _, dragAmount ->
+                                        coroutineScope.launch {
+                                            swipeOffsetX.snapTo(swipeOffsetX.value + dragAmount)
+                                        }
+                                    },
+                                    onDragEnd = {
+                                        coroutineScope.launch {
+                                            if (kotlin.math.abs(swipeOffsetX.value) > dismissThresholdPx) {
+                                                val target = if (swipeOffsetX.value > 0) dismissThresholdPx * 3 else -dismissThresholdPx * 3
+                                                swipeOffsetX.animateTo(target)
+                                                data.dismiss()
+                                            } else {
+                                                swipeOffsetX.animateTo(0f)
+                                            }
+                                        }
+                                    },
+                                    onDragCancel = {
+                                        coroutineScope.launch {
+                                            swipeOffsetX.animateTo(0f)
+                                        }
+                                    }
+                                )
+                            },
                         action = {
                             data.visuals.actionLabel?.let { label ->
                                 TextButton(onClick = { data.performAction() }) {
