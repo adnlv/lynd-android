@@ -26,7 +26,7 @@ sealed interface FetchState {
 }
 
 data class AddHoldingUiState(
-    val isin: String = "",
+    val isin: String = "UA4000",
     val quantity: String = "",
     val pricePerBond: String = "",
     val purchaseDate: LocalDate = LocalDate.now(),
@@ -51,14 +51,11 @@ class AddHoldingViewModel(
         _uiState.update { it.copy(isin = value, fetchState = FetchState.Idle) }
 
         isinLookupJob?.cancel()
-        if (trimmed.isBlank()) {
+        if (trimmed.length != 12) {
             return
         }
 
         isinLookupJob = viewModelScope.launch {
-            if (trimmed.length != 12) {
-                kotlinx.coroutines.delay(500)
-            }
             fetchBond(trimmed)
         }
     }
