@@ -1,7 +1,6 @@
 package com.adnlv.lynd.ui.payouts
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -153,9 +152,6 @@ fun PayoutsScreen(
                             }
                             val currency = payoutsForDate.firstOrNull()?.currency.orEmpty()
 
-                            val isDarkTheme = isSystemInDarkTheme()
-                            val headerTextColor = if (isDarkTheme) Color.Gray else Color.DarkGray
-
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -167,13 +163,13 @@ fun PayoutsScreen(
                                     text = date.format(dateFormatter),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = headerTextColor
+                                    color = Color.Gray
                                 )
                                 Text(
                                     text = "$totalSum $currency",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = headerTextColor
+                                    color = Color.Gray
                                 )
                             }
                         }
@@ -195,20 +191,12 @@ fun PayoutCard(
     payout: PayoutItem,
     modifier: Modifier = Modifier
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val cardColors = if (isDarkTheme) {
-        CardDefaults.cardColors(
-            containerColor = Color(0xFF1E1E24),
-            contentColor = Color(0xFFEDEDED)
-        )
-    } else {
-        CardDefaults.cardColors()
-    }
-    val amountColor = if (isDarkTheme) Color(0xFF90CAF9) else MaterialTheme.colorScheme.primary
-
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = cardColors,
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF1E1E24),
+            contentColor = Color(0xFFEDEDED)
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -221,7 +209,8 @@ fun PayoutCard(
             Text(
                 text = payout.payType,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFFEDEDED)
             )
             val formattedAmount = remember(payout.payoutAmount) {
                 payout.payoutAmount.setScale(2, RoundingMode.HALF_UP).toPlainString()
@@ -230,7 +219,7 @@ fun PayoutCard(
                 text = "$formattedAmount ${payout.currency}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = amountColor
+                color = Color(0xFF90CAF9)
             )
         }
     }
