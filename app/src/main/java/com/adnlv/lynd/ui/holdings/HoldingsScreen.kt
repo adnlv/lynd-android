@@ -2,6 +2,7 @@ package com.adnlv.lynd.ui.holdings
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -10,6 +11,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -98,15 +102,40 @@ fun HoldingsScreen(
     var editingHolding by remember { mutableStateOf<HoldingItem?>(null) }
     var revealedHoldingId by remember { mutableStateOf<Int?>(null) }
     var swipingHoldingId by remember { mutableStateOf<Int?>(null) }
+    var peekingHoldingId by remember { mutableStateOf<Int?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+    val sharedPrefs = remember(context) {
+        context.getSharedPreferences("lynd_prefs", Context.MODE_PRIVATE)
+    }
+    var hasSeenSwipePeek by remember {
+        mutableStateOf(sharedPrefs.getBoolean("has_seen_swipe_peek", false))
+    }
+
+    LaunchedEffect(holdings, hasSeenSwipePeek) {
+        if (!hasSeenSwipePeek && holdings.isNotEmpty()) {
+            val firstHolding = holdings.first()
+            delay(500)
+            peekingHoldingId = firstHolding.id
+            delay(1400)
+            peekingHoldingId = null
+            sharedPrefs.edit().putBoolean("has_seen_swipe_peek", true).apply()
+            hasSeenSwipePeek = true
+        }
+    }
 
     LaunchedEffect(listState.isScrollInProgress) {
         if (listState.isScrollInProgress) {
             revealedHoldingId = null
             swipingHoldingId = null
+            if (peekingHoldingId != null) {
+                peekingHoldingId = null
+                sharedPrefs.edit().putBoolean("has_seen_swipe_peek", true).apply()
+                hasSeenSwipePeek = true
+            }
         }
     }
 
@@ -360,6 +389,7 @@ fun HoldingsScreen(
                             modifier = Modifier.animateItem(),
                             holding = holding,
                             isRevealed = revealedHoldingId == holding.id,
+                            isPeeking = peekingHoldingId == holding.id,
                             canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
                             onExpand = { revealedHoldingId = holding.id },
                             onCollapse = {
@@ -368,6 +398,11 @@ fun HoldingsScreen(
                                 }
                             },
                             onDragStart = {
+                                if (peekingHoldingId != null) {
+                                    peekingHoldingId = null
+                                    sharedPrefs.edit().putBoolean("has_seen_swipe_peek", true).apply()
+                                    hasSeenSwipePeek = true
+                                }
                                 if (swipingHoldingId == null) {
                                     swipingHoldingId = holding.id
                                     if (revealedHoldingId != holding.id) {
@@ -428,6 +463,7 @@ fun HoldingsScreen(
 fun HoldingCard(
     holding: HoldingItem,
     isRevealed: Boolean,
+    isPeeking: Boolean = false,
     onExpand: () -> Unit,
     onCollapse: () -> Unit,
     onDragStart: (() -> Unit)? = null,
@@ -451,6 +487,22 @@ fun HoldingCard(
         dampingRatio = 0.6f,
         stiffness = Spring.StiffnessMediumLow
     )
+
+    LaunchedEffect(isPeeking) {
+        if (isDeleting || isRevealed) return@LaunchedEffect
+        if (isPeeking) {
+            val peekDistance = -actionButtonsWidthPx * 0.6f
+            offsetX.animateTo(
+                targetValue = peekDistance,
+                animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)
+            )
+        } else if (offsetX.value != 0f) {
+            offsetX.animateTo(
+                targetValue = 0f,
+                animationSpec = swipeSpringSpec
+            )
+        }
+    }
 
     LaunchedEffect(isRevealed, isDeleting) {
         if (isDeleting) return@LaunchedEffect
