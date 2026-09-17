@@ -1,5 +1,7 @@
 package com.adnlv.lynd.ui.holdings
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +49,11 @@ fun HoldingsScreen(
     val holdings by viewModel.holdings.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
     var showAddHoldingSheet by rememberSaveable { mutableStateOf(false) }
+    val blurRadius by animateDpAsState(
+        targetValue = if (showAddHoldingSheet) 16.dp else 0.dp,
+        animationSpec = tween(durationMillis = 200),
+        label = "holdingsBackgroundBlur"
+    )
 
     Scaffold(
         modifier = modifier,
@@ -69,7 +76,7 @@ fun HoldingsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .then(
-                    if (showAddHoldingSheet) Modifier.blur(16.dp) else Modifier
+                    if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier
                 )
         ) {
             if (isSyncing) {

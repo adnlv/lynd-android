@@ -52,6 +52,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,15 +75,16 @@ fun AddHoldingScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
 
-    LaunchedEffect(viewModel.saveSuccessEvent) {
-        viewModel.saveSuccessEvent.collect {
-            onNavigateBack()
-        }
-    }
-
     val isKeyboardOpen = WindowInsets.isImeVisible
     val heightFraction = if (isKeyboardOpen) 1.0f else 0.80f
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    LaunchedEffect(viewModel.saveSuccessEvent) {
+        viewModel.saveSuccessEvent.collect {
+            sheetState.hide()
+            onNavigateBack()
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onNavigateBack,
