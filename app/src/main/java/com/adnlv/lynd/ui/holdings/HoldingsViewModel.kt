@@ -23,6 +23,9 @@ class HoldingsViewModel(
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
+    private val _syncError = MutableStateFlow<String?>(null)
+    val syncError: StateFlow<String?> = _syncError.asStateFlow()
+
     private var recentlyDeletedHolding: HoldingEntity? = null
 
     init {
@@ -32,13 +35,35 @@ class HoldingsViewModel(
     private fun checkAndSyncCatalogue() {
         viewModelScope.launch {
             if (nbuRepository.isDataStale()) {
-                _isSyncing.value = true
-                try {
-                    nbuRepository.syncAllBonds()
-                } finally {
-                    _isSyncing.value = false
-                }
+                performSync()
             }
+        }
+    }
+
+    fun retrySync() {
+        viewModelScope.launch {
+            performSync()
+        }
+    }
+
+    private suspend fun performSync() {
+        if (_isSyncing.value) return
+        _isSyncing.value = true
+        _syncError.value = null
+        try {
+            val result = nbuRepository.syncAllBonds()
+            result.fold(
+                onSuccess = {
+                    _syncError.value = null
+                },
+                onFailure = { error ->
+                    _syncError.value = error.localizedMessage ?: "Synchronization failed"
+                }
+            )
+        } catch (e: Exception) {
+            _syncError.value = e.localizedMessage ?: "Synchronization failed"
+        } finally {
+            _isSyncing.value = false
         }
     }
 
