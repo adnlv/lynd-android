@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.PayoutItem
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun PayoutsScreen(
@@ -128,13 +131,32 @@ fun PayoutsScreen(
                     )
                 }
             } else {
+                val dateFormatter = remember { DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()) }
+                val groupedPayouts = remember(uiState.payouts) {
+                    uiState.payouts.groupBy { it.payDate }
+                }
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(items = uiState.payouts) { payout ->
-                        PayoutCard(payout = payout)
+                    groupedPayouts.forEach { (date, payoutsForDate) ->
+                        item(key = "header_$date") {
+                            Text(
+                                text = date.format(dateFormatter),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                            )
+                        }
+                        items(
+                            items = payoutsForDate,
+                            key = { "${it.isin}_${it.payDate}_${it.payType}_${it.payoutAmount}" }
+                        ) { payout ->
+                            PayoutCard(payout = payout)
+                        }
                     }
                 }
             }
