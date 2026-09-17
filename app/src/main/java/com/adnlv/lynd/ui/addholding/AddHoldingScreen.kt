@@ -118,6 +118,12 @@ fun AddHoldingScreen(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp
                         )
+                    } else if (uiState.fetchState is FetchState.Idle && uiState.isin.trim().length in 1..11) {
+                        Text(
+                            text = "${12 - uiState.isin.trim().length}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             )
