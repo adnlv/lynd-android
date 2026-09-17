@@ -17,7 +17,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -142,14 +144,32 @@ fun AddHoldingScreen(
                 }
             }
 
-            OutlinedTextField(
-                value = uiState.quantity,
-                onValueChange = viewModel::onQuantityChanged,
-                label = { Text("Quantity") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = viewModel::decrementQuantity,
+                    enabled = (uiState.quantity.toIntOrNull() ?: 1) > 1
+                ) {
+                    Icon(imageVector = Icons.Default.Remove, contentDescription = "Decrease Quantity")
+                }
+
+                OutlinedTextField(
+                    value = uiState.quantity,
+                    onValueChange = viewModel::onQuantityChanged,
+                    label = { Text("Quantity") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+
+                IconButton(
+                    onClick = viewModel::incrementQuantity
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Increase Quantity")
+                }
+            }
 
             OutlinedTextField(
                 value = uiState.totalPaidAmount,

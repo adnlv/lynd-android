@@ -67,6 +67,18 @@ class AddHoldingViewModel(
         _uiState.update { it.copy(quantity = value) }
     }
 
+    fun incrementQuantity() {
+        val current = _uiState.value.quantity.toIntOrNull() ?: 0
+        _uiState.update { it.copy(quantity = (current + 1).toString()) }
+    }
+
+    fun decrementQuantity() {
+        val current = _uiState.value.quantity.toIntOrNull() ?: 1
+        if (current > 1) {
+            _uiState.update { it.copy(quantity = (current - 1).toString()) }
+        }
+    }
+
     fun onTotalPaidAmountChanged(value: String) {
         _uiState.update { it.copy(totalPaidAmount = value) }
     }
