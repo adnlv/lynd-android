@@ -148,7 +148,7 @@ fun PayoutsScreen(
                                 text = date.format(dateFormatter),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = Color.DarkGray,
                                 modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
                             )
                         }
