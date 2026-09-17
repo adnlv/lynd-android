@@ -105,7 +105,10 @@ fun MainApp(appContainer: AppContainer) {
         ) {
             composable(Screen.Holdings.route) {
                 val holdingsViewModel: HoldingsViewModel = viewModel(
-                    factory = HoldingsViewModel.provideFactory(appContainer.database.holdingDao())
+                    factory = HoldingsViewModel.provideFactory(
+                        holdingDao = appContainer.database.holdingDao(),
+                        nbuRepository = appContainer.nbuRepository
+                    )
                 )
                 HoldingsScreen(
                     viewModel = holdingsViewModel,
