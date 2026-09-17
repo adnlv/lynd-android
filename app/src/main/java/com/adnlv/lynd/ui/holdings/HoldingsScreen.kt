@@ -88,14 +88,16 @@ fun HoldingsScreen(
     var showHoldingSheet by rememberSaveable { mutableStateOf(false) }
     var editingHolding by remember { mutableStateOf<HoldingItem?>(null) }
     var revealedHoldingId by remember { mutableStateOf<Int?>(null) }
+    var swipingHoldingId by remember { mutableStateOf<Int?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
     LaunchedEffect(listState.isScrollInProgress) {
-        if (listState.isScrollInProgress && revealedHoldingId != null) {
+        if (listState.isScrollInProgress) {
             revealedHoldingId = null
+            swipingHoldingId = null
         }
     }
 
@@ -294,6 +296,7 @@ fun HoldingsScreen(
                             modifier = Modifier.animateItem(),
                             holding = holding,
                             isRevealed = revealedHoldingId == holding.id,
+                            canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
                             onExpand = { revealedHoldingId = holding.id },
                             onCollapse = {
                                 if (revealedHoldingId == holding.id) {
@@ -301,8 +304,21 @@ fun HoldingsScreen(
                                 }
                             },
                             onDragStart = {
-                                if (revealedHoldingId != holding.id) {
-                                    revealedHoldingId = null
+                                if (swipingHoldingId == null) {
+                                    swipingHoldingId = holding.id
+                                    if (revealedHoldingId != holding.id) {
+                                        revealedHoldingId = null
+                                    }
+                                }
+                            },
+                            onDragEnd = {
+                                if (swipingHoldingId == holding.id) {
+                                    swipingHoldingId = null
+                                }
+                            },
+                            onDragCancel = {
+                                if (swipingHoldingId == holding.id) {
+                                    swipingHoldingId = null
                                 }
                             },
                             onEdit = {
@@ -351,6 +367,9 @@ fun HoldingCard(
     onExpand: () -> Unit,
     onCollapse: () -> Unit,
     onDragStart: (() -> Unit)? = null,
+    onDragEnd: (() -> Unit)? = null,
+    onDragCancel: (() -> Unit)? = null,
+    canSwipe: Boolean = true,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -444,19 +463,23 @@ fun HoldingCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                .pointerInput(actionButtonsWidthPx, isDeleting) {
+                .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe) {
                     if (isDeleting) return@pointerInput
                     detectHorizontalDragGestures(
                         onDragStart = {
-                            onDragStart?.invoke()
+                            if (canSwipe) {
+                                onDragStart?.invoke()
+                            }
                         },
                         onHorizontalDrag = { _, dragAmount ->
+                            if (!canSwipe) return@detectHorizontalDragGestures
                             coroutineScope.launch {
                                 val newOffset = (offsetX.value + dragAmount).coerceIn(-actionButtonsWidthPx, 0f)
                                 offsetX.snapTo(newOffset)
                             }
                         },
                         onDragEnd = {
+                            onDragEnd?.invoke()
                             coroutineScope.launch {
                                 if (offsetX.value < -actionButtonsWidthPx / 3) {
                                     onExpand()
@@ -468,6 +491,7 @@ fun HoldingCard(
                             }
                         },
                         onDragCancel = {
+                            onDragCancel?.invoke()
                             coroutineScope.launch {
                                 if (offsetX.value < -actionButtonsWidthPx / 3) {
                                     onExpand()
