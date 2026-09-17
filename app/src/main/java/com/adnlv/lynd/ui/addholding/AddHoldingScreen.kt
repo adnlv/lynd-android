@@ -25,7 +25,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
@@ -113,11 +112,11 @@ fun AddHoldingScreen(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Close"
-                    )
+                Button(
+                    onClick = viewModel::saveHolding,
+                    enabled = uiState.fetchState is FetchState.Success
+                ) {
+                    Text("Save")
                 }
             }
             OutlinedTextField(
@@ -297,14 +296,6 @@ fun AddHoldingScreen(
                     .fillMaxWidth()
                     .clickable { showDatePicker = true }
             )
-
-            Button(
-                onClick = viewModel::saveHolding,
-                enabled = uiState.fetchState is FetchState.Success,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Save Holding")
-            }
         }
     }
 
