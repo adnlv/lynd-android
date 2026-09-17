@@ -33,6 +33,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -128,11 +129,13 @@ fun HoldingsScreen(
 
                     val dismissThresholdPx = with(LocalDensity.current) { 96.dp.toPx() }
 
-                    Snackbar(
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .height(56.dp)
                             .offset { IntOffset(swipeOffsetX.value.roundToInt(), 0) }
                             .alpha(1f - (kotlin.math.abs(swipeOffsetX.value) / (dismissThresholdPx * 2f)).coerceIn(0f, 1f))
+                            .clip(RoundedCornerShape(16.dp))
                             .pointerInput(data) {
                                 detectHorizontalDragGestures(
                                     onHorizontalDrag = { _, dragAmount ->
@@ -158,32 +161,60 @@ fun HoldingsScreen(
                                     }
                                 )
                             },
-                        action = {
-                            data.visuals.actionLabel?.let { label ->
-                                TextButton(onClick = { data.performAction() }) {
-                                    Text(label)
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.inverseSurface,
+                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                        shadowElevation = 6.dp
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(start = 16.dp, end = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = data.visuals.message,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.inverseOnSurface,
+                                        maxLines = 1
+                                    )
+                                    Text(
+                                        text = "${remainingSeconds}s",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f)
+                                    )
+                                }
+
+                                data.visuals.actionLabel?.let { label ->
+                                    TextButton(
+                                        onClick = { data.performAction() },
+                                        contentPadding = PaddingValues(horizontal = 8.dp)
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.inversePrimary
+                                        )
+                                    }
                                 }
                             }
-                        }
-                    ) {
-                        Column {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(text = data.visuals.message, modifier = Modifier.weight(1f))
-                                Text(
-                                    text = "${remainingSeconds}s",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
+
                             LinearProgressIndicator(
                                 progress = { progress.value },
-                                modifier = Modifier.fillMaxWidth().height(2.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(3.dp)
+                                    .align(Alignment.BottomCenter),
+                                color = MaterialTheme.colorScheme.inversePrimary,
+                                trackColor = MaterialTheme.colorScheme.inverseSurface
                             )
                         }
                     }
