@@ -90,7 +90,8 @@ fun AddHoldingScreen(
         onDismissRequest = onNavigateBack,
         sheetState = sheetState,
         modifier = modifier,
-        dragHandle = null
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = 0.28f)
     ) {
         Column(
             modifier = Modifier

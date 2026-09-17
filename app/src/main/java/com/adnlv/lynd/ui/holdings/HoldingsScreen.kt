@@ -27,8 +27,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingItem
@@ -36,16 +40,26 @@ import com.adnlv.lynd.domain.HoldingItem
 @Composable
 fun HoldingsScreen(
     viewModel: HoldingsViewModel,
-    onNavigateToAdd: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToAdd: (() -> Unit)? = null,
+    addHoldingContent: (@Composable (onDismiss: () -> Unit) -> Unit)? = null
 ) {
     val holdings by viewModel.holdings.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
+    var showAddHoldingSheet by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAdd) {
+            FloatingActionButton(
+                onClick = {
+                    if (addHoldingContent != null) {
+                        showAddHoldingSheet = true
+                    } else {
+                        onNavigateToAdd?.invoke()
+                    }
+                }
+            ) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
             }
         }
@@ -54,6 +68,9 @@ fun HoldingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .then(
+                    if (showAddHoldingSheet) Modifier.blur(16.dp) else Modifier
+                )
         ) {
             if (isSyncing) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -84,6 +101,12 @@ fun HoldingsScreen(
                     }
                 }
             }
+        }
+    }
+
+    if (showAddHoldingSheet && addHoldingContent != null) {
+        addHoldingContent {
+            showAddHoldingSheet = false
         }
     }
 }

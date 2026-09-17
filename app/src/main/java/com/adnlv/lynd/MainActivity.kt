@@ -112,7 +112,18 @@ fun MainApp(appContainer: AppContainer) {
                 )
                 HoldingsScreen(
                     viewModel = holdingsViewModel,
-                    onNavigateToAdd = { navController.navigate(Screen.AddHolding.route) }
+                    addHoldingContent = { onDismiss ->
+                        val addHoldingViewModel: AddHoldingViewModel = viewModel(
+                            factory = AddHoldingViewModel.provideFactory(
+                                nbuRepository = appContainer.nbuRepository,
+                                holdingDao = appContainer.database.holdingDao()
+                            )
+                        )
+                        AddHoldingScreen(
+                            viewModel = addHoldingViewModel,
+                            onNavigateBack = onDismiss
+                        )
+                    }
                 )
             }
             composable(Screen.Payouts.route) {
