@@ -17,7 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -209,7 +209,7 @@ fun PayoutCard(
             val icon = if (payout.payType.equals("Redemption", ignoreCase = true)) {
                 Icons.Default.DoneAll
             } else {
-                Icons.Default.Payments
+                Icons.Default.Percent
             }
 
             Row(
