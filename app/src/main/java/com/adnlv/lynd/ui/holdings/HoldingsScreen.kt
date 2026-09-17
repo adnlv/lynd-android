@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -90,6 +91,13 @@ fun HoldingsScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (listState.isScrollInProgress && revealedHoldingId != null) {
+            revealedHoldingId = null
+        }
+    }
 
     val isSheetActive = showHoldingSheet && sheetState.targetValue != SheetValue.Hidden
     val blurRadius by animateDpAsState(
@@ -246,19 +254,13 @@ fun HoldingsScreen(
                 .then(
                     if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier
                 )
-                .then(
-                    if (revealedHoldingId != null) {
-                        Modifier.pointerInput(revealedHoldingId) {
-                            detectTapGestures(
-                                onPress = {
-                                    revealedHoldingId = null
-                                }
-                            )
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        if (revealedHoldingId != null) {
+                            revealedHoldingId = null
                         }
-                    } else {
-                        Modifier
                     }
-                )
+                }
         ) {
             if (isSyncing) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -277,6 +279,7 @@ fun HoldingsScreen(
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
                         start = 16.dp,
@@ -294,6 +297,11 @@ fun HoldingsScreen(
                             onExpand = { revealedHoldingId = holding.id },
                             onCollapse = {
                                 if (revealedHoldingId == holding.id) {
+                                    revealedHoldingId = null
+                                }
+                            },
+                            onDragStart = {
+                                if (revealedHoldingId != holding.id) {
                                     revealedHoldingId = null
                                 }
                             },
@@ -342,6 +350,7 @@ fun HoldingCard(
     isRevealed: Boolean,
     onExpand: () -> Unit,
     onCollapse: () -> Unit,
+    onDragStart: (() -> Unit)? = null,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -438,6 +447,9 @@ fun HoldingCard(
                 .pointerInput(actionButtonsWidthPx, isDeleting) {
                     if (isDeleting) return@pointerInput
                     detectHorizontalDragGestures(
+                        onDragStart = {
+                            onDragStart?.invoke()
+                        },
                         onHorizontalDrag = { _, dragAmount ->
                             coroutineScope.launch {
                                 val newOffset = (offsetX.value + dragAmount).coerceIn(-actionButtonsWidthPx, 0f)
