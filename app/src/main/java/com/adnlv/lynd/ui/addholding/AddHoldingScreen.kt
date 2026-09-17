@@ -200,23 +200,20 @@ fun AddHoldingScreen(
                 )
             }
 
-            Box(
+            OutlinedTextField(
+                value = uiState.purchaseDate.toString(),
+                onValueChange = {},
+                label = { Text("Purchase Date") },
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(imageVector = Icons.Default.DateRange, contentDescription = "Select Date")
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { showDatePicker = true }
-            ) {
-                OutlinedTextField(
-                    value = uiState.purchaseDate.toString(),
-                    onValueChange = {},
-                    label = { Text("Purchase Date") },
-                    readOnly = true,
-                    trailingIcon = {
-                        Icon(imageVector = Icons.Default.DateRange, contentDescription = "Select Date")
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = false
-                )
-            }
+            )
 
             Button(
                 onClick = viewModel::saveHolding,
