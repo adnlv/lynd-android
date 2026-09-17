@@ -114,8 +114,9 @@ fun MainApp(appContainer: AppContainer) {
                 )
                 HoldingsScreen(
                     viewModel = holdingsViewModel,
-                    addHoldingContent = { sheetState, onDismiss ->
+                    addHoldingContent = { sheetState, holdingToEdit, onDismiss ->
                         val addHoldingViewModel: AddHoldingViewModel = viewModel(
+                            key = holdingToEdit?.id?.toString() ?: "new",
                             factory = AddHoldingViewModel.provideFactory(
                                 nbuRepository = appContainer.nbuRepository,
                                 holdingDao = appContainer.database.holdingDao()
@@ -124,6 +125,7 @@ fun MainApp(appContainer: AppContainer) {
                         AddHoldingScreen(
                             viewModel = addHoldingViewModel,
                             onNavigateBack = onDismiss,
+                            initialHolding = holdingToEdit,
                             sheetState = sheetState
                         )
                     }

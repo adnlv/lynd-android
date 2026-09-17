@@ -65,6 +65,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
+import com.adnlv.lynd.domain.HoldingItem
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -72,6 +73,7 @@ fun AddHoldingScreen(
     viewModel: AddHoldingViewModel,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
+    initialHolding: HoldingItem? = null,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -79,6 +81,18 @@ fun AddHoldingScreen(
 
     val isKeyboardOpen = WindowInsets.isImeVisible
     val heightFraction = if (isKeyboardOpen) 1.0f else 0.80f
+
+    LaunchedEffect(initialHolding) {
+        if (initialHolding != null) {
+            viewModel.initializeForEdit(
+                holdingId = initialHolding.id,
+                isin = initialHolding.isin,
+                quantity = initialHolding.quantity,
+                pricePerBond = initialHolding.pricePerBond,
+                purchaseDate = initialHolding.purchaseDate
+            )
+        }
+    }
 
     LaunchedEffect(viewModel.saveSuccessEvent) {
         viewModel.saveSuccessEvent.collect {
@@ -109,7 +123,7 @@ fun AddHoldingScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Add Bond Holding",
+                    text = if (uiState.editingHoldingId != null) "Edit Bond Holding" else "Add Bond Holding",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )

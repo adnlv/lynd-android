@@ -68,16 +68,17 @@ fun HoldingsScreen(
     viewModel: HoldingsViewModel,
     modifier: Modifier = Modifier,
     onNavigateToAdd: (() -> Unit)? = null,
-    onEditHolding: ((HoldingItem) -> Unit)? = null,
-    addHoldingContent: (@Composable (sheetState: SheetState, onDismiss: () -> Unit) -> Unit)? = null
+    onNavigateToEdit: ((HoldingItem) -> Unit)? = null,
+    addHoldingContent: (@Composable (sheetState: SheetState, holdingToEdit: HoldingItem?, onDismiss: () -> Unit) -> Unit)? = null
 ) {
     val holdings by viewModel.holdings.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
-    var showAddHoldingSheet by rememberSaveable { mutableStateOf(false) }
+    var showHoldingSheet by rememberSaveable { mutableStateOf(false) }
+    var editingHolding by remember { mutableStateOf<HoldingItem?>(null) }
     var revealedHoldingId by remember { mutableStateOf<Int?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val isSheetActive = showAddHoldingSheet && sheetState.targetValue != SheetValue.Hidden
+    val isSheetActive = showHoldingSheet && sheetState.targetValue != SheetValue.Hidden
     val blurRadius by animateDpAsState(
         targetValue = if (isSheetActive) 16.dp else 0.dp,
         animationSpec = tween(durationMillis = 150),
@@ -91,7 +92,8 @@ fun HoldingsScreen(
                 onClick = {
                     revealedHoldingId = null
                     if (addHoldingContent != null) {
-                        showAddHoldingSheet = true
+                        editingHolding = null
+                        showHoldingSheet = true
                     } else {
                         onNavigateToAdd?.invoke()
                     }
@@ -160,7 +162,12 @@ fun HoldingsScreen(
                             },
                             onEdit = {
                                 revealedHoldingId = null
-                                onEditHolding?.invoke(holding)
+                                if (addHoldingContent != null) {
+                                    editingHolding = holding
+                                    showHoldingSheet = true
+                                } else {
+                                    onNavigateToEdit?.invoke(holding)
+                                }
                             },
                             onDelete = {
                                 revealedHoldingId = null
@@ -173,9 +180,10 @@ fun HoldingsScreen(
         }
     }
 
-    if (showAddHoldingSheet && addHoldingContent != null) {
-        addHoldingContent(sheetState) {
-            showAddHoldingSheet = false
+    if (showHoldingSheet && addHoldingContent != null) {
+        addHoldingContent(sheetState, editingHolding) {
+            showHoldingSheet = false
+            editingHolding = null
         }
     }
 }
