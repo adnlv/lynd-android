@@ -25,10 +25,17 @@ sealed interface FetchState {
     data class Error(val message: String) : FetchState
 }
 
+enum class PriceInputMode {
+    PER_BOND,
+    TOTAL
+}
+
 data class AddHoldingUiState(
     val isin: String = "UA4000",
     val quantity: String = "1",
     val pricePerBond: String = "",
+    val totalPrice: String = "",
+    val priceMode: PriceInputMode = PriceInputMode.PER_BOND,
     val purchaseDate: LocalDate = LocalDate.now(),
     val fetchState: FetchState = FetchState.Idle,
     val quantityError: String? = null,
@@ -78,8 +85,23 @@ class AddHoldingViewModel(
         }
     }
 
+    fun onPriceModeChanged(mode: PriceInputMode) {
+        _uiState.update {
+            it.copy(
+                priceMode = mode,
+                pricePerBond = "",
+                totalPrice = "",
+                priceError = null
+            )
+        }
+    }
+
     fun onPricePerBondChanged(value: String) {
         _uiState.update { it.copy(pricePerBond = value, priceError = null) }
+    }
+
+    fun onTotalPriceChanged(value: String) {
+        _uiState.update { it.copy(totalPrice = value, priceError = null) }
     }
 
     fun onPurchaseDateChanged(date: LocalDate) {
@@ -102,11 +124,6 @@ class AddHoldingViewModel(
         val state = _uiState.value
         val isin = state.isin.trim()
         val quantity = state.quantity.toIntOrNull()
-        val pricePerBond = try {
-            BigDecimal(state.pricePerBond)
-        } catch (_: Exception) {
-            null
-        }
 
         var hasError = false
         if (state.fetchState !is FetchState.Success) {
@@ -117,16 +134,48 @@ class AddHoldingViewModel(
             _uiState.update { it.copy(quantityError = "Quantity must be a positive integer") }
             hasError = true
         }
-        if (pricePerBond == null || pricePerBond <= BigDecimal.ZERO) {
-            _uiState.update { it.copy(priceError = "Please enter a valid price per bond") }
-            hasError = true
+
+        var pricePerBond: BigDecimal? = null
+        var totalPaid: BigDecimal? = null
+
+        when (state.priceMode) {
+            PriceInputMode.PER_BOND -> {
+                val parsed = try {
+                    BigDecimal(state.pricePerBond)
+                } catch (_: Exception) {
+                    null
+                }
+                if (parsed == null || parsed <= BigDecimal.ZERO) {
+                    _uiState.update { it.copy(priceError = "Please enter a valid price per bond") }
+                    hasError = true
+                } else {
+                    pricePerBond = parsed
+                    if (quantity != null && quantity > 0) {
+                        totalPaid = parsed.multiply(BigDecimal(quantity))
+                    }
+                }
+            }
+            PriceInputMode.TOTAL -> {
+                val parsed = try {
+                    BigDecimal(state.totalPrice)
+                } catch (_: Exception) {
+                    null
+                }
+                if (parsed == null || parsed <= BigDecimal.ZERO) {
+                    _uiState.update { it.copy(priceError = "Please enter a valid total price") }
+                    hasError = true
+                } else {
+                    totalPaid = parsed
+                    if (quantity != null && quantity > 0) {
+                        pricePerBond = parsed.divide(BigDecimal(quantity), 2, java.math.RoundingMode.HALF_UP)
+                    }
+                }
+            }
         }
 
-        if (hasError || quantity == null || pricePerBond == null) {
+        if (hasError || quantity == null || pricePerBond == null || totalPaid == null) {
             return
         }
-
-        val totalPaid = pricePerBond.multiply(BigDecimal(quantity))
 
         viewModelScope.launch {
             holdingDao.insertHolding(

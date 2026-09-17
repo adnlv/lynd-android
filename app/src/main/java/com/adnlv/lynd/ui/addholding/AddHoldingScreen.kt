@@ -33,8 +33,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -176,33 +177,83 @@ fun AddHoldingScreen(
                 }
             }
 
-            OutlinedTextField(
-                value = uiState.pricePerBond,
-                onValueChange = viewModel::onPricePerBondChanged,
-                label = { Text("Price per Bond") },
-                placeholder = { Text("e.g. 1025.50") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = uiState.priceError != null,
-                supportingText = uiState.priceError?.let {
-                    { Text(it) }
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SegmentedButton(
+                    selected = uiState.priceMode == PriceInputMode.PER_BOND,
+                    onClick = { viewModel.onPriceModeChanged(PriceInputMode.PER_BOND) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                ) {
+                    Text("Per Bond")
                 }
-            )
-
-            val calculatedTotal = remember(uiState.pricePerBond, uiState.quantity) {
-                val price = uiState.pricePerBond.toBigDecimalOrNull()
-                val qty = uiState.quantity.toIntOrNull()
-                if (price != null && qty != null && qty > 0) {
-                    price.multiply(java.math.BigDecimal(qty)).toPlainString()
-                } else {
-                    null
+                SegmentedButton(
+                    selected = uiState.priceMode == PriceInputMode.TOTAL,
+                    onClick = { viewModel.onPriceModeChanged(PriceInputMode.TOTAL) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                ) {
+                    Text("Total")
                 }
             }
 
-            if (calculatedTotal != null) {
+            when (uiState.priceMode) {
+                PriceInputMode.PER_BOND -> {
+                    OutlinedTextField(
+                        value = uiState.pricePerBond,
+                        onValueChange = viewModel::onPricePerBondChanged,
+                        label = { Text("Price per Bond") },
+                        placeholder = { Text("e.g. 1025.50") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        isError = uiState.priceError != null,
+                        supportingText = uiState.priceError?.let {
+                            { Text(it) }
+                        }
+                    )
+                }
+                PriceInputMode.TOTAL -> {
+                    OutlinedTextField(
+                        value = uiState.totalPrice,
+                        onValueChange = viewModel::onTotalPriceChanged,
+                        label = { Text("Total Price") },
+                        placeholder = { Text("e.g. 10255.00") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        isError = uiState.priceError != null,
+                        supportingText = uiState.priceError?.let {
+                            { Text(it) }
+                        }
+                    )
+                }
+            }
+
+            val currency = (uiState.fetchState as? FetchState.Success)?.bond?.currency ?: ""
+            val derivedPriceText = remember(uiState.priceMode, uiState.pricePerBond, uiState.totalPrice, uiState.quantity, currency) {
+                val qty = uiState.quantity.toIntOrNull()
+                if (qty == null || qty <= 0) return@remember null
+
+                when (uiState.priceMode) {
+                    PriceInputMode.PER_BOND -> {
+                        val perBond = uiState.pricePerBond.toBigDecimalOrNull() ?: return@remember null
+                        val total = perBond.multiply(java.math.BigDecimal(qty))
+                            .setScale(2, java.math.RoundingMode.HALF_UP)
+                            .toPlainString()
+                        val prefix = if (currency.isNotBlank()) "$currency " else ""
+                        "Total: $prefix$total"
+                    }
+                    PriceInputMode.TOTAL -> {
+                        val total = uiState.totalPrice.toBigDecimalOrNull() ?: return@remember null
+                        val perBond = total.divide(java.math.BigDecimal(qty), 2, java.math.RoundingMode.HALF_UP)
+                            .toPlainString()
+                        val prefix = if (currency.isNotBlank()) "$currency " else ""
+                        "Per bond: $prefix$perBond"
+                    }
+                }
+            }
+
+            if (derivedPriceText != null) {
                 Text(
-                    text = "Total sum: $calculatedTotal",
+                    text = derivedPriceText,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
