@@ -69,12 +69,12 @@ class AddHoldingViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(fetchState = FetchState.Loading) }
-            val result = nbuRepository.getOrFetchBond(currentIsin)
-            result.onSuccess { bond ->
+            val bond = nbuRepository.getLocalBond(currentIsin)
+            if (bond != null) {
                 _uiState.update { it.copy(fetchState = FetchState.Success(bond)) }
-            }.onFailure { error ->
+            } else {
                 _uiState.update {
-                    it.copy(fetchState = FetchState.Error(error.localizedMessage ?: "Failed to fetch bond"))
+                    it.copy(fetchState = FetchState.Error("Bond with ISIN $currentIsin not found in local database"))
                 }
             }
         }
