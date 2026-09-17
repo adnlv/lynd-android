@@ -466,7 +466,7 @@ fun HoldingCard(
             }
         }
 
-        val maxDragPx = actionButtonsWidthPx + with(density) { 20.dp.toPx() }
+        val maxOverdragPx = with(density) { 40.dp.toPx() }
 
         Card(
             modifier = Modifier
@@ -483,14 +483,23 @@ fun HoldingCard(
                         onHorizontalDrag = { _, dragAmount ->
                             if (!canSwipe) return@detectHorizontalDragGestures
                             coroutineScope.launch {
-                                val candidate = offsetX.value + dragAmount
-                                val newOffset = if (candidate < -actionButtonsWidthPx) {
-                                    val overdrag = candidate - (-actionButtonsWidthPx)
-                                    (-actionButtonsWidthPx + overdrag * 0.35f).coerceAtLeast(-maxDragPx)
+                                val current = offsetX.value
+                                val effectiveDelta = if (dragAmount < 0f && current <= -actionButtonsWidthPx) {
+                                    val currentOverdrag = (-actionButtonsWidthPx - current).coerceAtLeast(0f)
+                                    val progress = (currentOverdrag / maxOverdragPx).coerceIn(0f, 1f)
+                                    dragAmount * (1f - progress) * 0.5f
+                                } else if (dragAmount > 0f && current >= 0f) {
+                                    val currentOverdrag = current.coerceAtLeast(0f)
+                                    val progress = (currentOverdrag / maxOverdragPx).coerceIn(0f, 1f)
+                                    dragAmount * (1f - progress) * 0.5f
                                 } else {
-                                    candidate.coerceIn(-actionButtonsWidthPx, 0f)
+                                    dragAmount
                                 }
-                                offsetX.snapTo(newOffset)
+                                val target = (current + effectiveDelta).coerceIn(
+                                    -actionButtonsWidthPx - maxOverdragPx,
+                                    maxOverdragPx
+                                )
+                                offsetX.snapTo(target)
                             }
                         },
                         onDragEnd = {
