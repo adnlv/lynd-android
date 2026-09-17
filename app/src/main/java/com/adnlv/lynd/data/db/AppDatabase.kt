@@ -8,9 +8,10 @@ import androidx.room.TypeConverters
     entities = [
         BondEntity::class,
         BondPaymentEntity::class,
-        HoldingEntity::class
+        HoldingEntity::class,
+        SyncMetadataEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -18,4 +19,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun bondDao(): BondDao
     abstract fun holdingDao(): HoldingDao
     abstract fun payoutDao(): PayoutDao
+    abstract fun syncMetadataDao(): SyncMetadataDao
 }

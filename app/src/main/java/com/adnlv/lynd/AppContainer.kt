@@ -18,7 +18,7 @@ class AppContainer(context: Context) {
         context.applicationContext,
         AppDatabase::class.java,
         "lynd_database"
-    ).build()
+    ).fallbackToDestructiveMigration().build()
 
     private val json = Json {
         ignoreUnknownKeys = true
