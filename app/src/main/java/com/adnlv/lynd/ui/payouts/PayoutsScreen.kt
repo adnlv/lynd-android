@@ -193,6 +193,10 @@ fun PayoutCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF1E1E24),
+            contentColor = Color(0xFFE6E6E6)
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -205,7 +209,8 @@ fun PayoutCard(
             Text(
                 text = payout.payType,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFFEDEDED)
             )
             val formattedAmount = remember(payout.payoutAmount) {
                 payout.payoutAmount.setScale(2, RoundingMode.HALF_UP).toPlainString()
@@ -214,7 +219,7 @@ fun PayoutCard(
                 text = "$formattedAmount ${payout.currency}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = Color(0xFF90CAF9)
             )
         }
     }
