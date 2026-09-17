@@ -28,7 +28,7 @@ sealed interface FetchState {
 data class AddHoldingUiState(
     val isin: String = "",
     val quantity: String = "",
-    val totalPaidAmount: String = "",
+    val pricePerBond: String = "",
     val purchaseDate: LocalDate = LocalDate.now(),
     val fetchState: FetchState = FetchState.Idle
 )
@@ -79,8 +79,8 @@ class AddHoldingViewModel(
         }
     }
 
-    fun onTotalPaidAmountChanged(value: String) {
-        _uiState.update { it.copy(totalPaidAmount = value) }
+    fun onPricePerBondChanged(value: String) {
+        _uiState.update { it.copy(pricePerBond = value) }
     }
 
     fun onPurchaseDateChanged(date: LocalDate) {
@@ -103,8 +103,8 @@ class AddHoldingViewModel(
         val state = _uiState.value
         val isin = state.isin.trim()
         val quantity = state.quantity.toIntOrNull()
-        val totalPaid = try {
-            BigDecimal(state.totalPaidAmount)
+        val pricePerBond = try {
+            BigDecimal(state.pricePerBond)
         } catch (_: Exception) {
             null
         }
@@ -117,16 +117,19 @@ class AddHoldingViewModel(
             _uiState.update { it.copy(fetchState = FetchState.Error("Quantity must be a positive integer")) }
             return
         }
-        if (totalPaid == null || totalPaid <= BigDecimal.ZERO) {
-            _uiState.update { it.copy(fetchState = FetchState.Error("Please enter a valid total paid amount")) }
+        if (pricePerBond == null || pricePerBond <= BigDecimal.ZERO) {
+            _uiState.update { it.copy(fetchState = FetchState.Error("Please enter a valid price per bond")) }
             return
         }
+
+        val totalPaid = pricePerBond.multiply(BigDecimal(quantity))
 
         viewModelScope.launch {
             holdingDao.insertHolding(
                 HoldingEntity(
                     isin = isin,
                     quantity = quantity,
+                    pricePerBond = pricePerBond,
                     totalPaidAmount = totalPaid,
                     purchaseDate = state.purchaseDate
                 )

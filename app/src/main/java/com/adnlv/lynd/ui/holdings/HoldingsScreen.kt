@@ -118,7 +118,7 @@ fun HoldingCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Quantity: ${holding.quantity} | Total paid: ${holding.totalPaidAmount}",
+                    text = "Quantity: ${holding.quantity} | Price: ${holding.pricePerBond} | Total: ${holding.totalPaidAmount}",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(

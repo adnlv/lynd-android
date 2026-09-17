@@ -47,6 +47,7 @@ class HoldingsViewModel(
                     isin = item.isin,
                     bondName = item.bondName.ifBlank { item.isin },
                     quantity = item.quantity,
+                    pricePerBond = item.pricePerBond,
                     totalPaidAmount = item.totalPaidAmount,
                     purchaseDate = item.purchaseDate
                 )

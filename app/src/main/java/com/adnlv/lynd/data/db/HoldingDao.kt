@@ -11,6 +11,7 @@ data class HoldingWithBond(
     val isin: String,
     val bondName: String,
     val quantity: Int,
+    val pricePerBond: java.math.BigDecimal,
     val totalPaidAmount: java.math.BigDecimal,
     val purchaseDate: java.time.LocalDate
 )
@@ -29,6 +30,7 @@ interface HoldingDao {
             h.isin AS isin,
             COALESCE(b.name, '') AS bondName,
             h.quantity AS quantity,
+            h.price_per_bond AS pricePerBond,
             h.total_paid_amount AS totalPaidAmount,
             h.purchase_date AS purchaseDate
         FROM holdings h

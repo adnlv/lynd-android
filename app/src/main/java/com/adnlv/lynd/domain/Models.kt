@@ -17,6 +17,7 @@ data class HoldingItem(
     val isin: String,
     val bondName: String,
     val quantity: Int,
+    val pricePerBond: BigDecimal,
     val totalPaidAmount: BigDecimal,
     val purchaseDate: LocalDate
 )

@@ -33,6 +33,9 @@ data class HoldingEntity(
     @ColumnInfo(name = "quantity")
     val quantity: Int,
 
+    @ColumnInfo(name = "price_per_bond")
+    val pricePerBond: BigDecimal,
+
     @ColumnInfo(name = "total_paid_amount")
     val totalPaidAmount: BigDecimal,
 

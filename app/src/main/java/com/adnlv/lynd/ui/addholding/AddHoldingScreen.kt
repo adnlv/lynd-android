@@ -172,14 +172,33 @@ fun AddHoldingScreen(
             }
 
             OutlinedTextField(
-                value = uiState.totalPaidAmount,
-                onValueChange = viewModel::onTotalPaidAmountChanged,
-                label = { Text("Total Paid Amount") },
+                value = uiState.pricePerBond,
+                onValueChange = viewModel::onPricePerBondChanged,
+                label = { Text("Price per Bond") },
                 placeholder = { Text("e.g. 1025.50") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
+
+            val calculatedTotal = remember(uiState.pricePerBond, uiState.quantity) {
+                val price = uiState.pricePerBond.toBigDecimalOrNull()
+                val qty = uiState.quantity.toIntOrNull()
+                if (price != null && qty != null && qty > 0) {
+                    price.multiply(java.math.BigDecimal(qty)).toPlainString()
+                } else {
+                    null
+                }
+            }
+
+            if (calculatedTotal != null) {
+                Text(
+                    text = "Total sum: $calculatedTotal",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             Box(
                 modifier = Modifier
