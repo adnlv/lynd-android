@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 data class HoldingWithBond(
@@ -20,6 +21,9 @@ data class HoldingWithBond(
 interface HoldingDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHolding(holding: HoldingEntity)
+
+    @Update
+    suspend fun updateHolding(holding: HoldingEntity)
 
     @Query("DELETE FROM holdings WHERE id = :id")
     suspend fun deleteHolding(id: Int)

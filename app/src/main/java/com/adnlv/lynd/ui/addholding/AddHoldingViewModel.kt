@@ -31,6 +31,7 @@ enum class PriceInputMode {
 }
 
 data class AddHoldingUiState(
+    val editingHoldingId: Int? = null,
     val isin: String = "UA4000",
     val quantity: String = "1",
     val pricePerBond: String = "",
@@ -111,6 +112,35 @@ class AddHoldingViewModel(
         _uiState.update { it.copy(purchaseDate = date) }
     }
 
+    fun initializeForEdit(
+        holdingId: Int,
+        isin: String,
+        quantity: Int,
+        pricePerBond: BigDecimal,
+        purchaseDate: LocalDate
+    ) {
+        _uiState.update {
+            it.copy(
+                editingHoldingId = holdingId,
+                isin = isin,
+                quantity = quantity.toString(),
+                pricePerBond = pricePerBond.toPlainString(),
+                totalPrice = pricePerBond.multiply(BigDecimal(quantity)).toPlainString(),
+                priceMode = PriceInputMode.PER_BOND,
+                purchaseDate = purchaseDate,
+                fetchState = FetchState.Idle,
+                quantityError = null,
+                priceError = null
+            )
+        }
+        isinLookupJob?.cancel()
+        if (isin.trim().length == 12) {
+            isinLookupJob = viewModelScope.launch {
+                fetchBond(isin.trim())
+            }
+        }
+    }
+
     private suspend fun fetchBond(isinToFetch: String) {
         _uiState.update { it.copy(fetchState = FetchState.Loading) }
         val bond = nbuRepository.getLocalBond(isinToFetch)
@@ -181,15 +211,29 @@ class AddHoldingViewModel(
         }
 
         viewModelScope.launch {
-            holdingDao.insertHolding(
-                HoldingEntity(
-                    isin = isin,
-                    quantity = quantity,
-                    pricePerBond = pricePerBond,
-                    totalPaidAmount = totalPaid,
-                    purchaseDate = state.purchaseDate
+            val editingId = state.editingHoldingId
+            if (editingId != null) {
+                holdingDao.updateHolding(
+                    HoldingEntity(
+                        id = editingId,
+                        isin = isin,
+                        quantity = quantity,
+                        pricePerBond = pricePerBond,
+                        totalPaidAmount = totalPaid,
+                        purchaseDate = state.purchaseDate
+                    )
                 )
-            )
+            } else {
+                holdingDao.insertHolding(
+                    HoldingEntity(
+                        isin = isin,
+                        quantity = quantity,
+                        pricePerBond = pricePerBond,
+                        totalPaidAmount = totalPaid,
+                        purchaseDate = state.purchaseDate
+                    )
+                )
+            }
             _saveSuccessEvent.emit(Unit)
         }
     }
