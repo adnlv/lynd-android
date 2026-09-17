@@ -27,6 +27,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -56,7 +57,7 @@ fun HoldingsScreen(
     var showAddHoldingSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val isSheetActive = showAddHoldingSheet && sheetState.isVisible
+    val isSheetActive = showAddHoldingSheet && sheetState.targetValue != SheetValue.Hidden
     val blurRadius by animateDpAsState(
         targetValue = if (isSheetActive) 16.dp else 0.dp,
         animationSpec = tween(durationMillis = 150),
