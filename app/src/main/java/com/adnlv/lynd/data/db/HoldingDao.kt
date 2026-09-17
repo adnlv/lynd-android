@@ -28,6 +28,9 @@ interface HoldingDao {
     @Query("DELETE FROM holdings WHERE id = :id")
     suspend fun deleteHolding(id: Int)
 
+    @Query("SELECT * FROM holdings WHERE id = :id LIMIT 1")
+    suspend fun getHoldingById(id: Int): HoldingEntity?
+
     @Query("""
         SELECT 
             h.id AS id,

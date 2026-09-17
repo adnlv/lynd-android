@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.adnlv.lynd.data.db.HoldingDao
 import com.adnlv.lynd.data.network.NbuRepository
+import com.adnlv.lynd.data.db.HoldingEntity
 import com.adnlv.lynd.domain.HoldingItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,6 +22,8 @@ class HoldingsViewModel(
 
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
+
+    private var recentlyDeletedHolding: HoldingEntity? = null
 
     init {
         checkAndSyncCatalogue()
@@ -61,7 +64,19 @@ class HoldingsViewModel(
 
     fun deleteHolding(id: Int) {
         viewModelScope.launch {
-            holdingDao.deleteHolding(id)
+            val entity = holdingDao.getHoldingById(id)
+            if (entity != null) {
+                recentlyDeletedHolding = entity
+                holdingDao.deleteHolding(id)
+            }
+        }
+    }
+
+    fun restoreHolding() {
+        val holdingToRestore = recentlyDeletedHolding ?: return
+        viewModelScope.launch {
+            holdingDao.insertHolding(holdingToRestore)
+            recentlyDeletedHolding = null
         }
     }
 
