@@ -163,13 +163,13 @@ fun PayoutsScreen(
                                     text = date.format(dateFormatter),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = "$totalSum $currency",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -193,10 +193,6 @@ fun PayoutCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E1E24),
-            contentColor = Color(0xFFEDEDED)
-        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -209,8 +205,7 @@ fun PayoutCard(
             Text(
                 text = payout.payType,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFFEDEDED)
+                fontWeight = FontWeight.SemiBold
             )
             val formattedAmount = remember(payout.payoutAmount) {
                 payout.payoutAmount.setScale(2, RoundingMode.HALF_UP).toPlainString()
@@ -219,7 +214,7 @@ fun PayoutCard(
                 text = "$formattedAmount ${payout.currency}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF90CAF9)
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
