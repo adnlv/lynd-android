@@ -27,7 +27,7 @@ sealed interface FetchState {
 
 data class AddHoldingUiState(
     val isin: String = "UA4000",
-    val quantity: String = "",
+    val quantity: String = "1",
     val pricePerBond: String = "",
     val purchaseDate: LocalDate = LocalDate.now(),
     val fetchState: FetchState = FetchState.Idle
