@@ -11,6 +11,9 @@ interface BondDao {
     suspend fun upsertBond(bond: BondEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertBonds(bonds: List<BondEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertPayments(payments: List<BondPaymentEntity>)
 
     @Query("SELECT * FROM bonds WHERE isin = :isin LIMIT 1")

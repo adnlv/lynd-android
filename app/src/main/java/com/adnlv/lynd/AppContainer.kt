@@ -44,6 +44,7 @@ class AppContainer(context: Context) {
 
     val nbuRepository: NbuRepository = NbuRepository(
         apiService = nbuApiService,
-        bondDao = database.bondDao()
+        bondDao = database.bondDao(),
+        syncMetadataDao = database.syncMetadataDao()
     )
 }
