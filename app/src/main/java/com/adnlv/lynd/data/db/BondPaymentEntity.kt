@@ -19,7 +19,8 @@ import java.time.LocalDate
         )
     ],
     indices = [
-        Index(value = ["bond_isin"])
+        Index(value = ["bond_isin"]),
+        Index(value = ["bond_isin", "pay_date", "pay_type"], unique = true)
     ]
 )
 data class BondPaymentEntity(
