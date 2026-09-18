@@ -241,7 +241,9 @@ fun AddHoldingScreen(
 
                 if (!showTotalOnly && !showPerBondOnly) {
                     Box(
-                        modifier = Modifier.height(56.dp),
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .height(56.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         VerticalDivider(
