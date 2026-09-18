@@ -72,6 +72,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -91,6 +93,16 @@ fun AddHoldingScreen(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var isinTextFieldValue by remember {
+        mutableStateOf(TextFieldValue(uiState.isin, selection = TextRange(uiState.isin.length)))
+    }
+
+    LaunchedEffect(uiState.isin) {
+        if (isinTextFieldValue.text != uiState.isin) {
+            isinTextFieldValue = TextFieldValue(uiState.isin, selection = TextRange(uiState.isin.length))
+        }
+    }
+
     var showDatePicker by remember { mutableStateOf(false) }
 
     val isKeyboardOpen = WindowInsets.isImeVisible
@@ -156,8 +168,11 @@ fun AddHoldingScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = uiState.isin,
-                    onValueChange = viewModel::onIsinChanged,
+                    value = isinTextFieldValue,
+                    onValueChange = { newValue ->
+                        isinTextFieldValue = newValue
+                        viewModel.onIsinChanged(newValue.text)
+                    },
                     label = { Text("ISIN Code") },
                     placeholder = { Text("e.g. UA4000187348") },
                     modifier = Modifier
