@@ -1,5 +1,6 @@
 package com.adnlv.lynd.ui.payouts
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -202,24 +203,27 @@ fun PayoutCard(
     tab: PayoutTab,
     modifier: Modifier = Modifier
 ) {
-    val (elevation, cardAlpha, accentColor, containerColor) = when (tab) {
-        PayoutTab.UPCOMING -> Quadruple(
-            1.dp,
+    val (elevation, cardAlpha, accentColor, containerColor, border) = when (tab) {
+        PayoutTab.UPCOMING -> Quintuple(
+            2.dp,
             1.0f,
             MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.surface
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+            BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
         )
-        PayoutTab.RECEIVED -> Quadruple(
+        PayoutTab.RECEIVED -> Quintuple(
             1.dp,
             0.75f,
             MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.surface
+            MaterialTheme.colorScheme.surface,
+            null
         )
-        PayoutTab.HISTORICAL -> Quadruple(
+        PayoutTab.HISTORICAL -> Quintuple(
             0.dp,
             0.50f,
             MaterialTheme.colorScheme.onSurfaceVariant,
-            Color.Transparent
+            Color.Transparent,
+            null
         )
     }
 
@@ -228,7 +232,8 @@ fun PayoutCard(
             .fillMaxWidth()
             .alpha(cardAlpha),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = border
     ) {
         Row(
             modifier = Modifier
@@ -271,9 +276,10 @@ fun PayoutCard(
     }
 }
 
-private data class Quadruple<A, B, C, D>(
+private data class Quintuple<A, B, C, D, E>(
     val first: A,
     val second: B,
     val third: C,
-    val fourth: D
+    val fourth: D,
+    val fifth: E
 )
