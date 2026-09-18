@@ -190,8 +190,13 @@ fun AddHoldingScreen(
             }
             ExposedDropdownMenuBox(
                 expanded = uiState.isDropdownExpanded && uiState.suggestions.isNotEmpty(),
-                onExpandedChange = {
-                    if (!it) viewModel.onDismissDropdown()
+                onExpandedChange = { expanded ->
+                    if (expanded) {
+                        viewModel.onIsinFieldTapped()
+                    } else {
+                        // Keep open when tapping the field repeatedly
+                        viewModel.onIsinFieldTapped()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
