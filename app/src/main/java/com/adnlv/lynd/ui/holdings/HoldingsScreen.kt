@@ -697,14 +697,19 @@ fun HoldingCard(
                         fontWeight = FontWeight.Bold
                     )
 
-                    if (holding.couponRate > BigDecimal.ZERO) {
+                    val displayPercent = if (holding.profitPercentage != BigDecimal.ZERO) {
+                        holding.profitPercentage
+                    } else {
+                        holding.couponRate
+                    }
+                    if (displayPercent != BigDecimal.ZERO) {
                         Surface(
                             shape = RoundedCornerShape(6.dp),
                             color = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                         ) {
                             Text(
-                                text = Formatters.formatCouponRate(holding.couponRate),
+                                text = Formatters.formatPercentage(displayPercent),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
