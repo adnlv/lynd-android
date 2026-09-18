@@ -1,6 +1,7 @@
 package com.adnlv.lynd.ui.payouts
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DoneAll
@@ -192,25 +195,24 @@ fun PayoutCard(
     tab: PayoutTab,
     modifier: Modifier = Modifier
 ) {
-    val defaultCardBg = CardDefaults.cardColors().containerColor
-    val (elevation, cardAlpha, accentColor, containerColor) = when (tab) {
+    val (cardAlpha, accentColor, iconBgColor, iconTintColor) = when (tab) {
         PayoutTab.UPCOMING -> Quadruple(
-            2.dp,
             1.0f,
             MaterialTheme.colorScheme.primary,
-            defaultCardBg
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.onPrimaryContainer
         )
         PayoutTab.RECEIVED -> Quadruple(
-            1.dp,
             0.75f,
             MaterialTheme.colorScheme.primary,
-            defaultCardBg
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.onPrimaryContainer
         )
         PayoutTab.HISTORICAL -> Quadruple(
-            0.dp,
             0.50f,
             MaterialTheme.colorScheme.onSurfaceVariant,
-            Color.Transparent
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 
@@ -218,8 +220,8 @@ fun PayoutCard(
         modifier = modifier
             .fillMaxWidth()
             .alpha(cardAlpha),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Row(
             modifier = Modifier
@@ -228,21 +230,35 @@ fun PayoutCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val icon = if (payout.payType.equals("Redemption", ignoreCase = true)) {
+            val isRedemption = payout.payType.equals("Redemption", ignoreCase = true)
+            val icon = if (isRedemption) {
                 Icons.Default.DoneAll
             } else {
                 Icons.Default.Percent
+            }
+            val iconShape = if (isRedemption) {
+                CircleShape
+            } else {
+                remember { GearShape() }
             }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = payout.payType,
-                    tint = accentColor
-                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(color = iconBgColor, shape = iconShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = payout.payType,
+                        tint = iconTintColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
                 Text(
                     text = payout.payType,
                     style = MaterialTheme.typography.titleMedium,
