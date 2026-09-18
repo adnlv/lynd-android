@@ -37,6 +37,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -104,7 +105,6 @@ fun HoldingsScreen(
     val groupedHoldings by viewModel.groupedHoldings.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
     val syncError by viewModel.syncError.collectAsState()
-    var collapsedGroupIsins by rememberSaveable { mutableStateOf(setOf<String>()) }
     var showHoldingSheet by rememberSaveable { mutableStateOf(false) }
     var editingHolding by remember { mutableStateOf<HoldingItem?>(null) }
     var revealedHoldingId by remember { mutableStateOf<Int?>(null) }
@@ -395,14 +395,6 @@ fun HoldingsScreen(
                         HoldingGroupCard(
                             modifier = Modifier.animateItem(),
                             group = group,
-                            isExpanded = group.isin !in collapsedGroupIsins,
-                            onToggleExpand = {
-                                collapsedGroupIsins = if (group.isin in collapsedGroupIsins) {
-                                    collapsedGroupIsins - group.isin
-                                } else {
-                                    collapsedGroupIsins + group.isin
-                                }
-                            },
                             revealedHoldingId = revealedHoldingId,
                             swipingHoldingId = swipingHoldingId,
                             peekingHoldingId = peekingHoldingId,
@@ -477,8 +469,6 @@ fun HoldingsScreen(
 @Composable
 fun HoldingGroupCard(
     group: HoldingGroup,
-    isExpanded: Boolean,
-    onToggleExpand: () -> Unit,
     revealedHoldingId: Int?,
     swipingHoldingId: Int?,
     peekingHoldingId: Int?,
@@ -501,7 +491,6 @@ fun HoldingGroupCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onToggleExpand() }
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -525,32 +514,31 @@ fun HoldingGroupCard(
                 }
             }
 
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    group.items.forEach { holding ->
-                        HoldingCard(
-                            holding = holding,
-                            isRevealed = revealedHoldingId == holding.id,
-                            isPeeking = peekingHoldingId == holding.id,
-                            canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
-                            onExpand = { onExpandHolding(holding.id) },
-                            onCollapse = { onCollapseHolding(holding.id) },
-                            onDragStart = { onDragStartHolding(holding.id) },
-                            onDragEnd = { onDragEndHolding(holding.id) },
-                            onDragCancel = { onDragCancelHolding(holding.id) },
-                            onEdit = { onEditHolding(holding) },
-                            onDelete = { onDeleteHolding(holding) }
-                        )
-                    }
+                group.items.forEach { holding ->
+                    HoldingCard(
+                        holding = holding,
+                        isRevealed = revealedHoldingId == holding.id,
+                        isPeeking = peekingHoldingId == holding.id,
+                        canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
+                        onExpand = { onExpandHolding(holding.id) },
+                        onCollapse = { onCollapseHolding(holding.id) },
+                        onDragStart = { onDragStartHolding(holding.id) },
+                        onDragEnd = { onDragEndHolding(holding.id) },
+                        onDragCancel = { onDragCancelHolding(holding.id) },
+                        onEdit = { onEditHolding(holding) },
+                        onDelete = { onDeleteHolding(holding) }
+                    )
                 }
             }
         }
