@@ -101,11 +101,25 @@ class AddHoldingViewModel(
     }
 
     fun onPricePerBondChanged(value: String) {
-        _uiState.update { it.copy(pricePerBond = value, priceError = null) }
+        _uiState.update {
+            it.copy(
+                pricePerBond = value,
+                totalPrice = if (value.isNotEmpty()) "" else it.totalPrice,
+                priceMode = PriceInputMode.PER_BOND,
+                priceError = null
+            )
+        }
     }
 
     fun onTotalPriceChanged(value: String) {
-        _uiState.update { it.copy(totalPrice = value, priceError = null) }
+        _uiState.update {
+            it.copy(
+                totalPrice = value,
+                pricePerBond = if (value.isNotEmpty()) "" else it.pricePerBond,
+                priceMode = PriceInputMode.TOTAL,
+                priceError = null
+            )
+        }
     }
 
     fun onPurchaseDateChanged(date: LocalDate) {
