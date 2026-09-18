@@ -203,19 +203,20 @@ fun PayoutCard(
     tab: PayoutTab,
     modifier: Modifier = Modifier
 ) {
+    val defaultCardBg = CardDefaults.cardColors().containerColor
     val (elevation, cardAlpha, accentColor, containerColor, border) = when (tab) {
         PayoutTab.UPCOMING -> Quintuple(
             2.dp,
             1.0f,
             MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+            defaultCardBg,
             BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
         )
         PayoutTab.RECEIVED -> Quintuple(
             1.dp,
             0.75f,
             MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.surface,
+            defaultCardBg,
             null
         )
         PayoutTab.HISTORICAL -> Quintuple(
