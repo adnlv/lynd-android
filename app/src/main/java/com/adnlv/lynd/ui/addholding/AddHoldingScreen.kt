@@ -219,7 +219,7 @@ fun AddHoldingScreen(
                     .fillMaxWidth()
                     .animateContentSize(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
                 if (!showTotalOnly) {
                     OutlinedTextField(
@@ -240,12 +240,17 @@ fun AddHoldingScreen(
                 }
 
                 if (!showTotalOnly && !showPerBondOnly) {
-                    VerticalDivider(
-                        modifier = Modifier
-                            .height(44.dp)
-                            .padding(horizontal = 2.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
+                    Box(
+                        modifier = Modifier.height(56.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        VerticalDivider(
+                            modifier = Modifier
+                                .height(36.dp)
+                                .padding(horizontal = 2.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
                 }
 
                 if (!showPerBondOnly) {
