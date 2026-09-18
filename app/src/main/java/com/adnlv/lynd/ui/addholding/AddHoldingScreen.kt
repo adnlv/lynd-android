@@ -238,6 +238,14 @@ fun AddHoldingScreen(
                     )
                 }
 
+                if (!showTotalOnly && !showPerBondOnly) {
+                    Text(
+                        text = "or",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 if (!showPerBondOnly) {
                     OutlinedTextField(
                         value = uiState.totalPrice,
