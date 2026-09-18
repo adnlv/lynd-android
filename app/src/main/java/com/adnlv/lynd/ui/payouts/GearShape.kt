@@ -8,14 +8,42 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
 class GearShape(
     val teeth: Int = 8,
-    val toothDepthRatio: Float = 0.16f
+    val toothDepthRatio: Float = 0.14f,
+    val samplesPerTooth: Int = 12
 ) : Shape {
+
+    fun calculateRadiusAt(
+        angle: Double,
+        outerRadius: Float,
+        innerRadius: Float
+    ): Float {
+        val toothAngle = (2.0 * PI) / teeth
+        val normalizedAngle = ((angle % (2.0 * PI)) + (2.0 * PI)) % (2.0 * PI)
+        val phase = (normalizedAngle % toothAngle) / toothAngle
+
+        return when {
+            phase < 0.15 -> innerRadius
+            phase < 0.35 -> {
+                val t = ((phase - 0.15) / 0.20).toFloat()
+                innerRadius + (outerRadius - innerRadius) * smoothstep(t)
+            }
+            phase < 0.65 -> outerRadius
+            phase < 0.85 -> {
+                val t = ((phase - 0.65) / 0.20).toFloat()
+                outerRadius - (outerRadius - innerRadius) * smoothstep(t)
+            }
+            else -> innerRadius
+        }
+    }
+
+    private fun smoothstep(t: Float): Float = t * t * (3f - 2f * t)
 
     fun calculateVertices(size: Size): List<Offset> {
         val centerX = size.width / 2f
@@ -24,22 +52,16 @@ class GearShape(
         if (outerRadius <= 0f) return emptyList()
 
         val innerRadius = outerRadius * (1f - toothDepthRatio)
-        val step = (2.0 * Math.PI / teeth).toFloat()
-        val vertices = ArrayList<Offset>(teeth * 5)
+        val totalSamples = teeth * samplesPerTooth
+        val angleStep = (2.0 * PI) / totalSamples
+        val vertices = ArrayList<Offset>(totalSamples)
 
-        for (i in 0 until teeth) {
-            val baseAngle = i * step
-            val a0 = baseAngle
-            val a1 = baseAngle + step * 0.20f
-            val a2 = baseAngle + step * 0.35f
-            val a3 = baseAngle + step * 0.65f
-            val a4 = baseAngle + step * 0.80f
-
-            vertices.add(Offset(centerX + innerRadius * cos(a0), centerY + innerRadius * sin(a0)))
-            vertices.add(Offset(centerX + innerRadius * cos(a1), centerY + innerRadius * sin(a1)))
-            vertices.add(Offset(centerX + outerRadius * cos(a2), centerY + outerRadius * sin(a2)))
-            vertices.add(Offset(centerX + outerRadius * cos(a3), centerY + outerRadius * sin(a3)))
-            vertices.add(Offset(centerX + innerRadius * cos(a4), centerY + innerRadius * sin(a4)))
+        for (i in 0 until totalSamples) {
+            val angle = i * angleStep
+            val radius = calculateRadiusAt(angle, outerRadius, innerRadius)
+            val x = centerX + radius * cos(angle).toFloat()
+            val y = centerY + radius * sin(angle).toFloat()
+            vertices.add(Offset(x, y))
         }
         return vertices
     }
