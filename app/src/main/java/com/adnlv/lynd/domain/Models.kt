@@ -26,3 +26,9 @@ data class HoldingItem(
     val totalProfitAmount: BigDecimal = BigDecimal.ZERO,
     val profitPercentage: BigDecimal = BigDecimal.ZERO
 )
+
+data class HoldingGroup(
+    val isin: String,
+    val totalQuantity: Int,
+    val items: List<HoldingItem>
+)
