@@ -60,6 +60,12 @@ class AddHoldingViewModel(
     private var isinSearchJob: kotlinx.coroutines.Job? = null
 
     init {
+        reset()
+    }
+
+    fun reset() {
+        isinLookupJob?.cancel()
+        _uiState.update { AddHoldingUiState() }
         searchSuggestions("UA4000")
     }
 

@@ -16,6 +16,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -112,16 +113,20 @@ fun MainApp(appContainer: AppContainer) {
                         nbuRepository = appContainer.nbuRepository
                     )
                 )
+                val addHoldingViewModel: AddHoldingViewModel = viewModel(
+                    factory = AddHoldingViewModel.provideFactory(
+                        nbuRepository = appContainer.nbuRepository,
+                        holdingDao = appContainer.database.holdingDao()
+                    )
+                )
                 HoldingsScreen(
                     viewModel = holdingsViewModel,
                     addHoldingContent = { sheetState, holdingToEdit, onDismiss ->
-                        val addHoldingViewModel: AddHoldingViewModel = viewModel(
-                            key = holdingToEdit?.id?.toString() ?: "new",
-                            factory = AddHoldingViewModel.provideFactory(
-                                nbuRepository = appContainer.nbuRepository,
-                                holdingDao = appContainer.database.holdingDao()
-                            )
-                        )
+                        LaunchedEffect(holdingToEdit) {
+                            if (holdingToEdit == null) {
+                                addHoldingViewModel.reset()
+                            }
+                        }
                         AddHoldingScreen(
                             viewModel = addHoldingViewModel,
                             onNavigateBack = onDismiss,
