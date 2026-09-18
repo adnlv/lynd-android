@@ -1,5 +1,6 @@
 package com.adnlv.lynd.ui.payouts
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -78,6 +79,7 @@ fun PayoutsScreen(
                             index = index,
                             count = PayoutTab.entries.size
                         ),
+                        border = BorderStroke(0.dp, Color.Transparent),
                         icon = {},
                         label = {
                             Text(
