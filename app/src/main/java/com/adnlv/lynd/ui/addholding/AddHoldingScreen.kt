@@ -1,6 +1,7 @@
 package com.adnlv.lynd.ui.addholding
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -114,6 +115,7 @@ fun AddHoldingScreen(
 
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val containerFocusRequester = remember { FocusRequester() }
     var showDatePicker by remember { mutableStateOf(false) }
 
     val isKeyboardOpen = WindowInsets.isImeVisible
@@ -150,23 +152,21 @@ fun AddHoldingScreen(
                 .fillMaxWidth()
                 .fillMaxHeight(heightFraction)
                 .imePadding()
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent(PointerEventPass.Initial)
-                            val pressed = event.changes.any { it.pressed }
-                            if (pressed) {
-                                focusManager.clearFocus(force = true)
-                                keyboardController?.hide()
-                                viewModel.onDismissDropdown()
-                            }
-                        }
-                    }
-                }
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .focusRequester(containerFocusRequester)
+                    .focusable()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        containerFocusRequester.requestFocus()
+                        focusManager.clearFocus(force = true)
+                        keyboardController?.hide()
+                        viewModel.onDismissDropdown()
+                    }
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
