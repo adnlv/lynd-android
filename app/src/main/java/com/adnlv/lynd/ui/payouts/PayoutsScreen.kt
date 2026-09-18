@@ -79,7 +79,9 @@ fun PayoutsScreen(
                             index = index,
                             count = PayoutTab.entries.size
                         ),
-                        border = BorderStroke(0.dp, Color.Transparent),
+                        border = SegmentedButtonDefaults.borderStroke(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        ),
                         icon = {},
                         label = {
                             Text(
