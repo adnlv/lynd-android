@@ -21,5 +21,8 @@ data class HoldingItem(
     val totalPaidAmount: BigDecimal,
     val purchaseDate: LocalDate,
     val currency: String = "UAH",
-    val couponRate: BigDecimal = BigDecimal.ZERO
+    val couponRate: BigDecimal = BigDecimal.ZERO,
+    val totalPayoutAmount: BigDecimal = BigDecimal.ZERO,
+    val totalProfitAmount: BigDecimal = BigDecimal.ZERO,
+    val profitPercentage: BigDecimal = BigDecimal.ZERO
 )
