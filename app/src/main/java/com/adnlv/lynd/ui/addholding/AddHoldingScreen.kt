@@ -77,6 +77,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -112,6 +113,7 @@ fun AddHoldingScreen(
     }
 
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     var showDatePicker by remember { mutableStateOf(false) }
 
     val isKeyboardOpen = WindowInsets.isImeVisible
@@ -151,10 +153,11 @@ fun AddHoldingScreen(
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
-                            val event = awaitPointerEvent(PointerEventPass.Main)
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
                             val pressed = event.changes.any { it.pressed }
                             if (pressed) {
-                                focusManager.clearFocus()
+                                focusManager.clearFocus(force = true)
+                                keyboardController?.hide()
                                 viewModel.onDismissDropdown()
                             }
                         }
