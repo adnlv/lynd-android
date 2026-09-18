@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -217,9 +218,10 @@ fun AddHoldingScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
                     .animateContentSize(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 if (!showTotalOnly) {
                     OutlinedTextField(
@@ -240,19 +242,11 @@ fun AddHoldingScreen(
                 }
 
                 if (!showTotalOnly && !showPerBondOnly) {
-                    Box(
+                    VerticalDivider(
                         modifier = Modifier
-                            .padding(top = 10.dp)
-                            .height(56.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        VerticalDivider(
-                            modifier = Modifier
-                                .height(36.dp)
-                                .padding(horizontal = 2.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-                    }
+                            .padding(vertical = 12.dp, horizontal = 2.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
                 }
 
                 if (!showPerBondOnly) {
