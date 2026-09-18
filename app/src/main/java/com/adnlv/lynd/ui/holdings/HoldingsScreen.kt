@@ -799,17 +799,11 @@ fun HoldingCard(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Text(
-                        text = "${Formatters.formatAmount(holding.pricePerBond)} ${holding.currency}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
-                    )
-
-                    Text(
-                        text = "${Formatters.formatAmount(holding.totalPaidAmount)} ${holding.currency}",
+                        text = Formatters.formatAmount(holding.totalPaidAmount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
