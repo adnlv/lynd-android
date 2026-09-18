@@ -56,6 +56,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -199,52 +204,55 @@ fun AddHoldingScreen(
                 }
             }
 
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(
-                    selected = uiState.priceMode == PriceInputMode.PER_BOND,
-                    onClick = { viewModel.onPriceModeChanged(PriceInputMode.PER_BOND) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-                ) {
-                    Text("Per Bond")
-                }
-                SegmentedButton(
-                    selected = uiState.priceMode == PriceInputMode.TOTAL,
-                    onClick = { viewModel.onPriceModeChanged(PriceInputMode.TOTAL) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-                ) {
-                    Text("Total")
-                }
-            }
+            var perBondFocused by remember { mutableStateOf(false) }
+            var totalFocused by remember { mutableStateOf(false) }
 
-            when (uiState.priceMode) {
-                PriceInputMode.PER_BOND -> {
+            val perBondHasContent = uiState.pricePerBond.isNotEmpty()
+            val totalHasContent = uiState.totalPrice.isNotEmpty()
+
+            val showPerBondOnly = (perBondFocused || perBondHasContent) && !totalHasContent
+            val showTotalOnly = (totalFocused || totalHasContent) && !perBondHasContent
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (!showTotalOnly) {
                     OutlinedTextField(
                         value = uiState.pricePerBond,
                         onValueChange = viewModel::onPricePerBondChanged,
                         label = { Text("Price per Bond") },
                         placeholder = { Text("e.g. 1025.50") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { perBondFocused = it.isFocused },
                         singleLine = true,
-                        isError = uiState.priceError != null,
-                        supportingText = uiState.priceError?.let {
-                            { Text(it) }
-                        }
+                        isError = uiState.priceError != null && uiState.priceMode == PriceInputMode.PER_BOND,
+                        supportingText = if (uiState.priceMode == PriceInputMode.PER_BOND) {
+                            uiState.priceError?.let { { Text(it) } }
+                        } else null
                     )
                 }
-                PriceInputMode.TOTAL -> {
+
+                if (!showPerBondOnly) {
                     OutlinedTextField(
                         value = uiState.totalPrice,
                         onValueChange = viewModel::onTotalPriceChanged,
                         label = { Text("Total Price") },
                         placeholder = { Text("e.g. 10255.00") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { totalFocused = it.isFocused },
                         singleLine = true,
-                        isError = uiState.priceError != null,
-                        supportingText = uiState.priceError?.let {
-                            { Text(it) }
-                        }
+                        isError = uiState.priceError != null && uiState.priceMode == PriceInputMode.TOTAL,
+                        supportingText = if (uiState.priceMode == PriceInputMode.TOTAL) {
+                            uiState.priceError?.let { { Text(it) } }
+                        } else null
                     )
                 }
             }
