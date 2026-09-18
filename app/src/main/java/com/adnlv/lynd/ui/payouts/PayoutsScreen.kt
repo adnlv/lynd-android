@@ -1,6 +1,5 @@
 package com.adnlv.lynd.ui.payouts
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -204,27 +203,24 @@ fun PayoutCard(
     modifier: Modifier = Modifier
 ) {
     val defaultCardBg = CardDefaults.cardColors().containerColor
-    val (elevation, cardAlpha, accentColor, containerColor, border) = when (tab) {
-        PayoutTab.UPCOMING -> Quintuple(
+    val (elevation, cardAlpha, accentColor, containerColor) = when (tab) {
+        PayoutTab.UPCOMING -> Quadruple(
             2.dp,
             1.0f,
             MaterialTheme.colorScheme.primary,
-            defaultCardBg,
-            BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            defaultCardBg
         )
-        PayoutTab.RECEIVED -> Quintuple(
+        PayoutTab.RECEIVED -> Quadruple(
             1.dp,
             0.75f,
             MaterialTheme.colorScheme.primary,
-            defaultCardBg,
-            null
+            defaultCardBg
         )
-        PayoutTab.HISTORICAL -> Quintuple(
+        PayoutTab.HISTORICAL -> Quadruple(
             0.dp,
             0.50f,
             MaterialTheme.colorScheme.onSurfaceVariant,
-            Color.Transparent,
-            null
+            Color.Transparent
         )
     }
 
@@ -233,8 +229,7 @@ fun PayoutCard(
             .fillMaxWidth()
             .alpha(cardAlpha),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        border = border
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Row(
             modifier = Modifier
@@ -277,10 +272,9 @@ fun PayoutCard(
     }
 }
 
-private data class Quintuple<A, B, C, D, E>(
+private data class Quadruple<A, B, C, D>(
     val first: A,
     val second: B,
     val third: C,
-    val fourth: D,
-    val fifth: E
+    val fourth: D
 )
