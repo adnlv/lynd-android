@@ -232,16 +232,18 @@ fun AddHoldingScreen(
                     onDismissRequest = viewModel::onDismissDropdown,
                     scrollState = menuScrollState,
                     modifier = Modifier
+                        .padding(top = 6.dp)
                         .heightIn(max = 240.dp)
                         .drawWithContent {
                             drawContent()
                             val totalScroll = menuScrollState.maxValue
                             if (totalScroll > 0) {
-                                val viewHeight = size.height
+                                val verticalPadding = 4.dp.toPx()
+                                val viewHeight = size.height - (verticalPadding * 2)
                                 val contentHeight = viewHeight + totalScroll
                                 val thumbHeight = (viewHeight * (viewHeight / contentHeight)).coerceAtLeast(16.dp.toPx())
                                 val scrollProgress = menuScrollState.value.toFloat() / totalScroll.toFloat()
-                                val thumbOffsetY = scrollProgress * (viewHeight - thumbHeight)
+                                val thumbOffsetY = verticalPadding + (scrollProgress * (viewHeight - thumbHeight))
                                 val barWidth = 3.dp.toPx()
                                 val rightMargin = 2.dp.toPx()
 
