@@ -112,7 +112,7 @@ class AddHoldingViewModel(
 
     private fun searchSuggestions(query: String) {
         isinSearchJob?.cancel()
-        if (query.isBlank()) {
+        if (query.isBlank() || query.length >= 12) {
             _uiState.update { it.copy(suggestions = emptyList(), isDropdownExpanded = false) }
             return
         }
