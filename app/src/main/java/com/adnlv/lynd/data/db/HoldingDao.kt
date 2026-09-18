@@ -49,4 +49,11 @@ interface HoldingDao {
         ORDER BY h.purchase_date DESC
     """)
     fun getAllHoldings(): Flow<List<HoldingWithBond>>
+
+    @Query("""
+        SELECT * FROM bond_payments
+        WHERE bond_isin IN (SELECT DISTINCT isin FROM holdings)
+        ORDER BY pay_date ASC
+    """)
+    fun getPaymentsForHoldings(): Flow<List<BondPaymentEntity>>
 }
