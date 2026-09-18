@@ -74,7 +74,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.Alignment
@@ -149,12 +149,16 @@ fun AddHoldingScreen(
                 .fillMaxHeight(heightFraction)
                 .imePadding()
                 .pointerInput(Unit) {
-                    detectTapGestures(
-                        onPress = {
-                            focusManager.clearFocus()
-                            viewModel.onDismissDropdown()
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent(PointerEventPass.Main)
+                            val pressed = event.changes.any { it.pressed }
+                            if (pressed) {
+                                focusManager.clearFocus()
+                                viewModel.onDismissDropdown()
+                            }
                         }
-                    )
+                    }
                 }
         ) {
             Column(
