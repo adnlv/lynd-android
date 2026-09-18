@@ -40,7 +40,9 @@ data class AddHoldingUiState(
     val purchaseDate: LocalDate = LocalDate.now(),
     val fetchState: FetchState = FetchState.Idle,
     val quantityError: String? = null,
-    val priceError: String? = null
+    val priceError: String? = null,
+    val suggestions: List<String> = emptyList(),
+    val isDropdownExpanded: Boolean = false
 )
 
 class AddHoldingViewModel(
@@ -55,13 +57,25 @@ class AddHoldingViewModel(
     val saveSuccessEvent: SharedFlow<Unit> = _saveSuccessEvent.asSharedFlow()
 
     private var isinLookupJob: kotlinx.coroutines.Job? = null
+    private var isinSearchJob: kotlinx.coroutines.Job? = null
+
+    init {
+        searchSuggestions("UA4000")
+    }
 
     fun onIsinChanged(value: String) {
         if (value.length > 12) {
             return
         }
         val trimmed = value.trim()
-        _uiState.update { it.copy(isin = value, fetchState = FetchState.Idle) }
+        _uiState.update {
+            it.copy(
+                isin = value,
+                fetchState = FetchState.Idle
+            )
+        }
+
+        searchSuggestions(trimmed)
 
         isinLookupJob?.cancel()
         if (trimmed.length != 12) {
@@ -70,6 +84,42 @@ class AddHoldingViewModel(
 
         isinLookupJob = viewModelScope.launch {
             fetchBond(trimmed)
+        }
+    }
+
+    fun onIsinSelected(selectedIsin: String) {
+        _uiState.update {
+            it.copy(
+                isin = selectedIsin,
+                isDropdownExpanded = false,
+                fetchState = FetchState.Idle
+            )
+        }
+        isinLookupJob?.cancel()
+        isinLookupJob = viewModelScope.launch {
+            fetchBond(selectedIsin.trim())
+        }
+    }
+
+    fun onDismissDropdown() {
+        _uiState.update { it.copy(isDropdownExpanded = false) }
+    }
+
+    private fun searchSuggestions(query: String) {
+        isinSearchJob?.cancel()
+        if (query.isBlank()) {
+            _uiState.update { it.copy(suggestions = emptyList(), isDropdownExpanded = false) }
+            return
+        }
+
+        isinSearchJob = viewModelScope.launch {
+            val results = nbuRepository.searchMatchingIsins(query)
+            _uiState.update {
+                it.copy(
+                    suggestions = results,
+                    isDropdownExpanded = results.isNotEmpty()
+                )
+            }
         }
     }
 
