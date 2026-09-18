@@ -69,6 +69,10 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -205,10 +209,35 @@ fun AddHoldingScreen(
                     }
                 )
 
+                val menuScrollState = rememberScrollState()
+                val scrollbarColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+
                 ExposedDropdownMenu(
                     expanded = uiState.isDropdownExpanded && uiState.suggestions.isNotEmpty(),
                     onDismissRequest = viewModel::onDismissDropdown,
-                    modifier = Modifier.heightIn(max = 240.dp)
+                    scrollState = menuScrollState,
+                    modifier = Modifier
+                        .heightIn(max = 240.dp)
+                        .drawWithContent {
+                            drawContent()
+                            val totalScroll = menuScrollState.maxValue
+                            if (totalScroll > 0) {
+                                val viewHeight = size.height
+                                val contentHeight = viewHeight + totalScroll
+                                val thumbHeight = (viewHeight * (viewHeight / contentHeight)).coerceAtLeast(16.dp.toPx())
+                                val scrollProgress = menuScrollState.value.toFloat() / totalScroll.toFloat()
+                                val thumbOffsetY = scrollProgress * (viewHeight - thumbHeight)
+                                val barWidth = 3.dp.toPx()
+                                val rightMargin = 2.dp.toPx()
+
+                                drawRoundRect(
+                                    color = scrollbarColor,
+                                    topLeft = Offset(size.width - barWidth - rightMargin, thumbOffsetY),
+                                    size = Size(barWidth, thumbHeight),
+                                    cornerRadius = CornerRadius(barWidth / 2, barWidth / 2)
+                                )
+                            }
+                        }
                 ) {
                     uiState.suggestions.forEach { suggestionIsin ->
                         DropdownMenuItem(
