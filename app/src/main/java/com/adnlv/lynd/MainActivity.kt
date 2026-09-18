@@ -59,7 +59,7 @@ fun MainApp(appContainer: AppContainer) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val bottomTabs = listOf(Screen.Holdings, Screen.Payouts)
+    val bottomTabs = listOf(Screen.Payouts, Screen.Holdings)
     val showBottomBar = currentRoute in bottomTabs.map { it.route }
 
     Scaffold(
@@ -102,7 +102,7 @@ fun MainApp(appContainer: AppContainer) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Holdings.route,
+            startDestination = Screen.Payouts.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Holdings.route) {
