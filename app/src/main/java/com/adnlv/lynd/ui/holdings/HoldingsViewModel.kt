@@ -77,7 +77,9 @@ class HoldingsViewModel(
                     quantity = item.quantity,
                     pricePerBond = item.pricePerBond,
                     totalPaidAmount = item.totalPaidAmount,
-                    purchaseDate = item.purchaseDate
+                    purchaseDate = item.purchaseDate,
+                    currency = item.currency,
+                    couponRate = item.couponRate
                 )
             }
         }

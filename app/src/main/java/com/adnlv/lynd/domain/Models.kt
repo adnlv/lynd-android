@@ -19,5 +19,7 @@ data class HoldingItem(
     val quantity: Int,
     val pricePerBond: BigDecimal,
     val totalPaidAmount: BigDecimal,
-    val purchaseDate: LocalDate
+    val purchaseDate: LocalDate,
+    val currency: String = "UAH",
+    val couponRate: BigDecimal = BigDecimal.ZERO
 )

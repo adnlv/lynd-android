@@ -14,7 +14,9 @@ data class HoldingWithBond(
     val quantity: Int,
     val pricePerBond: java.math.BigDecimal,
     val totalPaidAmount: java.math.BigDecimal,
-    val purchaseDate: java.time.LocalDate
+    val purchaseDate: java.time.LocalDate,
+    val currency: String,
+    val couponRate: java.math.BigDecimal
 )
 
 @Dao
@@ -39,7 +41,9 @@ interface HoldingDao {
             h.quantity AS quantity,
             h.price_per_bond AS pricePerBond,
             h.total_paid_amount AS totalPaidAmount,
-            h.purchase_date AS purchaseDate
+            h.purchase_date AS purchaseDate,
+            COALESCE(b.currency, 'UAH') AS currency,
+            COALESCE(b.coupon_rate, '0') AS couponRate
         FROM holdings h
         LEFT JOIN bonds b ON h.isin = b.isin
         ORDER BY h.purchase_date DESC
