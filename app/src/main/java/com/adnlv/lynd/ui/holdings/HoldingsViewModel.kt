@@ -11,9 +11,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class HoldingsViewModel(
     private val holdingDao: HoldingDao,
@@ -67,27 +70,49 @@ class HoldingsViewModel(
         }
     }
 
-    val holdings: StateFlow<List<HoldingItem>> = holdingDao.getAllHoldings()
-        .map { list ->
-            list.map { item ->
-                HoldingItem(
-                    id = item.id,
-                    isin = item.isin,
-                    bondName = item.bondName.ifBlank { item.isin },
-                    quantity = item.quantity,
-                    pricePerBond = item.pricePerBond,
-                    totalPaidAmount = item.totalPaidAmount,
-                    purchaseDate = item.purchaseDate,
-                    currency = item.currency,
-                    couponRate = item.couponRate
-                )
+    val holdings: StateFlow<List<HoldingItem>> = combine(
+        holdingDao.getAllHoldings(),
+        holdingDao.getPaymentsForHoldings()
+    ) { holdingsList, paymentsList ->
+        val paymentsByIsin = paymentsList.groupBy { it.bondIsin }
+
+        holdingsList.map { item ->
+            val paymentsForHolding = paymentsByIsin[item.isin].orEmpty()
+                .filter { !it.payDate.isBefore(item.purchaseDate) }
+
+            val totalPayout = paymentsForHolding.fold(BigDecimal.ZERO) { acc, payment ->
+                acc.add(payment.payVal.multiply(BigDecimal.valueOf(item.quantity.toLong())))
             }
+
+            val profitAmount = totalPayout.subtract(item.totalPaidAmount)
+
+            val profitPercent = if (item.totalPaidAmount > BigDecimal.ZERO) {
+                profitAmount.multiply(BigDecimal("100"))
+                    .divide(item.totalPaidAmount, 4, RoundingMode.HALF_UP)
+            } else {
+                BigDecimal.ZERO
+            }
+
+            HoldingItem(
+                id = item.id,
+                isin = item.isin,
+                bondName = item.bondName.ifBlank { item.isin },
+                quantity = item.quantity,
+                pricePerBond = item.pricePerBond,
+                totalPaidAmount = item.totalPaidAmount,
+                purchaseDate = item.purchaseDate,
+                currency = item.currency,
+                couponRate = item.couponRate,
+                totalPayoutAmount = totalPayout,
+                totalProfitAmount = profitAmount,
+                profitPercentage = profitPercent
+            )
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     fun deleteHolding(id: Int) {
         viewModelScope.launch {
