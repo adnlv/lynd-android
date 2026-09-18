@@ -24,10 +24,13 @@ class FormattersTest {
     }
 
     @Test
-    fun formatCouponRate_formatsPercentage() {
+    fun formatCouponRate_formatsPercentageWithTwoDecimalPlaces() {
         val rate = BigDecimal("15.5")
         val formatted = Formatters.formatCouponRate(rate)
-        assertEquals("15,5%", formatted)
+        assertEquals("15,50%", formatted)
+
+        val integerRate = BigDecimal("10")
+        assertEquals("10,00%", Formatters.formatPercentage(integerRate))
     }
 
     @Test
