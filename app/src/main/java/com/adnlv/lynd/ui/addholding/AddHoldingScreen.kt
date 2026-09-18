@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
@@ -151,6 +152,12 @@ fun AddHoldingScreen(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp
                         )
+                    } else if (uiState.fetchState is FetchState.Success) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Bond found",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     } else if (uiState.fetchState is FetchState.Idle && uiState.isin.trim().length in 1..11) {
                         Text(
                             text = "${12 - uiState.isin.trim().length}",
@@ -160,28 +167,6 @@ fun AddHoldingScreen(
                     }
                 }
             )
-
-            if (uiState.fetchState is FetchState.Success) {
-                val bond = (uiState.fetchState as FetchState.Success).bond
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = bond.name,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Currency: ${bond.currency} | Coupon: ${bond.couponRate}% | Matures: ${bond.maturityDate}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
