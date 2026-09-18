@@ -247,23 +247,17 @@ fun PayoutCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Box(
-                    modifier = Modifier.size(44.dp),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(color = iconBgColor, shape = iconShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    val iconBgSize = if (isRedemption) 40.dp else 44.dp
-                    Box(
-                        modifier = Modifier
-                            .size(iconBgSize)
-                            .background(color = iconBgColor, shape = iconShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = payout.payType,
-                            tint = iconTintColor,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = payout.payType,
+                        tint = iconTintColor,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
                 Text(
                     text = payout.payType,

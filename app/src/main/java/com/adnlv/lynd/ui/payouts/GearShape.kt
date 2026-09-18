@@ -15,7 +15,7 @@ import kotlin.math.sin
 
 class GearShape(
     val teeth: Int = 8,
-    val toothDepthRatio: Float = 0.14f,
+    val toothDepthRatio: Float = 0.09f,
     val samplesPerTooth: Int = 12
 ) : Shape {
 
@@ -25,18 +25,19 @@ class GearShape(
         innerRadius: Float
     ): Float {
         val toothAngle = (2.0 * PI) / teeth
-        val normalizedAngle = ((angle % (2.0 * PI)) + (2.0 * PI)) % (2.0 * PI)
+        val shiftedAngle = angle + (PI / 2.0) + (toothAngle / 2.0)
+        val normalizedAngle = ((shiftedAngle % (2.0 * PI)) + (2.0 * PI)) % (2.0 * PI)
         val phase = (normalizedAngle % toothAngle) / toothAngle
 
         return when {
-            phase < 0.15 -> innerRadius
-            phase < 0.35 -> {
-                val t = ((phase - 0.15) / 0.20).toFloat()
+            phase < 0.10 -> innerRadius
+            phase < 0.40 -> {
+                val t = ((phase - 0.10) / 0.30).toFloat()
                 innerRadius + (outerRadius - innerRadius) * smoothstep(t)
             }
-            phase < 0.65 -> outerRadius
-            phase < 0.85 -> {
-                val t = ((phase - 0.65) / 0.20).toFloat()
+            phase < 0.60 -> outerRadius
+            phase < 0.90 -> {
+                val t = ((phase - 0.60) / 0.30).toFloat()
                 outerRadius - (outerRadius - innerRadius) * smoothstep(t)
             }
             else -> innerRadius

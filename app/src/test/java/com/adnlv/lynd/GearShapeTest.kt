@@ -11,7 +11,7 @@ class GearShapeTest {
     @Test
     fun gearShape_calculatesCorrectNumberOfVertices() {
         val shape = GearShape(teeth = 8, samplesPerTooth = 12)
-        val vertices = shape.calculateVertices(Size(44f, 44f))
+        val vertices = shape.calculateVertices(Size(40f, 40f))
 
         assertEquals(96, vertices.size)
     }
@@ -19,28 +19,31 @@ class GearShapeTest {
     @Test
     fun gearShape_verticesRemainWithinBounds() {
         val shape = GearShape(teeth = 8, samplesPerTooth = 12)
-        val vertices = shape.calculateVertices(Size(44f, 44f))
+        val vertices = shape.calculateVertices(Size(40f, 40f))
 
         vertices.forEach { vertex ->
             assertTrue("X ${vertex.x} should be >= 0", vertex.x >= 0f)
-            assertTrue("X ${vertex.x} should be <= 44", vertex.x <= 44.001f)
+            assertTrue("X ${vertex.x} should be <= 40", vertex.x <= 40.001f)
             assertTrue("Y ${vertex.y} should be >= 0", vertex.y >= 0f)
-            assertTrue("Y ${vertex.y} should be <= 44", vertex.y <= 44.001f)
+            assertTrue("Y ${vertex.y} should be <= 40", vertex.y <= 40.001f)
         }
     }
 
     @Test
     fun gearShape_radiusTransitionsSmoothly() {
         val shape = GearShape(teeth = 8)
-        val outerRadius = 22f
-        val innerRadius = 22f * (1f - shape.toothDepthRatio)
+        val outerRadius = 20f
+        val innerRadius = 20f * (1f - shape.toothDepthRatio)
 
-        val rootRadius = shape.calculateRadiusAt(0.0, outerRadius, innerRadius)
+        // At 12 o'clock (-PI / 2), it should be at a tooth crest
+        val topCrestRadius = shape.calculateRadiusAt(-Math.PI / 2.0, outerRadius, innerRadius)
+        assertEquals(outerRadius, topCrestRadius, 0.001f)
+
+        // At tooth angle / 2 from crest, it should be at a valley root
+        val toothAngle = (2.0 * Math.PI) / 8.0
+        val valleyAngle = -Math.PI / 2.0 + (toothAngle / 2.0)
+        val rootRadius = shape.calculateRadiusAt(valleyAngle, outerRadius, innerRadius)
         assertEquals(innerRadius, rootRadius, 0.001f)
-
-        val crestAngle = Math.PI / 8.0 // 45 / 2 = 22.5 deg (midpoint of first tooth cycle)
-        val crestRadius = shape.calculateRadiusAt(crestAngle, outerRadius, innerRadius)
-        assertEquals(outerRadius, crestRadius, 0.001f)
     }
 
     @Test
