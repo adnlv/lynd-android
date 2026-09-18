@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.adnlv.lynd.data.db.HoldingDao
 import com.adnlv.lynd.data.network.NbuRepository
 import com.adnlv.lynd.data.db.HoldingEntity
+import com.adnlv.lynd.domain.HoldingGroup
 import com.adnlv.lynd.domain.HoldingItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -113,6 +114,23 @@ class HoldingsViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
+
+    val groupedHoldings: StateFlow<List<HoldingGroup>> = holdings
+        .map { list ->
+            list.groupBy { it.isin }
+                .map { (isin, items) ->
+                    HoldingGroup(
+                        isin = isin,
+                        totalQuantity = items.sumOf { it.quantity },
+                        items = items
+                    )
+                }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     fun deleteHolding(id: Int) {
         viewModelScope.launch {
