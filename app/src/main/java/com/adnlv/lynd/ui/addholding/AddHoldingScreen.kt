@@ -244,7 +244,8 @@ fun AddHoldingScreen(
                 if (!showTotalOnly && !showPerBondOnly) {
                     VerticalDivider(
                         modifier = Modifier
-                            .padding(start = 2.dp, end = 2.dp, top = 8.dp, bottom = 20.dp),
+                            .height(32.dp)
+                            .padding(horizontal = 2.dp),
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
                 }
