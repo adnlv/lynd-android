@@ -24,4 +24,7 @@ interface BondDao {
 
     @Query("SELECT * FROM bonds WHERE isin = :isin LIMIT 1")
     suspend fun getBond(isin: String): BondEntity?
+
+    @Query("SELECT isin FROM bonds WHERE isin LIKE '%' || :query || '%' ORDER BY isin LIMIT 50")
+    suspend fun searchBondsByIsin(query: String): List<String>
 }

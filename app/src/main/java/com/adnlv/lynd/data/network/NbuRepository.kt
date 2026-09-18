@@ -83,6 +83,14 @@ class NbuRepository(
         bondDao.getBond(isin.trim())
     }
 
+    suspend fun searchMatchingIsins(query: String): List<String> = withContext(Dispatchers.IO) {
+        if (query.isBlank()) {
+            emptyList()
+        } else {
+            bondDao.searchBondsByIsin(query.trim())
+        }
+    }
+
     suspend fun getOrFetchBond(isin: String): Result<BondEntity> = withContext(Dispatchers.IO) {
         val trimmedIsin = isin.trim()
         val cached = bondDao.getBond(trimmedIsin)
