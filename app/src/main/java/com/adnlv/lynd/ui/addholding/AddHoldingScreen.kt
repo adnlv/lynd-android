@@ -143,22 +143,27 @@ fun AddHoldingScreen(
         dragHandle = null,
         scrimColor = Color.Black.copy(alpha = 0.28f)
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(heightFraction)
                 .imePadding()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    focusManager.clearFocus()
-                    viewModel.onDismissDropdown()
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = {
+                            focusManager.clearFocus()
+                            viewModel.onDismissDropdown()
+                        }
+                    )
                 }
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -400,6 +405,7 @@ fun AddHoldingScreen(
             )
         }
     }
+}
 
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
