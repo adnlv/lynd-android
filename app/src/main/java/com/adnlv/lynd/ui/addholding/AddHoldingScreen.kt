@@ -1,6 +1,7 @@
 package com.adnlv.lynd.ui.addholding
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -147,11 +148,12 @@ fun AddHoldingScreen(
                 .fillMaxWidth()
                 .fillMaxHeight(heightFraction)
                 .imePadding()
-                .pointerInput(Unit) {
-                    detectTapGestures {
-                        focusManager.clearFocus()
-                        viewModel.onDismissDropdown()
-                    }
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    focusManager.clearFocus()
+                    viewModel.onDismissDropdown()
                 }
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
