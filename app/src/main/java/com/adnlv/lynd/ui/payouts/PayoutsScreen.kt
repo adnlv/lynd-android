@@ -210,16 +210,16 @@ fun PayoutCard(
             MaterialTheme.colorScheme.surface
         )
         PayoutTab.RECEIVED -> Quadruple(
-            0.dp,
-            0.85f,
-            MaterialTheme.colorScheme.onSurfaceVariant,
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+            1.dp,
+            0.75f,
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.surface
         )
         PayoutTab.HISTORICAL -> Quadruple(
             0.dp,
-            0.60f,
-            MaterialTheme.colorScheme.outline,
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.20f)
+            0.50f,
+            MaterialTheme.colorScheme.onSurfaceVariant,
+            Color.Transparent
         )
     }
 
