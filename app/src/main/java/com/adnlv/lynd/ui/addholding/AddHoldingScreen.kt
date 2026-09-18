@@ -73,6 +73,9 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -107,6 +110,7 @@ fun AddHoldingScreen(
         }
     }
 
+    val focusManager = LocalFocusManager.current
     var showDatePicker by remember { mutableStateOf(false) }
 
     val isKeyboardOpen = WindowInsets.isImeVisible
@@ -143,6 +147,12 @@ fun AddHoldingScreen(
                 .fillMaxWidth()
                 .fillMaxHeight(heightFraction)
                 .imePadding()
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        focusManager.clearFocus()
+                        viewModel.onDismissDropdown()
+                    }
+                }
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -181,7 +191,12 @@ fun AddHoldingScreen(
                     placeholder = { Text("e.g. UA4000187348") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable)
+                        .onFocusChanged {
+                            if (it.isFocused) {
+                                viewModel.onIsinFieldTapped()
+                            }
+                        },
                     singleLine = true,
                     isError = uiState.fetchState is FetchState.Error,
                     supportingText = (uiState.fetchState as? FetchState.Error)?.message?.let {

@@ -105,6 +105,11 @@ class AddHoldingViewModel(
         _uiState.update { it.copy(isDropdownExpanded = false) }
     }
 
+    fun onIsinFieldTapped() {
+        val query = _uiState.value.isin.trim()
+        searchSuggestions(query)
+    }
+
     private fun searchSuggestions(query: String) {
         isinSearchJob?.cancel()
         if (query.isBlank()) {
