@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
@@ -34,7 +35,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -144,38 +148,61 @@ fun AddHoldingScreen(
                     Text("Save")
                 }
             }
-            OutlinedTextField(
-                value = uiState.isin,
-                onValueChange = viewModel::onIsinChanged,
-                label = { Text("ISIN Code") },
-                placeholder = { Text("e.g. UA4000187348") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = uiState.fetchState is FetchState.Error,
-                supportingText = (uiState.fetchState as? FetchState.Error)?.message?.let {
-                    { Text(it) }
+            ExposedDropdownMenuBox(
+                expanded = uiState.isDropdownExpanded && uiState.suggestions.isNotEmpty(),
+                onExpandedChange = {
+                    if (!it) viewModel.onDismissDropdown()
                 },
-                trailingIcon = {
-                    if (uiState.fetchState is FetchState.Loading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else if (uiState.fetchState is FetchState.Success) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Bond found",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    } else if (uiState.fetchState is FetchState.Idle && uiState.isin.trim().length in 1..11) {
-                        Text(
-                            text = "${12 - uiState.isin.trim().length}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = uiState.isin,
+                    onValueChange = viewModel::onIsinChanged,
+                    label = { Text("ISIN Code") },
+                    placeholder = { Text("e.g. UA4000187348") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
+                    singleLine = true,
+                    isError = uiState.fetchState is FetchState.Error,
+                    supportingText = (uiState.fetchState as? FetchState.Error)?.message?.let {
+                        { Text(it) }
+                    },
+                    trailingIcon = {
+                        if (uiState.fetchState is FetchState.Loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else if (uiState.fetchState is FetchState.Success) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Bond found",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        } else if (uiState.fetchState is FetchState.Idle && uiState.isin.trim().length in 1..11) {
+                            Text(
+                                text = "${12 - uiState.isin.trim().length}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                )
+
+                ExposedDropdownMenu(
+                    expanded = uiState.isDropdownExpanded && uiState.suggestions.isNotEmpty(),
+                    onDismissRequest = viewModel::onDismissDropdown,
+                    modifier = Modifier.heightIn(max = 240.dp)
+                ) {
+                    uiState.suggestions.forEach { suggestionIsin ->
+                        DropdownMenuItem(
+                            text = { Text(suggestionIsin) },
+                            onClick = { viewModel.onIsinSelected(suggestionIsin) }
                         )
                     }
                 }
-            )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
