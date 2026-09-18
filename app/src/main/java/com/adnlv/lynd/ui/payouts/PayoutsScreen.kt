@@ -24,6 +24,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,53 +59,34 @@ fun PayoutsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Surface(
+            SingleChoiceSegmentedButtonRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    PayoutTab.entries.forEach { tab ->
-                        val isSelected = tab == uiState.selectedTab
-                        val label = when (tab) {
-                            PayoutTab.UPCOMING -> "Upcoming"
-                            PayoutTab.RECEIVED -> "Received"
-                            PayoutTab.HISTORICAL -> "Historical"
-                        }
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(38.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .clickable { viewModel.selectTab(tab) },
-                            shape = RoundedCornerShape(20.dp),
-                            color = if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent,
-                            shadowElevation = if (isSelected) 2.dp else 0.dp
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) {
-                                        MaterialTheme.colorScheme.onSurface
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    }
-                                )
-                            }
-                        }
+                PayoutTab.entries.forEachIndexed { index, tab ->
+                    val isSelected = tab == uiState.selectedTab
+                    val label = when (tab) {
+                        PayoutTab.UPCOMING -> "Upcoming"
+                        PayoutTab.RECEIVED -> "Received"
+                        PayoutTab.HISTORICAL -> "Historical"
                     }
+                    SegmentedButton(
+                        selected = isSelected,
+                        onClick = { viewModel.selectTab(tab) },
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = PayoutTab.entries.size
+                        ),
+                        icon = {},
+                        label = {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                            )
+                        }
+                    )
                 }
             }
 
