@@ -46,6 +46,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -239,10 +240,11 @@ fun AddHoldingScreen(
                 }
 
                 if (!showTotalOnly && !showPerBondOnly) {
-                    Text(
-                        text = "/",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    VerticalDivider(
+                        modifier = Modifier
+                            .height(44.dp)
+                            .padding(horizontal = 2.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant
                     )
                 }
 
