@@ -18,7 +18,6 @@ import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -523,37 +522,24 @@ fun HoldingGroupCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 8.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
+                    .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                group.items.forEachIndexed { index, holding ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TimelineIndicator(
-                            isFirst = index == 0,
-                            isLast = index == group.items.lastIndex,
-                            nodeTopOffset = 36.dp
-                        )
-
-                        HoldingCard(
-                            holding = holding,
-                            isRevealed = revealedHoldingId == holding.id,
-                            isPeeking = peekingHoldingId == holding.id,
-                            canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
-                            onExpand = { onExpandHolding(holding.id) },
-                            onCollapse = { onCollapseHolding(holding.id) },
-                            onDragStart = { onDragStartHolding(holding.id) },
-                            onDragEnd = { onDragEndHolding(holding.id) },
-                            onDragCancel = { onDragCancelHolding(holding.id) },
-                            onEdit = { onEditHolding(holding) },
-                            onDelete = { onDeleteHolding(holding) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                group.items.forEach { holding ->
+                    HoldingCard(
+                        holding = holding,
+                        isRevealed = revealedHoldingId == holding.id,
+                        isPeeking = peekingHoldingId == holding.id,
+                        canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
+                        onExpand = { onExpandHolding(holding.id) },
+                        onCollapse = { onCollapseHolding(holding.id) },
+                        onDragStart = { onDragStartHolding(holding.id) },
+                        onDragEnd = { onDragEndHolding(holding.id) },
+                        onDragCancel = { onDragCancelHolding(holding.id) },
+                        onEdit = { onEditHolding(holding) },
+                        onDelete = { onDeleteHolding(holding) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }
