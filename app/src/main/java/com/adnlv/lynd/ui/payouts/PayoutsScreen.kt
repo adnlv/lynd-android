@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -183,7 +184,10 @@ fun PayoutsScreen(
                             items = payoutsForDate,
                             key = { "${it.isin}_${it.payDate}_${it.payType}_${it.payoutAmount}" }
                         ) { payout ->
-                            PayoutCard(payout = payout)
+                            PayoutCard(
+                                payout = payout,
+                                tab = uiState.selectedTab
+                            )
                         }
                     }
                 }
@@ -195,11 +199,36 @@ fun PayoutsScreen(
 @Composable
 fun PayoutCard(
     payout: PayoutItem,
+    tab: PayoutTab,
     modifier: Modifier = Modifier
 ) {
+    val (elevation, cardAlpha, accentColor, containerColor) = when (tab) {
+        PayoutTab.UPCOMING -> Quadruple(
+            1.dp,
+            1.0f,
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.surface
+        )
+        PayoutTab.RECEIVED -> Quadruple(
+            0.dp,
+            0.85f,
+            MaterialTheme.colorScheme.onSurfaceVariant,
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+        )
+        PayoutTab.HISTORICAL -> Quadruple(
+            0.dp,
+            0.60f,
+            MaterialTheme.colorScheme.outline,
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.20f)
+        )
+    }
+
     Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        modifier = modifier
+            .fillMaxWidth()
+            .alpha(cardAlpha),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Row(
             modifier = Modifier
@@ -221,7 +250,7 @@ fun PayoutCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = payout.payType,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = accentColor
                 )
                 Text(
                     text = payout.payType,
@@ -236,8 +265,15 @@ fun PayoutCard(
                 text = "$formattedAmount ${payout.currency}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = accentColor
             )
         }
     }
 }
+
+private data class Quadruple<A, B, C, D>(
+    val first: A,
+    val second: B,
+    val third: C,
+    val fourth: D
+)
