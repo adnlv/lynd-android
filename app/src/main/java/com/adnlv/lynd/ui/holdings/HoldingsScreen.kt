@@ -37,7 +37,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -481,66 +480,57 @@ fun HoldingGroupCard(
     onDeleteHolding: (HoldingItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .animateContentSize(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .animateContentSize()
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = group.isin,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Badge(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                ) {
-                    Text(
-                        text = "${group.totalQuantity}",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
-                }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = group.isin,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Badge(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             ) {
-                group.items.forEach { holding ->
-                    HoldingCard(
-                        holding = holding,
-                        isRevealed = revealedHoldingId == holding.id,
-                        isPeeking = peekingHoldingId == holding.id,
-                        canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
-                        onExpand = { onExpandHolding(holding.id) },
-                        onCollapse = { onCollapseHolding(holding.id) },
-                        onDragStart = { onDragStartHolding(holding.id) },
-                        onDragEnd = { onDragEndHolding(holding.id) },
-                        onDragCancel = { onDragCancelHolding(holding.id) },
-                        onEdit = { onEditHolding(holding) },
-                        onDelete = { onDeleteHolding(holding) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                Text(
+                    text = "${group.totalQuantity}",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            group.items.forEach { holding ->
+                HoldingCard(
+                    holding = holding,
+                    isRevealed = revealedHoldingId == holding.id,
+                    isPeeking = peekingHoldingId == holding.id,
+                    canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
+                    onExpand = { onExpandHolding(holding.id) },
+                    onCollapse = { onCollapseHolding(holding.id) },
+                    onDragStart = { onDragStartHolding(holding.id) },
+                    onDragEnd = { onDragEndHolding(holding.id) },
+                    onDragCancel = { onDragCancelHolding(holding.id) },
+                    onEdit = { onEditHolding(holding) },
+                    onDelete = { onDeleteHolding(holding) },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
@@ -739,7 +729,7 @@ fun HoldingCard(
                     }
                 ),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
         ) {
             Column(
                 modifier = Modifier
