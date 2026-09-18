@@ -73,6 +73,7 @@ fun PayoutsScreen(
                         val label = when (tab) {
                             PayoutTab.UPCOMING -> "Upcoming"
                             PayoutTab.RECEIVED -> "Received"
+                            PayoutTab.HISTORICAL -> "Historical"
                         }
                         Surface(
                             modifier = Modifier
@@ -129,6 +130,7 @@ fun PayoutsScreen(
                     val emptyMessage = when (uiState.selectedTab) {
                         PayoutTab.UPCOMING -> "No upcoming payouts found."
                         PayoutTab.RECEIVED -> "No received payouts found."
+                        PayoutTab.HISTORICAL -> "No historical payouts found."
                     }
                     Text(
                         text = emptyMessage,

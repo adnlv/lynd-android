@@ -16,7 +16,8 @@ import java.time.LocalDate
 
 enum class PayoutTab {
     UPCOMING,
-    RECEIVED
+    RECEIVED,
+    HISTORICAL
 }
 
 data class PayoutsUiState(
@@ -39,24 +40,29 @@ class PayoutsViewModel(
     private val allPayouts = payoutDao.getAllPayoutRows()
 
     val uiState: StateFlow<PayoutsUiState> = combine(allPayouts, _selectedCurrency, _selectedTab) { rows, selectedCurr, currentTab ->
-        val items = rows.map { row ->
+        data class PayoutWithPurchase(val item: PayoutItem, val purchaseDate: LocalDate)
+
+        val itemsWithPurchase = rows.map { row ->
             val totalPayout = row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong()))
             val label = when (row.payType.lowercase()) {
                 "coupon", "1" -> "Coupon"
                 "redemption", "2" -> "Redemption"
                 else -> row.payType.replaceFirstChar { it.uppercase() }
             }
-            PayoutItem(
-                isin = row.isin,
-                bondName = row.bondName.ifBlank { row.isin },
-                payDate = row.payDate,
-                payType = label,
-                payoutAmount = totalPayout,
-                currency = row.currency
+            PayoutWithPurchase(
+                item = PayoutItem(
+                    isin = row.isin,
+                    bondName = row.bondName.ifBlank { row.isin },
+                    payDate = row.payDate,
+                    payType = label,
+                    payoutAmount = totalPayout,
+                    currency = row.currency
+                ),
+                purchaseDate = row.purchaseDate
             )
         }
 
-        val currencies = items.map { it.currency }.distinct()
+        val currencies = itemsWithPurchase.map { it.item.currency }.distinct()
         val effectiveCurrency = if (selectedCurr in currencies) {
             selectedCurr
         } else {
@@ -64,23 +70,31 @@ class PayoutsViewModel(
         }
 
         val filtered = if (effectiveCurrency.isBlank()) {
-            items
+            itemsWithPurchase
         } else {
-            items.filter { it.currency.equals(effectiveCurrency, ignoreCase = true) }
+            itemsWithPurchase.filter { it.item.currency.equals(effectiveCurrency, ignoreCase = true) }
         }
 
         val today = LocalDate.now()
         val upcomingItems = filtered
-            .filter { !it.payDate.isBefore(today) }
-            .sortedBy { it.payDate }
+            .filter { !it.item.payDate.isBefore(today) }
+            .sortedBy { it.item.payDate }
+            .map { it.item }
 
         val receivedItems = filtered
-            .filter { it.payDate.isBefore(today) }
-            .sortedByDescending { it.payDate }
+            .filter { it.item.payDate.isBefore(today) && !it.item.payDate.isBefore(it.purchaseDate) }
+            .sortedByDescending { it.item.payDate }
+            .map { it.item }
+
+        val historicalItems = filtered
+            .filter { it.item.payDate.isBefore(it.purchaseDate) }
+            .sortedByDescending { it.item.payDate }
+            .map { it.item }
 
         val activePayouts = when (currentTab) {
             PayoutTab.UPCOMING -> upcomingItems
             PayoutTab.RECEIVED -> receivedItems
+            PayoutTab.HISTORICAL -> historicalItems
         }
 
         PayoutsUiState(
