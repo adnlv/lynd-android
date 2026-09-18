@@ -65,6 +65,7 @@ fun PayoutsScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
+                val navBarContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 PayoutTab.entries.forEachIndexed { index, tab ->
                     val isSelected = tab == uiState.selectedTab
                     val label = when (tab) {
@@ -79,8 +80,9 @@ fun PayoutsScreen(
                             index = index,
                             count = PayoutTab.entries.size
                         ),
-                        border = SegmentedButtonDefaults.borderStroke(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        border = BorderStroke(0.dp, Color.Transparent),
+                        colors = SegmentedButtonDefaults.colors(
+                            inactiveContainerColor = navBarContainerColor
                         ),
                         icon = {},
                         label = {
