@@ -97,6 +97,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -603,7 +604,13 @@ fun HoldingGroupCard(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            group.items.forEach { holding ->
+            group.items.forEachIndexed { index, holding ->
+                val itemShape = when {
+                    group.items.size == 1 -> RoundedCornerShape(16.dp)
+                    index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+                    index == group.items.lastIndex -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+                    else -> RoundedCornerShape(4.dp)
+                }
                 key(holding.id) {
                     HoldingCard(
                         holding = holding,
@@ -617,6 +624,7 @@ fun HoldingGroupCard(
                         onDragCancel = { onDragCancelHolding(holding.id) },
                         onEdit = { onEditHolding(holding) },
                         onDelete = { onDeleteHolding(holding) },
+                        shape = itemShape,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -638,6 +646,7 @@ fun HoldingCard(
     canSwipe: Boolean = true,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    shape: Shape = RoundedCornerShape(16.dp),
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
@@ -719,6 +728,7 @@ fun HoldingCard(
             .fillMaxWidth()
             .onSizeChanged { itemWidthPx = it.width.toFloat() }
             .offset { IntOffset(slideAwayOffsetX.value.roundToInt(), 0) }
+            .clip(shape)
     ) {
         Row(
             modifier = Modifier
@@ -890,10 +900,11 @@ fun HoldingCard(
                 }
             },
             colors = ListItemDefaults.colors(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
             ),
             modifier = Modifier
                 .fillMaxWidth()
+                .clip(shape)
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
                 .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe, fullSwipeThresholdPx, maxDragLeftPx) {
                     if (isDeleting) return@pointerInput
