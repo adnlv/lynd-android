@@ -44,6 +44,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -159,12 +160,12 @@ fun HoldingsScreen(
                 sharedPrefs.edit().putBoolean("has_seen_swipe_peek", true).apply()
                 hasSeenSwipePeek = true
             }
-            delay(120L)
+            delay(250L)
             if (listState.isScrollInProgress) {
                 isFabExpanded = false
             }
         } else {
-            delay(300L)
+            delay(500L)
             isFabExpanded = true
         }
     }
@@ -185,7 +186,7 @@ fun HoldingsScreen(
                     .padding(start = 32.dp, end = 0.dp),
                 horizontalAlignment = Alignment.End
             ) {
-                ExtendedFloatingActionButton(
+                FloatingActionButton(
                     onClick = {
                         revealedHoldingId = null
                         if (addHoldingContent != null) {
@@ -195,16 +196,57 @@ fun HoldingsScreen(
                             onNavigateToAdd?.invoke()
                         }
                     },
-                    icon = {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
-                    },
-                    text = {
-                        Text("Add holding")
-                    },
-                    expanded = isFabExpanded,
                     shape = CircleShape,
                     modifier = Modifier.padding(end = 4.dp, top = 4.dp)
-                )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(
+                            start = 16.dp,
+                            end = if (isFabExpanded) 20.dp else 16.dp
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Holding"
+                        )
+                        AnimatedVisibility(
+                            visible = isFabExpanded,
+                            enter = androidx.compose.animation.fadeIn(
+                                animationSpec = tween(
+                                    durationMillis = 300,
+                                    delayMillis = 100,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ) + androidx.compose.animation.expandHorizontally(
+                                animationSpec = tween(
+                                    durationMillis = 400,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ),
+                            exit = androidx.compose.animation.fadeOut(
+                                animationSpec = tween(
+                                    durationMillis = 200,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ) + androidx.compose.animation.shrinkHorizontally(
+                                animationSpec = tween(
+                                    durationMillis = 400,
+                                    easing = FastOutSlowInEasing
+                                )
+                            )
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Add holding",
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                            }
+                        }
+                    }
+                }
 
                 SnackbarHost(
                     hostState = snackbarHostState,
