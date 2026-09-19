@@ -120,6 +120,7 @@ object TestPortfolioData {
     )
 
     val holdings = listOf(
+        // UA4000187348 (UAH) - 3 lots
         HoldingEntity(
             isin = "UA4000187348",
             quantity = 10,
@@ -128,12 +129,30 @@ object TestPortfolioData {
             purchaseDate = LocalDate.of(2026, 1, 15)
         ),
         HoldingEntity(
+            isin = "UA4000187348",
+            quantity = 15,
+            pricePerBond = BigDecimal("1010.00"),
+            totalPaidAmount = BigDecimal("15150.00"),
+            purchaseDate = LocalDate.of(2026, 3, 20)
+        ),
+        HoldingEntity(
+            isin = "UA4000187348",
+            quantity = 5,
+            pricePerBond = BigDecimal("990.00"),
+            totalPaidAmount = BigDecimal("4950.00"),
+            purchaseDate = LocalDate.of(2026, 5, 18)
+        ),
+
+        // UA4000190441 (UAH)
+        HoldingEntity(
             isin = "UA4000190441",
             quantity = 5,
             pricePerBond = BigDecimal("1000.00"),
             totalPaidAmount = BigDecimal("5000.00"),
             purchaseDate = LocalDate.of(2026, 2, 1)
         ),
+
+        // UA4000238281 (UAH)
         HoldingEntity(
             isin = "UA4000238281",
             quantity = 25,
@@ -141,6 +160,8 @@ object TestPortfolioData {
             totalPaidAmount = BigDecimal("25500.00"),
             purchaseDate = LocalDate.of(2026, 3, 10)
         ),
+
+        // UA4000236541 (USD) - 2 lots
         HoldingEntity(
             isin = "UA4000236541",
             quantity = 15,
@@ -149,12 +170,23 @@ object TestPortfolioData {
             purchaseDate = LocalDate.of(2026, 2, 15)
         ),
         HoldingEntity(
+            isin = "UA4000236541",
+            quantity = 10,
+            pricePerBond = BigDecimal("995.00"),
+            totalPaidAmount = BigDecimal("9950.00"),
+            purchaseDate = LocalDate.of(2026, 4, 10)
+        ),
+
+        // UA4000237242 (USD)
+        HoldingEntity(
             isin = "UA4000237242",
             quantity = 8,
             pricePerBond = BigDecimal("1000.00"),
             totalPaidAmount = BigDecimal("8000.00"),
             purchaseDate = LocalDate.of(2026, 4, 1)
         ),
+
+        // UA4000237077 (EUR) - 2 lots
         HoldingEntity(
             isin = "UA4000237077",
             quantity = 20,
@@ -162,6 +194,15 @@ object TestPortfolioData {
             totalPaidAmount = BigDecimal("20000.00"),
             purchaseDate = LocalDate.of(2026, 2, 20)
         ),
+        HoldingEntity(
+            isin = "UA4000237077",
+            quantity = 8,
+            pricePerBond = BigDecimal("1005.00"),
+            totalPaidAmount = BigDecimal("8040.00"),
+            purchaseDate = LocalDate.of(2026, 5, 12)
+        ),
+
+        // UA4000238364 (EUR)
         HoldingEntity(
             isin = "UA4000238364",
             quantity = 12,
