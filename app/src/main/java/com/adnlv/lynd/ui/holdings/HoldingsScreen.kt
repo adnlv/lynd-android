@@ -74,6 +74,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingGroup
 import com.adnlv.lynd.domain.HoldingItem
@@ -395,7 +396,8 @@ fun HoldingsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No holdings yet. Tap the pen icon to add one.",
+                        text = "No holdings yet.\nTap the pen icon to add one.",
+                        textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
