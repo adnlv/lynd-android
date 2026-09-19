@@ -270,8 +270,7 @@ fun HoldingsScreen(
                                     .fillMaxWidth()
                                     .height(3.dp)
                                     .align(Alignment.BottomCenter),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.primaryContainer
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f)
                             )
                         }
                     }
