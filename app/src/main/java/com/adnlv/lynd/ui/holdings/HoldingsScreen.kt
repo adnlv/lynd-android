@@ -800,7 +800,7 @@ fun HoldingCard(
                     text = Formatters.formatDate(holding.purchaseDate),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             supportingContent = {
