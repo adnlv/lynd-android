@@ -37,7 +37,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -601,9 +600,10 @@ fun HoldingGroupCard(
         }
 
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            group.items.forEachIndexed { index, holding ->
+            group.items.forEach { holding ->
                 key(holding.id) {
                     HoldingCard(
                         holding = holding,
@@ -619,12 +619,6 @@ fun HoldingGroupCard(
                         onDelete = { onDeleteHolding(holding) },
                         modifier = Modifier.fillMaxWidth()
                     )
-                    if (index < group.items.lastIndex) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-                    }
                 }
             }
         }
