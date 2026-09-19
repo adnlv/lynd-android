@@ -32,7 +32,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Warning
@@ -189,7 +188,7 @@ fun HoldingsScreen(
                         }
                     }
                 ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Add Holding")
                 }
 
                 SnackbarHost(
@@ -394,7 +393,7 @@ fun HoldingsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No holdings yet. Tap + to add one.",
+                        text = "No holdings yet. Tap the pen icon to add one.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
