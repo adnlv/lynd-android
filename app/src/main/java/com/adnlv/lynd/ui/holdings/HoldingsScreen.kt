@@ -160,12 +160,12 @@ fun HoldingsScreen(
                 sharedPrefs.edit().putBoolean("has_seen_swipe_peek", true).apply()
                 hasSeenSwipePeek = true
             }
-            delay(250L)
+            delay(500L)
             if (listState.isScrollInProgress) {
                 isFabExpanded = false
             }
         } else {
-            delay(500L)
+            delay(1000L)
             isFabExpanded = true
         }
     }
