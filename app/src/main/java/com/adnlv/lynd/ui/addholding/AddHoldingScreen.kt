@@ -125,7 +125,7 @@ fun AddHoldingScreen(
         sheetState = sheetState,
         modifier = modifier,
         dragHandle = null,
-        scrimColor = Color.Black.copy(alpha = 0.28f)
+        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
     ) {
         Box(
             modifier = Modifier
