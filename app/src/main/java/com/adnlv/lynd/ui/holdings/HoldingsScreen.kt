@@ -564,8 +564,9 @@ fun HoldingCard(
 ) {
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
-    val actionButtonsWidthDp = 120.dp
+    val actionButtonsWidthDp = 144.dp
     val actionButtonsWidthPx = with(density) { actionButtonsWidthDp.toPx() }
+    val baseButtonWidthDp = 60.dp
     val offsetX = remember { Animatable(0f) }
     val slideAwayOffsetX = remember { Animatable(0f) }
     var itemWidthPx by remember { mutableFloatStateOf(0f) }
@@ -605,24 +606,27 @@ fun HoldingCard(
     val fullSwipeThresholdPx = if (itemWidthPx > 0f) {
         (itemWidthPx * 0.45f).coerceAtLeast(actionButtonsWidthPx * 1.5f)
     } else {
-        with(density) { 200.dp.toPx() }
+        with(density) { 220.dp.toPx() }
     }
     val maxDragLeftPx = if (itemWidthPx > 0f) itemWidthPx else with(density) { 360.dp.toPx() }
 
-    val deleteScale: Float
-    val editScale: Float
-    val deleteAlpha: Float
-    if (dragDistance <= actionButtonsWidthPx) {
-        val progress = (dragDistance / actionButtonsWidthPx).coerceIn(0f, 1f)
-        deleteScale = progress
-        editScale = progress
-        deleteAlpha = progress
-    } else {
-        val deepDenominator = (fullSwipeThresholdPx - actionButtonsWidthPx).coerceAtLeast(1f)
-        val deepProgress = ((dragDistance - actionButtonsWidthPx) / deepDenominator).coerceIn(0f, 1f)
-        deleteScale = (1f - deepProgress).coerceIn(0f, 1f)
-        editScale = 1f + (0.2f * deepProgress)
-        deleteAlpha = deleteScale
+    val (deleteWidthDp, editWidthDp, deleteAlpha) = run {
+        if (dragDistance <= actionButtonsWidthPx) {
+            val progress = (dragDistance / actionButtonsWidthPx).coerceIn(0f, 1f)
+            Triple(
+                baseButtonWidthDp * progress,
+                baseButtonWidthDp * progress,
+                progress
+            )
+        } else {
+            val deepDenominator = (fullSwipeThresholdPx - actionButtonsWidthPx).coerceAtLeast(1f)
+            val deepProgress = ((dragDistance - actionButtonsWidthPx) / deepDenominator).coerceIn(0f, 1f)
+            val delWidth = (baseButtonWidthDp * (1f - deepProgress)).coerceAtLeast(0.dp)
+            val extraWidthPx = dragDistance - actionButtonsWidthPx
+            val edWidth = baseButtonWidthDp + with(density) { extraWidthPx.toDp() }
+            val delAlpha = (1f - deepProgress).coerceIn(0f, 1f)
+            Triple(delWidth, edWidth, delAlpha)
+        }
     }
 
     Box(
@@ -639,54 +643,60 @@ fun HoldingCard(
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            FilledIconButton(
-                onClick = {
-                    if (!isDeleting) {
-                        isDeleting = true
-                        coroutineScope.launch {
-                            val targetOffset = if (itemWidthPx > 0f) -itemWidthPx - with(density) { 32.dp.toPx() } else -1500f
-                            slideAwayOffsetX.animateTo(
-                                targetValue = targetOffset,
-                                animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
-                            )
-                            onDelete()
+            if (deleteWidthDp > 0.dp) {
+                Surface(
+                    onClick = {
+                        if (!isDeleting) {
+                            isDeleting = true
+                            coroutineScope.launch {
+                                val targetOffset = if (itemWidthPx > 0f) -itemWidthPx - with(density) { 32.dp.toPx() } else -1500f
+                                slideAwayOffsetX.animateTo(
+                                    targetValue = targetOffset,
+                                    animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
+                                )
+                                onDelete()
+                            }
                         }
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(deleteWidthDp)
+                        .graphicsLayer { alpha = deleteAlpha }
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete Holding"
+                        )
                     }
-                },
-                modifier = Modifier
-                    .size(48.dp)
-                    .graphicsLayer {
-                        scaleX = deleteScale
-                        scaleY = deleteScale
-                        alpha = deleteAlpha
-                    },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete Holding"
-                )
+                }
             }
-            FilledIconButton(
-                onClick = onEdit,
-                modifier = Modifier
-                    .size(48.dp)
-                    .graphicsLayer {
-                        scaleX = editScale
-                        scaleY = editScale
-                    },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Holding"
-                )
+            if (editWidthDp > 0.dp) {
+                Surface(
+                    onClick = onEdit,
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(editWidthDp)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit Holding"
+                        )
+                    }
+                }
             }
         }
 
