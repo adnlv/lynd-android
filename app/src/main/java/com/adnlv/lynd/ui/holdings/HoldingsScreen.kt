@@ -622,13 +622,18 @@ fun HoldingCard(
         } else {
             val deepDenominator = (fullSwipeThresholdPx - actionButtonsWidthPx).coerceAtLeast(1f)
             val deepProgress = ((dragDistance - actionButtonsWidthPx) / deepDenominator).coerceIn(0f, 1f)
-            val delWidth = (baseButtonWidthDp * (1f - deepProgress)).coerceAtLeast(0.dp)
-            val extraWidthPx = dragDistance - actionButtonsWidthPx
-            val edWidth = baseButtonWidthDp + with(density) { extraWidthPx.toDp() }
+            val delWidth = if (deepProgress >= 1f) 0.dp else (baseButtonWidthDp * (1f - deepProgress)).coerceAtLeast(0.dp)
             val delAlpha = (1f - deepProgress).coerceIn(0f, 1f)
+            val totalRevealedWidthDp = with(density) {
+                (dragDistance - with(density) { 16.dp.toPx() }).toDp()
+            }.coerceAtLeast(baseButtonWidthDp)
+            val spacingDp = if (delWidth > 0.dp) 8.dp else 0.dp
+            val edWidth = (totalRevealedWidthDp - delWidth - spacingDp).coerceAtLeast(baseButtonWidthDp)
             Triple(delWidth, edWidth, delAlpha)
         }
     }
+
+    val buttonSpacingDp = if (deleteWidthDp > 0.dp) 8.dp else 0.dp
 
     Box(
         modifier = modifier
@@ -641,7 +646,7 @@ fun HoldingCard(
             modifier = Modifier
                 .matchParentSize()
                 .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            horizontalArrangement = Arrangement.spacedBy(buttonSpacingDp, Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (deleteWidthDp > 0.dp) {
