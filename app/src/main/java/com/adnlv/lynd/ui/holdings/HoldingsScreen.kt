@@ -898,7 +898,7 @@ fun HoldingCard(
                 }
             },
             colors = ListItemDefaults.colors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),
             modifier = Modifier
                 .fillMaxWidth()
