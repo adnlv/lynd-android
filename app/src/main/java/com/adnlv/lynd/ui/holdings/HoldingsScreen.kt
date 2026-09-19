@@ -166,18 +166,37 @@ fun HoldingsScreen(
     Scaffold(
         modifier = modifier,
         floatingActionButton = {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 32.dp, end = 0.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(start = 32.dp, end = 0.dp)
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = 0.8f,
+                            stiffness = Spring.StiffnessMediumLow
+                        )
+                    ),
+                horizontalAlignment = Alignment.End
             ) {
+                FloatingActionButton(
+                    onClick = {
+                        revealedHoldingId = null
+                        if (addHoldingContent != null) {
+                            editingHolding = null
+                            showHoldingSheet = true
+                        } else {
+                            onNavigateToAdd?.invoke()
+                        }
+                    }
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
+                }
+
                 SnackbarHost(
                     hostState = snackbarHostState,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth()
                 ) { data ->
-                    val totalSeconds = 4
+                    val totalSeconds = 3
                     var remainingSeconds by remember(data) { mutableStateOf(totalSeconds) }
                     val progress = remember(data) { Animatable(1f) }
                     val swipeOffsetX = remember(data) { Animatable(0f) }
@@ -191,8 +210,12 @@ fun HoldingsScreen(
                         }
                         progress.animateTo(
                             targetValue = 0f,
-                            animationSpec = tween(durationMillis = totalSeconds * 1000, easing = androidx.compose.animation.core.LinearEasing)
+                            animationSpec = tween(
+                                durationMillis = totalSeconds * 1000,
+                                easing = androidx.compose.animation.core.LinearEasing
+                            )
                         )
+                        data.dismiss()
                     }
 
                     val dismissThresholdPx = with(LocalDensity.current) { 96.dp.toPx() }
@@ -200,6 +223,7 @@ fun HoldingsScreen(
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(top = 12.dp)
                             .height(56.dp)
                             .offset { IntOffset(swipeOffsetX.value.roundToInt(), 0) }
                             .alpha(1f - (kotlin.math.abs(swipeOffsetX.value) / (dismissThresholdPx * 2f)).coerceIn(0f, 1f))
@@ -230,8 +254,8 @@ fun HoldingsScreen(
                                 )
                             },
                         shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
                         shadowElevation = 6.dp
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
@@ -250,13 +274,13 @@ fun HoldingsScreen(
                                     Text(
                                         text = data.visuals.message,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         maxLines = 1
                                     )
                                     Text(
                                         text = "${remainingSeconds}s",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
 
@@ -281,24 +305,11 @@ fun HoldingsScreen(
                                     .fillMaxWidth()
                                     .height(3.dp)
                                     .align(Alignment.BottomCenter),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f)
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                         }
                     }
-                }
-
-                FloatingActionButton(
-                    onClick = {
-                        revealedHoldingId = null
-                        if (addHoldingContent != null) {
-                            editingHolding = null
-                            showHoldingSheet = true
-                        } else {
-                            onNavigateToAdd?.invoke()
-                        }
-                    }
-                ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Holding")
                 }
             }
         }
@@ -453,7 +464,7 @@ fun HoldingsScreen(
                                     val result = snackbarHostState.showSnackbar(
                                         message = "Holding deleted",
                                         actionLabel = "Undo",
-                                        duration = SnackbarDuration.Short
+                                        duration = SnackbarDuration.Indefinite
                                     )
                                     if (result == SnackbarResult.ActionPerformed) {
                                         viewModel.restoreHolding()
