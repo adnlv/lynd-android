@@ -182,13 +182,7 @@ fun HoldingsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 32.dp, end = 0.dp)
-                    .animateContentSize(
-                        animationSpec = spring(
-                            dampingRatio = 0.8f,
-                            stiffness = Spring.StiffnessMediumLow
-                        )
-                    ),
+                    .padding(start = 32.dp, end = 0.dp),
                 horizontalAlignment = Alignment.End
             ) {
                 ExtendedFloatingActionButton(
