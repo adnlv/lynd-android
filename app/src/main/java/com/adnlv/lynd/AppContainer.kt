@@ -2,10 +2,16 @@ package com.adnlv.lynd
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.AppDatabase
 import com.adnlv.lynd.data.network.NbuApiService
 import com.adnlv.lynd.data.network.NbuRepository
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -18,7 +24,17 @@ class AppContainer(context: Context) {
         context.applicationContext,
         AppDatabase::class.java,
         "lynd_database"
-    ).fallbackToDestructiveMigration().build()
+    )
+        .fallbackToDestructiveMigration()
+        .addCallback(object : RoomDatabase.Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                CoroutineScope(Dispatchers.IO).launch {
+                    TestPortfolioData.seed(database.bondDao(), database.holdingDao())
+                }
+            }
+        })
+        .build()
 
     private val json = Json {
         ignoreUnknownKeys = true
