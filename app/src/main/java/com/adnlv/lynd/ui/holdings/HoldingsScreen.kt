@@ -57,6 +57,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -516,20 +517,22 @@ fun HoldingGroupCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             group.items.forEach { holding ->
-                HoldingCard(
-                    holding = holding,
-                    isRevealed = revealedHoldingId == holding.id,
-                    isPeeking = peekingHoldingId == holding.id,
-                    canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
-                    onExpand = { onExpandHolding(holding.id) },
-                    onCollapse = { onCollapseHolding(holding.id) },
-                    onDragStart = { onDragStartHolding(holding.id) },
-                    onDragEnd = { onDragEndHolding(holding.id) },
-                    onDragCancel = { onDragCancelHolding(holding.id) },
-                    onEdit = { onEditHolding(holding) },
-                    onDelete = { onDeleteHolding(holding) },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                key(holding.id) {
+                    HoldingCard(
+                        holding = holding,
+                        isRevealed = revealedHoldingId == holding.id,
+                        isPeeking = peekingHoldingId == holding.id,
+                        canSwipe = swipingHoldingId == null || swipingHoldingId == holding.id,
+                        onExpand = { onExpandHolding(holding.id) },
+                        onCollapse = { onCollapseHolding(holding.id) },
+                        onDragStart = { onDragStartHolding(holding.id) },
+                        onDragEnd = { onDragEndHolding(holding.id) },
+                        onDragCancel = { onDragCancelHolding(holding.id) },
+                        onEdit = { onEditHolding(holding) },
+                        onDelete = { onDeleteHolding(holding) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }
