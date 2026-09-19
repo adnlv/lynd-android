@@ -904,8 +904,8 @@ fun HoldingCard(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(shape)
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                .clip(shape)
                 .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe, fullSwipeThresholdPx, maxDragLeftPx) {
                     if (isDeleting) return@pointerInput
                     detectHorizontalDragGestures(
