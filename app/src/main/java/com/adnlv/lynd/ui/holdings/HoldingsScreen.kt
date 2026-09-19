@@ -148,6 +148,8 @@ fun HoldingsScreen(
         }
     }
 
+    var isFabExpanded by remember { mutableStateOf(true) }
+
     LaunchedEffect(listState.isScrollInProgress) {
         if (listState.isScrollInProgress) {
             revealedHoldingId = null
@@ -157,6 +159,13 @@ fun HoldingsScreen(
                 sharedPrefs.edit().putBoolean("has_seen_swipe_peek", true).apply()
                 hasSeenSwipePeek = true
             }
+            delay(120L)
+            if (listState.isScrollInProgress) {
+                isFabExpanded = false
+            }
+        } else {
+            delay(300L)
+            isFabExpanded = true
         }
     }
 
@@ -198,7 +207,7 @@ fun HoldingsScreen(
                     text = {
                         Text("Add holding")
                     },
-                    expanded = !listState.isScrollInProgress,
+                    expanded = isFabExpanded,
                     shape = CircleShape,
                     modifier = Modifier.padding(end = 4.dp, top = 4.dp)
                 )
