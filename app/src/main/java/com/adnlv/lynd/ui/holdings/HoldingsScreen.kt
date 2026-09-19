@@ -499,7 +499,7 @@ fun HoldingGroupCard(
             )
 
             Badge(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             ) {
                 Text(
@@ -752,7 +752,7 @@ fun HoldingCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Badge(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ) {
                             Text(
