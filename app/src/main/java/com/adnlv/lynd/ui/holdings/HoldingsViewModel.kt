@@ -3,6 +3,8 @@ package com.adnlv.lynd.ui.holdings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.adnlv.lynd.data.TestPortfolioData
+import com.adnlv.lynd.data.db.BondDao
 import com.adnlv.lynd.data.db.HoldingDao
 import com.adnlv.lynd.data.network.NbuRepository
 import com.adnlv.lynd.data.db.HoldingEntity
@@ -21,7 +23,8 @@ import java.math.RoundingMode
 
 class HoldingsViewModel(
     private val holdingDao: HoldingDao,
-    private val nbuRepository: NbuRepository
+    private val nbuRepository: NbuRepository,
+    private val bondDao: BondDao
 ) : ViewModel() {
 
     private val _isSyncing = MutableStateFlow(false)
@@ -150,15 +153,22 @@ class HoldingsViewModel(
         }
     }
 
+    fun loadTestPortfolio() {
+        viewModelScope.launch {
+            TestPortfolioData.seed(bondDao, holdingDao)
+        }
+    }
+
     companion object {
         fun provideFactory(
             holdingDao: HoldingDao,
-            nbuRepository: NbuRepository
+            nbuRepository: NbuRepository,
+            bondDao: BondDao
         ): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return HoldingsViewModel(holdingDao, nbuRepository) as T
+                    return HoldingsViewModel(holdingDao, nbuRepository, bondDao) as T
                 }
             }
     }

@@ -116,7 +116,8 @@ fun MainApp(appContainer: AppContainer) {
                 val holdingsViewModel: HoldingsViewModel = viewModel(
                     factory = HoldingsViewModel.provideFactory(
                         holdingDao = appContainer.database.holdingDao(),
-                        nbuRepository = appContainer.nbuRepository
+                        nbuRepository = appContainer.nbuRepository,
+                        bondDao = appContainer.database.bondDao()
                     )
                 )
                 val addHoldingViewModel: AddHoldingViewModel = viewModel(
