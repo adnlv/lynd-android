@@ -853,11 +853,9 @@ fun HoldingCard(
                         color = MaterialTheme.colorScheme.primary
                     )
 
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clickable { showMenu = true },
-                        contentAlignment = Alignment.Center
+                    IconButton(
+                        onClick = { showMenu = true },
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
