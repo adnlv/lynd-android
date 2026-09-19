@@ -57,12 +57,9 @@ fun PayoutsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(modifier = modifier) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
             SingleChoiceSegmentedButtonRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -187,7 +184,6 @@ fun PayoutsScreen(
             }
         }
     }
-}
 
 @Composable
 fun PayoutCard(
