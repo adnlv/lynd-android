@@ -798,9 +798,8 @@ fun HoldingCard(
             headlineContent = {
                 Text(
                     text = Formatters.formatDate(holding.purchaseDate),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             },
             supportingContent = {
