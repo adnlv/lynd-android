@@ -810,8 +810,8 @@ fun HoldingCard(
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
                     Badge(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        containerColor = MaterialTheme.colorScheme.surfaceBright,
+                        contentColor = MaterialTheme.colorScheme.onSurface
                     ) {
                         Text(
                             text = "${holding.quantity}",
