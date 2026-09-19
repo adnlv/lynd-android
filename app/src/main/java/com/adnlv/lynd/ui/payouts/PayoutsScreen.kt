@@ -239,7 +239,7 @@ fun PayoutCard(
             val iconShape = if (isRedemption) {
                 CircleShape
             } else {
-                remember { GearShape() }
+                remember { Cookie9Shape() }
             }
 
             Row(
