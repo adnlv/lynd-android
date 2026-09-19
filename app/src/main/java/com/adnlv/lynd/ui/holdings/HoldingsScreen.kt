@@ -809,7 +809,7 @@ fun HoldingCard(
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
                     Badge(
-                        containerColor = MaterialTheme.colorScheme.surfaceBright,
+                        containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f),
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ) {
                         Text(
