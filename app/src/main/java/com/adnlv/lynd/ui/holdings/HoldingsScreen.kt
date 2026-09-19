@@ -198,7 +198,9 @@ fun HoldingsScreen(
                     text = {
                         Text("Add holding")
                     },
-                    expanded = !listState.isScrollInProgress
+                    expanded = !listState.isScrollInProgress,
+                    shape = CircleShape,
+                    modifier = Modifier.padding(end = 4.dp, top = 4.dp)
                 )
 
                 SnackbarHost(
