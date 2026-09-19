@@ -196,7 +196,6 @@ fun HoldingsScreen(
                             onNavigateToAdd?.invoke()
                         }
                     },
-                    shape = CircleShape,
                     modifier = Modifier.padding(end = 4.dp, top = 4.dp)
                 ) {
                     Row(
