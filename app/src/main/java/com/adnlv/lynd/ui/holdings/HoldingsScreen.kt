@@ -558,7 +558,7 @@ fun HoldingCard(
 ) {
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
-    val actionButtonsWidthDp = 152.dp
+    val actionButtonsWidthDp = 120.dp
     val actionButtonsWidthPx = with(density) { actionButtonsWidthDp.toPx() }
     val offsetX = remember { Animatable(0f) }
     val slideAwayOffsetX = remember { Animatable(0f) }
@@ -604,7 +604,7 @@ fun HoldingCard(
         Row(
             modifier = Modifier
                 .matchParentSize()
-                .padding(end = 8.dp),
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
