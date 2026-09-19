@@ -652,9 +652,10 @@ fun HoldingCard(
     val density = LocalDensity.current
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
-    val actionButtonsWidthDp = 144.dp
-    val actionButtonsWidthPx = with(density) { actionButtonsWidthDp.toPx() }
+    val buttonGapDp = 2.dp
     val baseButtonWidthDp = 60.dp
+    val actionButtonsWidthDp = baseButtonWidthDp * 2 + buttonGapDp * 3
+    val actionButtonsWidthPx = with(density) { actionButtonsWidthDp.toPx() }
     val offsetX = remember { Animatable(0f) }
     val slideAwayOffsetX = remember { Animatable(0f) }
     var itemWidthPx by remember { mutableFloatStateOf(0f) }
@@ -713,15 +714,15 @@ fun HoldingCard(
             val delWidth = if (deepProgress >= 1f) 0.dp else (baseButtonWidthDp * (1f - deepProgress)).coerceAtLeast(0.dp)
             val delAlpha = (1f - deepProgress).coerceIn(0f, 1f)
             val totalRevealedWidthDp = with(density) {
-                (dragDistance - with(density) { 16.dp.toPx() }).toDp()
+                (dragDistance - with(density) { (buttonGapDp * 2).toPx() }).toDp()
             }.coerceAtLeast(baseButtonWidthDp)
-            val spacingDp = if (delWidth > 0.dp) 8.dp else 0.dp
+            val spacingDp = if (delWidth > 0.dp) buttonGapDp else 0.dp
             val edWidth = (totalRevealedWidthDp - delWidth - spacingDp).coerceAtLeast(baseButtonWidthDp)
             Triple(delWidth, edWidth, delAlpha)
         }
     }
 
-    val buttonSpacingDp = if (deleteWidthDp > 0.dp) 8.dp else 0.dp
+    val buttonSpacingDp = if (deleteWidthDp > 0.dp) buttonGapDp else 0.dp
 
     Box(
         modifier = modifier
@@ -733,7 +734,7 @@ fun HoldingCard(
         Row(
             modifier = Modifier
                 .matchParentSize()
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = buttonGapDp),
             horizontalArrangement = Arrangement.spacedBy(buttonSpacingDp, Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
