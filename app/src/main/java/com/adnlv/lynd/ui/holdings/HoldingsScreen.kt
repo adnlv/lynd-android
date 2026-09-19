@@ -613,19 +613,6 @@ fun HoldingCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             FilledIconButton(
-                onClick = onEdit,
-                modifier = Modifier.size(48.dp),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Holding"
-                )
-            }
-            FilledIconButton(
                 onClick = {
                     if (!isDeleting) {
                         isDeleting = true
@@ -648,6 +635,19 @@ fun HoldingCard(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete Holding"
+                )
+            }
+            FilledIconButton(
+                onClick = onEdit,
+                modifier = Modifier.size(48.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Holding"
                 )
             }
         }
