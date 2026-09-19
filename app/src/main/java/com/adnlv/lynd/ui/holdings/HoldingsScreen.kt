@@ -589,7 +589,6 @@ fun HoldingCard(
     var isDeleting by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
     var hasTriggeredRevealHaptic by remember { mutableStateOf(false) }
-    var hasTriggeredFullSwipeHaptic by remember { mutableStateOf(false) }
 
     val swipeSpringSpec = spring<Float>(
         dampingRatio = 0.6f,
@@ -733,7 +732,6 @@ fun HoldingCard(
                         onDragStart = {
                             if (canSwipe) {
                                 hasTriggeredRevealHaptic = isRevealed
-                                hasTriggeredFullSwipeHaptic = false
                                 onDragStart?.invoke()
                             }
                         },
@@ -749,24 +747,14 @@ fun HoldingCard(
                                 val currentDragDistance = -target
                                 val revealThresholdPx = actionButtonsWidthPx / 3f
 
-                                if (currentDragDistance >= fullSwipeThresholdPx) {
-                                    if (!hasTriggeredFullSwipeHaptic) {
-                                        hasTriggeredFullSwipeHaptic = true
-                                        HapticFeedbackHelper.vibrateFullSwipeThreshold(view)
+                                if (currentDragDistance >= revealThresholdPx) {
+                                    if (!hasTriggeredRevealHaptic) {
+                                        hasTriggeredRevealHaptic = true
+                                        HapticFeedbackHelper.vibrateRevealThreshold(view)
                                     }
                                 } else {
-                                    if (hasTriggeredFullSwipeHaptic) {
-                                        hasTriggeredFullSwipeHaptic = false
-                                    }
-                                    if (currentDragDistance >= revealThresholdPx) {
-                                        if (!hasTriggeredRevealHaptic) {
-                                            hasTriggeredRevealHaptic = true
-                                            HapticFeedbackHelper.vibrateRevealThreshold(view)
-                                        }
-                                    } else {
-                                        if (hasTriggeredRevealHaptic) {
-                                            hasTriggeredRevealHaptic = false
-                                        }
+                                    if (hasTriggeredRevealHaptic) {
+                                        hasTriggeredRevealHaptic = false
                                     }
                                 }
                             }
@@ -788,7 +776,6 @@ fun HoldingCard(
                                     offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
                                 }
                                 hasTriggeredRevealHaptic = false
-                                hasTriggeredFullSwipeHaptic = false
                             }
                         },
                         onDragCancel = {
@@ -808,7 +795,6 @@ fun HoldingCard(
                                     offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
                                 }
                                 hasTriggeredRevealHaptic = false
-                                hasTriggeredFullSwipeHaptic = false
                             }
                         }
                     )

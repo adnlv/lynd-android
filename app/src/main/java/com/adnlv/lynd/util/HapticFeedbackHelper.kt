@@ -14,13 +14,6 @@ object HapticFeedbackHelper {
         view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
     }
 
-    fun vibrateFullSwipeThreshold(view: View) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            view.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
-        } else {
-            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-        }
-    }
 
     fun vibratePrimaryAction(view: View) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
