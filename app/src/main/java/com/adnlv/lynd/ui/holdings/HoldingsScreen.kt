@@ -97,7 +97,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntOffset
+import com.adnlv.lynd.util.HapticFeedbackHelper
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -574,6 +576,7 @@ fun HoldingCard(
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
+    val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
     val actionButtonsWidthDp = 144.dp
     val actionButtonsWidthPx = with(density) { actionButtonsWidthDp.toPx() }
@@ -583,6 +586,8 @@ fun HoldingCard(
     var itemWidthPx by remember { mutableFloatStateOf(0f) }
     var isDeleting by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
+    var hasTriggeredRevealHaptic by remember { mutableStateOf(false) }
+    var hasTriggeredFullSwipeHaptic by remember { mutableStateOf(false) }
 
     val swipeSpringSpec = spring<Float>(
         dampingRatio = 0.6f,
@@ -725,6 +730,8 @@ fun HoldingCard(
                     detectHorizontalDragGestures(
                         onDragStart = {
                             if (canSwipe) {
+                                hasTriggeredRevealHaptic = isRevealed
+                                hasTriggeredFullSwipeHaptic = false
                                 onDragStart?.invoke()
                             }
                         },
@@ -736,6 +743,30 @@ fun HoldingCard(
                                 val maxOffset = with(density) { 40.dp.toPx() }
                                 val target = (current + dragAmount).coerceIn(minOffset, maxOffset)
                                 offsetX.snapTo(target)
+
+                                val currentDragDistance = -target
+                                val revealThresholdPx = actionButtonsWidthPx / 3f
+
+                                if (currentDragDistance >= fullSwipeThresholdPx) {
+                                    if (!hasTriggeredFullSwipeHaptic) {
+                                        hasTriggeredFullSwipeHaptic = true
+                                        HapticFeedbackHelper.vibrateFullSwipeThreshold(view)
+                                    }
+                                } else {
+                                    if (hasTriggeredFullSwipeHaptic) {
+                                        hasTriggeredFullSwipeHaptic = false
+                                    }
+                                    if (currentDragDistance >= revealThresholdPx) {
+                                        if (!hasTriggeredRevealHaptic) {
+                                            hasTriggeredRevealHaptic = true
+                                            HapticFeedbackHelper.vibrateRevealThreshold(view)
+                                        }
+                                    } else {
+                                        if (hasTriggeredRevealHaptic) {
+                                            hasTriggeredRevealHaptic = false
+                                        }
+                                    }
+                                }
                             }
                         },
                         onDragEnd = {
@@ -743,6 +774,7 @@ fun HoldingCard(
                             coroutineScope.launch {
                                 val currentDragDistance = -offsetX.value
                                 if (currentDragDistance >= fullSwipeThresholdPx) {
+                                    HapticFeedbackHelper.vibratePrimaryAction(view)
                                     onEdit()
                                     offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
                                     onCollapse()
@@ -753,6 +785,8 @@ fun HoldingCard(
                                     onCollapse()
                                     offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
                                 }
+                                hasTriggeredRevealHaptic = false
+                                hasTriggeredFullSwipeHaptic = false
                             }
                         },
                         onDragCancel = {
@@ -760,6 +794,7 @@ fun HoldingCard(
                             coroutineScope.launch {
                                 val currentDragDistance = -offsetX.value
                                 if (currentDragDistance >= fullSwipeThresholdPx) {
+                                    HapticFeedbackHelper.vibratePrimaryAction(view)
                                     onEdit()
                                     offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
                                     onCollapse()
@@ -770,6 +805,8 @@ fun HoldingCard(
                                     onCollapse()
                                     offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
                                 }
+                                hasTriggeredRevealHaptic = false
+                                hasTriggeredFullSwipeHaptic = false
                             }
                         }
                     )
