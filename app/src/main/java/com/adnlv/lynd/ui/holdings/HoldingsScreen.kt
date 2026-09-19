@@ -91,6 +91,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -598,6 +599,30 @@ fun HoldingCard(
         }
     }
 
+    val dragDistance = (-offsetX.value).coerceAtLeast(0f)
+    val fullSwipeThresholdPx = if (itemWidthPx > 0f) {
+        (itemWidthPx * 0.45f).coerceAtLeast(actionButtonsWidthPx * 1.5f)
+    } else {
+        with(density) { 200.dp.toPx() }
+    }
+    val maxDragLeftPx = if (itemWidthPx > 0f) itemWidthPx else with(density) { 360.dp.toPx() }
+
+    val deleteScale: Float
+    val editScale: Float
+    val deleteAlpha: Float
+    if (dragDistance <= actionButtonsWidthPx) {
+        val progress = (dragDistance / actionButtonsWidthPx).coerceIn(0f, 1f)
+        deleteScale = progress
+        editScale = progress
+        deleteAlpha = progress
+    } else {
+        val deepDenominator = (fullSwipeThresholdPx - actionButtonsWidthPx).coerceAtLeast(1f)
+        val deepProgress = ((dragDistance - actionButtonsWidthPx) / deepDenominator).coerceIn(0f, 1f)
+        deleteScale = (1f - deepProgress).coerceIn(0f, 1f)
+        editScale = 1f + (0.2f * deepProgress)
+        deleteAlpha = deleteScale
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -626,7 +651,13 @@ fun HoldingCard(
                         }
                     }
                 },
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier
+                    .size(48.dp)
+                    .graphicsLayer {
+                        scaleX = deleteScale
+                        scaleY = deleteScale
+                        alpha = deleteAlpha
+                    },
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
@@ -639,7 +670,12 @@ fun HoldingCard(
             }
             FilledIconButton(
                 onClick = onEdit,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier
+                    .size(48.dp)
+                    .graphicsLayer {
+                        scaleX = editScale
+                        scaleY = editScale
+                    },
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -652,13 +688,11 @@ fun HoldingCard(
             }
         }
 
-        val maxOverdragPx = with(density) { 40.dp.toPx() }
-
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe) {
+                .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe, fullSwipeThresholdPx, maxDragLeftPx) {
                     if (isDeleting) return@pointerInput
                     detectHorizontalDragGestures(
                         onDragStart = {
@@ -670,28 +704,21 @@ fun HoldingCard(
                             if (!canSwipe) return@detectHorizontalDragGestures
                             coroutineScope.launch {
                                 val current = offsetX.value
-                                val effectiveDelta = if (dragAmount < 0f && current <= -actionButtonsWidthPx) {
-                                    val currentOverdrag = (-actionButtonsWidthPx - current).coerceAtLeast(0f)
-                                    val progress = (currentOverdrag / maxOverdragPx).coerceIn(0f, 1f)
-                                    dragAmount * (1f - progress) * 0.5f
-                                } else if (dragAmount > 0f && current >= 0f) {
-                                    val currentOverdrag = current.coerceAtLeast(0f)
-                                    val progress = (currentOverdrag / maxOverdragPx).coerceIn(0f, 1f)
-                                    dragAmount * (1f - progress) * 0.5f
-                                } else {
-                                    dragAmount
-                                }
-                                val target = (current + effectiveDelta).coerceIn(
-                                    -actionButtonsWidthPx - maxOverdragPx,
-                                    maxOverdragPx
-                                )
+                                val minOffset = -maxDragLeftPx
+                                val maxOffset = with(density) { 40.dp.toPx() }
+                                val target = (current + dragAmount).coerceIn(minOffset, maxOffset)
                                 offsetX.snapTo(target)
                             }
                         },
                         onDragEnd = {
                             onDragEnd?.invoke()
                             coroutineScope.launch {
-                                if (offsetX.value < -actionButtonsWidthPx / 3) {
+                                val currentDragDistance = -offsetX.value
+                                if (currentDragDistance >= fullSwipeThresholdPx) {
+                                    onEdit()
+                                    offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
+                                    onCollapse()
+                                } else if (currentDragDistance >= actionButtonsWidthPx / 3) {
                                     onExpand()
                                     offsetX.animateTo(-actionButtonsWidthPx, animationSpec = swipeSpringSpec)
                                 } else {
@@ -703,7 +730,12 @@ fun HoldingCard(
                         onDragCancel = {
                             onDragCancel?.invoke()
                             coroutineScope.launch {
-                                if (offsetX.value < -actionButtonsWidthPx / 3) {
+                                val currentDragDistance = -offsetX.value
+                                if (currentDragDistance >= fullSwipeThresholdPx) {
+                                    onEdit()
+                                    offsetX.animateTo(0f, animationSpec = swipeSpringSpec)
+                                    onCollapse()
+                                } else if (currentDragDistance >= actionButtonsWidthPx / 3) {
                                     onExpand()
                                     offsetX.animateTo(-actionButtonsWidthPx, animationSpec = swipeSpringSpec)
                                 } else {
