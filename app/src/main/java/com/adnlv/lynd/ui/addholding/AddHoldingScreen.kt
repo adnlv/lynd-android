@@ -1,6 +1,8 @@
 package com.adnlv.lynd.ui.addholding
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
@@ -120,10 +123,16 @@ fun AddHoldingScreen(
         }
     }
 
+    val sheetShape = BottomSheetDefaults.ExpandedShape
     ModalBottomSheet(
         onDismissRequest = onNavigateBack,
         sheetState = sheetState,
-        modifier = modifier,
+        shape = sheetShape,
+        modifier = modifier.border(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            shape = sheetShape
+        ),
         dragHandle = null,
         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
     ) {
@@ -163,7 +172,11 @@ fun AddHoldingScreen(
                 )
                 Button(
                     onClick = viewModel::saveHolding,
-                    enabled = uiState.fetchState is FetchState.Success
+                    enabled = uiState.fetchState is FetchState.Success,
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                    )
                 ) {
                     Text("Save")
                 }
