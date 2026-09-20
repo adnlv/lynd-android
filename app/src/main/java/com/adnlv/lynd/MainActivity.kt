@@ -7,15 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
@@ -24,18 +18,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -107,11 +100,12 @@ fun MainApp(appContainer: AppContainer) {
                 ) {
                     bottomTabs.forEach { screen ->
                         val selected = currentRoute == screen.route
-                        val pillAlpha by animateFloatAsState(
+                        val pillBorderAlpha by animateFloatAsState(
                             targetValue = if (selected) 1f else 0f,
                             animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-                            label = "pillAlpha"
+                            label = "pillBorderAlpha"
                         )
+                        val pillBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
@@ -126,45 +120,41 @@ fun MainApp(appContainer: AppContainer) {
                                     }
                                 }
                             },
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = Color.Transparent
-                            ),
                             icon = {
-                                Box(
-                                    modifier = Modifier
-                                        .width(64.dp)
-                                        .height(32.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .matchParentSize()
-                                            .graphicsLayer { alpha = pillAlpha }
-                                            .background(
-                                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                                shape = CircleShape
-                                            )
-                                            .border(
-                                                width = 1.dp,
-                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                                                shape = CircleShape
-                                            )
-                                    )
-                                    when (screen) {
-                                        Screen.Overview -> Icon(
-                                            imageVector = Icons.Default.Dashboard,
-                                            contentDescription = screen.title
+                                val iconModifier = Modifier.drawWithContent {
+                                    drawContent()
+                                    if (pillBorderAlpha > 0f) {
+                                        val strokeWidth = 1.dp.toPx()
+                                        val pillWidth = 64.dp.toPx()
+                                        val pillHeight = 32.dp.toPx()
+                                        val left = (size.width - pillWidth) / 2f
+                                        val top = (size.height - pillHeight) / 2f
+                                        drawRoundRect(
+                                            color = pillBorderColor.copy(alpha = pillBorderColor.alpha * pillBorderAlpha),
+                                            topLeft = Offset(left, top),
+                                            size = Size(pillWidth, pillHeight),
+                                            cornerRadius = CornerRadius(pillHeight / 2f, pillHeight / 2f),
+                                            style = Stroke(width = strokeWidth)
                                         )
-                                        Screen.Payouts -> Icon(
-                                            imageVector = Icons.Default.DateRange,
-                                            contentDescription = screen.title
-                                        )
-                                        Screen.Holdings -> Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.List,
-                                            contentDescription = screen.title
-                                        )
-                                        else -> {}
                                     }
+                                }
+                                when (screen) {
+                                    Screen.Overview -> Icon(
+                                        imageVector = Icons.Default.Dashboard,
+                                        contentDescription = screen.title,
+                                        modifier = iconModifier
+                                    )
+                                    Screen.Payouts -> Icon(
+                                        imageVector = Icons.Default.DateRange,
+                                        contentDescription = screen.title,
+                                        modifier = iconModifier
+                                    )
+                                    Screen.Holdings -> Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.List,
+                                        contentDescription = screen.title,
+                                        modifier = iconModifier
+                                    )
+                                    else -> {}
                                 }
                             },
                             label = { Text(screen.title) }
