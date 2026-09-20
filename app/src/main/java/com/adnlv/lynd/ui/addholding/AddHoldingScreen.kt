@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,13 +37,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -58,7 +60,6 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -85,9 +86,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingItem
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZoneOffset
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -522,42 +524,9 @@ fun AddHoldingScreen(
                 fontWeight = FontWeight.SemiBold
             )
 
-            val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = uiState.purchaseDate
-                    .atStartOfDay(ZoneOffset.UTC)
-                    .toInstant()
-                    .toEpochMilli()
-            )
-
-            LaunchedEffect(datePickerState.selectedDateMillis) {
-                datePickerState.selectedDateMillis?.let { millis ->
-                    val localDate = Instant.ofEpochMilli(millis)
-                        .atZone(ZoneId.of("UTC"))
-                        .toLocalDate()
-                    if (localDate != uiState.purchaseDate) {
-                        viewModel.onPurchaseDateChanged(localDate)
-                    }
-                }
-            }
-
-            LaunchedEffect(uiState.purchaseDate) {
-                val stateMillis = datePickerState.selectedDateMillis
-                val currentLocal = stateMillis?.let {
-                    Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate()
-                }
-                if (currentLocal != uiState.purchaseDate) {
-                    datePickerState.selectedDateMillis = uiState.purchaseDate
-                        .atStartOfDay(ZoneOffset.UTC)
-                        .toInstant()
-                        .toEpochMilli()
-                }
-            }
-
-            DatePicker(
-                state = datePickerState,
-                title = null,
-                headline = null,
-                showModeToggle = false,
+            CompactMonthDatePicker(
+                selectedDate = uiState.purchaseDate,
+                onDateSelected = viewModel::onPurchaseDateChanged,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -565,4 +534,147 @@ fun AddHoldingScreen(
 }
 }
 }
+}
+
+@Composable
+fun CompactMonthDatePicker(
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var displayedYearMonth by remember(selectedDate) {
+        mutableStateOf(YearMonth.from(selectedDate))
+    }
+
+    val daysOfWeek = remember {
+        listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
+    }
+
+    val firstDayOfMonth = displayedYearMonth.atDay(1)
+    val daysInMonth = displayedYearMonth.lengthOfMonth()
+    val firstDayOfWeekIndex = firstDayOfMonth.dayOfWeek.value - 1
+
+    val totalCells = firstDayOfWeekIndex + daysInMonth
+    val totalRows = (totalCells + 6) / 7
+
+    val monthTitle = remember(displayedYearMonth) {
+        val monthName = displayedYearMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+        "$monthName ${displayedYearMonth.year}"
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .border(
+                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                RoundedCornerShape(16.dp)
+            )
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { displayedYearMonth = displayedYearMonth.minusMonths(1) },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Previous Month"
+                )
+            }
+
+            Text(
+                text = monthTitle,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            IconButton(
+                onClick = { displayedYearMonth = displayedYearMonth.plusMonths(1) },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Next Month"
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            daysOfWeek.forEach { dayName ->
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = dayName,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            for (rowIndex in 0 until totalRows) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    for (colIndex in 0 until 7) {
+                        val cellIndex = rowIndex * 7 + colIndex
+                        val dayNumber = cellIndex - firstDayOfWeekIndex + 1
+
+                        if (dayNumber in 1..daysInMonth) {
+                            val cellDate = displayedYearMonth.atDay(dayNumber)
+                            val isSelected = cellDate == selectedDate
+                            val isToday = cellDate == LocalDate.now()
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(1f)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (isSelected) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            Color.Transparent
+                                        }
+                                    )
+                                    .clickable { onDateSelected(cellDate) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = dayNumber.toString(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
+                                    color = when {
+                                        isSelected -> MaterialTheme.colorScheme.onPrimary
+                                        isToday -> MaterialTheme.colorScheme.primary
+                                        else -> MaterialTheme.colorScheme.onSurface
+                                    }
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
