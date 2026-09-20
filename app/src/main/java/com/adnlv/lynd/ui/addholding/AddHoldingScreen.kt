@@ -81,12 +81,16 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingItem
 import java.time.LocalDate
@@ -166,6 +170,21 @@ fun AddHoldingScreen(
         viewModel.saveSuccessEvent.collect {
             sheetState.hide()
             onNavigateBack()
+        }
+    }
+
+    val contentNestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset = available
+
+            override suspend fun onPostFling(
+                consumed: Velocity,
+                available: Velocity
+            ): Velocity = available
         }
     }
 
@@ -293,6 +312,7 @@ fun AddHoldingScreen(
                     Column(
                         modifier = Modifier
                             .weight(1f)
+                            .nestedScroll(contentNestedScrollConnection)
                             .verticalScroll(rememberScrollState())
                             .padding(horizontal = 20.dp, vertical = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
