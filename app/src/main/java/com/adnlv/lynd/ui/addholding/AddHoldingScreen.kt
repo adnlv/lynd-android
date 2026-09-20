@@ -181,12 +181,17 @@ fun AddHoldingScreen(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
+                val isSaveEnabled = uiState.fetchState is FetchState.Success
                 Button(
                     onClick = viewModel::saveHolding,
-                    enabled = uiState.fetchState is FetchState.Success,
+                    enabled = isSaveEnabled,
                     border = BorderStroke(
                         width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                        color = if (isSaveEnabled) {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        }
                     )
                 ) {
                     Text("Save")
