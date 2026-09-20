@@ -4,9 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,10 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -100,12 +94,6 @@ fun MainApp(appContainer: AppContainer) {
                 ) {
                     bottomTabs.forEach { screen ->
                         val selected = currentRoute == screen.route
-                        val pillBorderAlpha by animateFloatAsState(
-                            targetValue = if (selected) 1f else 0f,
-                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-                            label = "pillBorderAlpha"
-                        )
-                        val pillBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
@@ -121,38 +109,18 @@ fun MainApp(appContainer: AppContainer) {
                                 }
                             },
                             icon = {
-                                val iconModifier = Modifier.drawWithContent {
-                                    drawContent()
-                                    if (pillBorderAlpha > 0f) {
-                                        val strokeWidth = 1.dp.toPx()
-                                        val pillWidth = 64.dp.toPx()
-                                        val pillHeight = 32.dp.toPx()
-                                        val left = (size.width - pillWidth) / 2f
-                                        val top = (size.height - pillHeight) / 2f
-                                        drawRoundRect(
-                                            color = pillBorderColor.copy(alpha = pillBorderColor.alpha * pillBorderAlpha),
-                                            topLeft = Offset(left, top),
-                                            size = Size(pillWidth, pillHeight),
-                                            cornerRadius = CornerRadius(pillHeight / 2f, pillHeight / 2f),
-                                            style = Stroke(width = strokeWidth)
-                                        )
-                                    }
-                                }
                                 when (screen) {
                                     Screen.Overview -> Icon(
                                         imageVector = Icons.Default.Dashboard,
-                                        contentDescription = screen.title,
-                                        modifier = iconModifier
+                                        contentDescription = screen.title
                                     )
                                     Screen.Payouts -> Icon(
                                         imageVector = Icons.Default.DateRange,
-                                        contentDescription = screen.title,
-                                        modifier = iconModifier
+                                        contentDescription = screen.title
                                     )
                                     Screen.Holdings -> Icon(
                                         imageVector = Icons.AutoMirrored.Filled.List,
-                                        contentDescription = screen.title,
-                                        modifier = iconModifier
+                                        contentDescription = screen.title
                                     )
                                     else -> {}
                                 }
