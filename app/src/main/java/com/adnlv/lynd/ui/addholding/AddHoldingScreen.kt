@@ -582,6 +582,7 @@ fun CompactMonthDatePicker(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .height(310.dp)
             .clip(RoundedCornerShape(16.dp))
             .border(
                 BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
@@ -589,7 +590,7 @@ fun CompactMonthDatePicker(
             )
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .padding(horizontal = 12.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         if (isMonthYearPickerVisible) {
             Row(
