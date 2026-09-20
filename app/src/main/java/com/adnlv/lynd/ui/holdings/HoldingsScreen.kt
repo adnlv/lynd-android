@@ -899,7 +899,7 @@ fun HoldingCard(
                             )
                         ) {
                             Text(
-                                text = "${holding.quantity} pcs",
+                                text = "${holding.quantity}",
                                 style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
