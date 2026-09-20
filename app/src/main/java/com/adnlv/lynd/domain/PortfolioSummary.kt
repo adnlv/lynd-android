@@ -89,4 +89,46 @@ object PortfolioCalculator {
             calculateSummary(currency, holdings)
         }
     }
+
+    fun calculateMonthlyCashFlows(
+        payoutRows: List<com.adnlv.lynd.data.db.PayoutRow>,
+        startDate: java.time.LocalDate = java.time.LocalDate.now(),
+        monthCount: Int = 12
+    ): Map<String, List<MonthlyCashFlow>> {
+        val currencies = payoutRows.map { it.currency }.distinct()
+        val startYearMonth = java.time.YearMonth.from(startDate)
+        val targetMonths = (0 until monthCount).map { startYearMonth.plusMonths(it.toLong()) }
+
+        val upcomingRows = payoutRows.filter {
+            !it.payDate.isBefore(startDate) && !it.payDate.isBefore(it.purchaseDate)
+        }
+
+        return currencies.associateWith { currency ->
+            val currencyRows = upcomingRows.filter { it.currency.equals(currency, ignoreCase = true) }
+            val rowsByMonth = currencyRows.groupBy { java.time.YearMonth.from(it.payDate) }
+
+            targetMonths.map { ym ->
+                val monthRows = rowsByMonth[ym].orEmpty()
+                var couponSum = BigDecimal.ZERO
+                var principalSum = BigDecimal.ZERO
+
+                for (row in monthRows) {
+                    val payout = row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong()))
+                    val isRedemption = row.payType.equals("redemption", ignoreCase = true) || row.payType == "2"
+                    if (isRedemption) {
+                        principalSum = principalSum.add(payout)
+                    } else {
+                        couponSum = couponSum.add(payout)
+                    }
+                }
+
+                MonthlyCashFlow(
+                    yearMonth = ym,
+                    couponAmount = couponSum,
+                    principalAmount = principalSum,
+                    totalAmount = couponSum.add(principalSum)
+                )
+            }
+        }
+    }
 }
