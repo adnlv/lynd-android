@@ -434,28 +434,6 @@ fun AddHoldingScreen(
                 }
             }
 
-            val currency = (uiState.fetchState as? FetchState.Success)?.bond?.currency ?: ""
-            val qty = uiState.quantity.toIntOrNull()
-
-            val derivedTotalPriceText = remember(uiState.pricePerBond, qty, currency) {
-                if (qty == null || qty <= 0) return@remember null
-                val perBond = uiState.pricePerBond.toBigDecimalOrNull() ?: return@remember null
-                val total = perBond.multiply(java.math.BigDecimal(qty))
-                    .setScale(2, java.math.RoundingMode.HALF_UP)
-                    .toPlainString()
-                val prefix = if (currency.isNotBlank()) "$currency " else ""
-                "Total: $prefix$total"
-            }
-
-            val derivedPerBondPriceText = remember(uiState.totalPrice, qty, currency) {
-                if (qty == null || qty <= 0) return@remember null
-                val total = uiState.totalPrice.toBigDecimalOrNull() ?: return@remember null
-                val perBond = total.divide(java.math.BigDecimal(qty), 2, java.math.RoundingMode.HALF_UP)
-                    .toPlainString()
-                val prefix = if (currency.isNotBlank()) "$currency " else ""
-                "Per bond: $prefix$perBond"
-            }
-
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -496,14 +474,6 @@ fun AddHoldingScreen(
                                         uiState.priceError?.let { { Text(it) } }
                                     } else null
                                 )
-                                if (derivedTotalPriceText != null) {
-                                    Text(
-                                        text = derivedTotalPriceText,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
                             } else {
                                 OutlinedTextField(
                                     value = uiState.totalPrice,
@@ -518,14 +488,6 @@ fun AddHoldingScreen(
                                         uiState.priceError?.let { { Text(it) } }
                                     } else null
                                 )
-                                if (derivedPerBondPriceText != null) {
-                                    Text(
-                                        text = derivedPerBondPriceText,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
                             }
                         }
                     }
