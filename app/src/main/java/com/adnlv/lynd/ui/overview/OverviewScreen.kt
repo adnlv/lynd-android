@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -56,6 +57,11 @@ fun OverviewScreen(
             }
         }
     } else {
+        val pagerState = rememberPagerState(pageCount = { uiState.summaries.size })
+        val activeSummary = uiState.summaries.getOrNull(pagerState.currentPage)
+        val activeCurrency = activeSummary?.currency ?: uiState.summaries.firstOrNull()?.currency ?: "UAH"
+        val activeCashFlows = uiState.cashFlowsByCurrency[activeCurrency].orEmpty()
+
         LazyColumn(
             modifier = modifier.fillMaxSize(),
             contentPadding = PaddingValues(vertical = 20.dp),
@@ -73,7 +79,16 @@ fun OverviewScreen(
 
             item {
                 PortfolioSummaryCarousel(
-                    summaries = uiState.summaries
+                    summaries = uiState.summaries,
+                    pagerState = pagerState
+                )
+            }
+
+            item {
+                CashFlowChartCard(
+                    cashFlows = activeCashFlows,
+                    currency = activeCurrency,
+                    modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
 

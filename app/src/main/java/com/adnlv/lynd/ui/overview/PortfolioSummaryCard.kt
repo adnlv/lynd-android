@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,11 +37,10 @@ import java.math.BigDecimal
 @Composable
 fun PortfolioSummaryCarousel(
     summaries: List<PortfolioSummary>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    pagerState: PagerState = rememberPagerState(pageCount = { summaries.size })
 ) {
     if (summaries.isEmpty()) return
-
-    val pagerState = rememberPagerState(pageCount = { summaries.size })
 
     Column(
         modifier = modifier.fillMaxWidth(),
