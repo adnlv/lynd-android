@@ -82,7 +82,9 @@ import com.adnlv.lynd.util.Formatters
 import java.math.BigDecimal
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -701,6 +703,10 @@ fun HoldingCard(
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.25f)
+                    ),
                     modifier = Modifier
                         .fillMaxHeight()
                         .width(deleteWidthDp)
@@ -723,6 +729,10 @@ fun HoldingCard(
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                    ),
                     modifier = Modifier
                         .fillMaxHeight()
                         .width(editWidthDp)
@@ -756,7 +766,12 @@ fun HoldingCard(
                 ) {
                     Badge(
                         containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f),
-                        contentColor = MaterialTheme.colorScheme.onSurface
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                            shape = CircleShape
+                        )
                     ) {
                         Text(
                             text = "${holding.quantity}",
@@ -774,7 +789,11 @@ fun HoldingCard(
                         Surface(
                             shape = RoundedCornerShape(6.dp),
                             color = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f)
+                            )
                         ) {
                             Text(
                                 text = Formatters.formatPercentage(displayPercent),
@@ -801,6 +820,11 @@ fun HoldingCard(
                 .fillMaxWidth()
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
                 .clip(shape)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    shape = shape
+                )
                 .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe, fullSwipeThresholdPx, maxDragLeftPx) {
                     if (isDeleting) return@pointerInput
                     detectHorizontalDragGestures(
