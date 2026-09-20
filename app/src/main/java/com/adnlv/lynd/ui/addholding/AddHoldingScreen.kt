@@ -38,13 +38,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -143,7 +141,6 @@ fun AddHoldingScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val containerFocusRequester = remember { FocusRequester() }
-    var showDatePicker by remember { mutableStateOf(false) }
 
     val isKeyboardOpen = WindowInsets.isImeVisible
     val heightFraction = if (isKeyboardOpen) 1.0f else 0.80f
@@ -538,56 +535,52 @@ fun AddHoldingScreen(
                 }
             }
 
-            OutlinedTextField(
-                value = uiState.purchaseDate.toString(),
-                onValueChange = {},
-                label = { Text("Purchase Date") },
-                readOnly = true,
-                trailingIcon = {
-                    IconButton(onClick = { showDatePicker = true }) {
-                        Icon(imageVector = Icons.Default.DateRange, contentDescription = "Select Date")
+            Text(
+                text = "Purchase Date",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = uiState.purchaseDate
+                    .atStartOfDay(ZoneOffset.UTC)
+                    .toInstant()
+                    .toEpochMilli()
+            )
+
+            LaunchedEffect(datePickerState.selectedDateMillis) {
+                datePickerState.selectedDateMillis?.let { millis ->
+                    val localDate = Instant.ofEpochMilli(millis)
+                        .atZone(ZoneId.of("UTC"))
+                        .toLocalDate()
+                    if (localDate != uiState.purchaseDate) {
+                        viewModel.onPurchaseDateChanged(localDate)
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showDatePicker = true }
+                }
+            }
+
+            LaunchedEffect(uiState.purchaseDate) {
+                val stateMillis = datePickerState.selectedDateMillis
+                val currentLocal = stateMillis?.let {
+                    Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate()
+                }
+                if (currentLocal != uiState.purchaseDate) {
+                    datePickerState.selectedDateMillis = uiState.purchaseDate
+                        .atStartOfDay(ZoneOffset.UTC)
+                        .toInstant()
+                        .toEpochMilli()
+                }
+            }
+
+            DatePicker(
+                state = datePickerState,
+                title = null,
+                headline = null,
+                showModeToggle = false,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 }
-
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = uiState.purchaseDate
-                .atStartOfDay(ZoneOffset.UTC)
-                .toInstant()
-                .toEpochMilli()
-        )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            val localDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.of("UTC"))
-                                .toLocalDate()
-                            viewModel.onPurchaseDateChanged(localDate)
-                        }
-                        showDatePicker = false
-                    }
-                ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
 }
