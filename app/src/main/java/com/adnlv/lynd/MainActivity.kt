@@ -28,10 +28,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.material.icons.filled.Dashboard
 import com.adnlv.lynd.ui.addholding.AddHoldingScreen
 import com.adnlv.lynd.ui.addholding.AddHoldingViewModel
 import com.adnlv.lynd.ui.holdings.HoldingsScreen
 import com.adnlv.lynd.ui.holdings.HoldingsViewModel
+import com.adnlv.lynd.ui.overview.OverviewScreen
+import com.adnlv.lynd.ui.overview.OverviewViewModel
 import com.adnlv.lynd.ui.payouts.PayoutsScreen
 import com.adnlv.lynd.ui.payouts.PayoutsViewModel
 import com.adnlv.lynd.ui.theme.LyndTheme
@@ -51,8 +54,9 @@ class MainActivity : ComponentActivity() {
 }
 
 sealed class Screen(val route: String, val title: String) {
-    data object Holdings : Screen("holdings", "Holdings")
+    data object Overview : Screen("overview", "Overview")
     data object Payouts : Screen("payouts", "Payouts")
+    data object Holdings : Screen("holdings", "Holdings")
     data object AddHolding : Screen("add_holding", "Add Holding")
 }
 
@@ -64,7 +68,7 @@ fun MainApp(appContainer: AppContainer) {
     val currentRoute = navBackStackEntry?.destination?.route
     val view = LocalView.current
 
-    val bottomTabs = listOf(Screen.Payouts, Screen.Holdings)
+    val bottomTabs = listOf(Screen.Overview, Screen.Payouts, Screen.Holdings)
     val showBottomBar = currentRoute in bottomTabs.map { it.route }
 
     Scaffold(
@@ -90,12 +94,16 @@ fun MainApp(appContainer: AppContainer) {
                             },
                             icon = {
                                 when (screen) {
-                                    Screen.Holdings -> Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.List,
+                                    Screen.Overview -> Icon(
+                                        imageVector = Icons.Default.Dashboard,
                                         contentDescription = screen.title
                                     )
                                     Screen.Payouts -> Icon(
                                         imageVector = Icons.Default.DateRange,
+                                        contentDescription = screen.title
+                                    )
+                                    Screen.Holdings -> Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.List,
                                         contentDescription = screen.title
                                     )
                                     else -> {}
@@ -110,11 +118,20 @@ fun MainApp(appContainer: AppContainer) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Payouts.route,
+            startDestination = Screen.Overview.route,
             modifier = Modifier
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding)
         ) {
+            composable(Screen.Overview.route) {
+                val overviewViewModel: OverviewViewModel = viewModel(
+                    factory = OverviewViewModel.provideFactory(
+                        holdingDao = appContainer.database.holdingDao(),
+                        bondDao = appContainer.database.bondDao()
+                    )
+                )
+                OverviewScreen(viewModel = overviewViewModel)
+            }
             composable(Screen.Holdings.route) {
                 val holdingsViewModel: HoldingsViewModel = viewModel(
                     factory = HoldingsViewModel.provideFactory(
