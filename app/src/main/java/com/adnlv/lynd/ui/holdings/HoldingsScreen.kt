@@ -791,7 +791,12 @@ fun HoldingCard(
                     shape = shape
                 )
                 .background(MaterialTheme.colorScheme.surfaceContainer)
-                .animateContentSize()
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = 0.8f,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                )
                 .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe, fullSwipeThresholdPx, maxDragLeftPx) {
                     if (isDeleting) return@pointerInput
                     detectHorizontalDragGestures(
@@ -875,27 +880,30 @@ fun HoldingCard(
         ) {
             ListItem(
                 headlineContent = {
-                    Text(
-                        text = Formatters.formatDate(holding.purchaseDate),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                },
-                supportingContent = {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f),
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                            shape = CircleShape
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "${holding.quantity} pcs",
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            text = Formatters.formatDate(holding.purchaseDate),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f),
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                                shape = CircleShape
+                            )
+                        ) {
+                            Text(
+                                text = "${holding.quantity} pcs",
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
                     }
                 },
                 trailingContent = {
