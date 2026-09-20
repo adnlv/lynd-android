@@ -91,6 +91,7 @@ class HoldingsViewModel(
                 .map { (isin, items) ->
                     HoldingGroup(
                         isin = isin,
+                        currency = items.firstOrNull()?.currency ?: "",
                         totalQuantity = items.sumOf { it.quantity },
                         items = items
                     )

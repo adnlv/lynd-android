@@ -29,6 +29,7 @@ data class HoldingItem(
 
 data class HoldingGroup(
     val isin: String,
+    val currency: String = "",
     val totalQuantity: Int,
     val items: List<HoldingItem>
 )
