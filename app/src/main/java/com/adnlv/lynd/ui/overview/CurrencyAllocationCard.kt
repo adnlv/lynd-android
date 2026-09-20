@@ -27,11 +27,18 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.adnlv.lynd.domain.CurrencyAllocation
 import com.adnlv.lynd.util.Formatters
 import java.math.BigDecimal
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun CurrencyAllocationCard(
@@ -84,7 +91,13 @@ fun CurrencyAllocationCard(
                     "USD" to MaterialTheme.colorScheme.tertiary,
                     "EUR" to MaterialTheme.colorScheme.secondary
                 )
+                val textColorMap = mapOf(
+                    "UAH" to MaterialTheme.colorScheme.onPrimary,
+                    "USD" to MaterialTheme.colorScheme.onTertiary,
+                    "EUR" to MaterialTheme.colorScheme.onSecondary
+                )
                 val fallbackColor = MaterialTheme.colorScheme.outline
+                val fallbackTextColor = MaterialTheme.colorScheme.onSurface
 
                 Box(
                     modifier = Modifier
@@ -95,7 +108,9 @@ fun CurrencyAllocationCard(
                     DonutChart(
                         allocations = allocations,
                         colorMap = colorMap,
+                        textColorMap = textColorMap,
                         fallbackColor = fallbackColor,
+                        fallbackTextColor = fallbackTextColor,
                         modifier = Modifier.size(200.dp)
                     )
                 }
@@ -125,14 +140,20 @@ fun CurrencyAllocationCard(
 private fun DonutChart(
     allocations: List<CurrencyAllocation>,
     colorMap: Map<String, Color>,
+    textColorMap: Map<String, Color>,
     fallbackColor: Color,
+    fallbackTextColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val textMeasurer = rememberTextMeasurer()
+
     Canvas(modifier = modifier) {
         val strokeWidth = 48.dp.toPx()
         val diameter = size.minDimension - strokeWidth
         val arcSize = Size(diameter, diameter)
         val topLeftOffset = Offset(strokeWidth / 2f, strokeWidth / 2f)
+        val centerOffset = Offset(size.width / 2f, size.height / 2f)
+        val midRadius = diameter / 2f
 
         var currentAngle = -90f
 
@@ -140,6 +161,8 @@ private fun DonutChart(
             val sweepAngle = (item.percentage.toFloat() / 100f) * 360f
             if (sweepAngle > 0f) {
                 val sliceColor = colorMap[item.currency.uppercase()] ?: fallbackColor
+                val sliceTextColor = textColorMap[item.currency.uppercase()] ?: fallbackTextColor
+
                 drawArc(
                     color = sliceColor,
                     startAngle = currentAngle,
@@ -149,6 +172,33 @@ private fun DonutChart(
                     size = arcSize,
                     style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
                 )
+
+                if (sweepAngle >= 25f) {
+                    val midAngle = currentAngle + (sweepAngle / 2f)
+                    val midAngleRad = Math.toRadians(midAngle.toDouble())
+                    val labelCenterX = centerOffset.x + (midRadius * cos(midAngleRad)).toFloat()
+                    val labelCenterY = centerOffset.y + (midRadius * sin(midAngleRad)).toFloat()
+
+                    val textLayoutResult = textMeasurer.measure(
+                        text = "${item.currency}\n${Formatters.formatPercentage(item.percentage)}",
+                        style = TextStyle(
+                            color = sliceTextColor,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 14.sp
+                        )
+                    )
+
+                    drawText(
+                        textLayoutResult = textLayoutResult,
+                        topLeft = Offset(
+                            x = labelCenterX - (textLayoutResult.size.width / 2f),
+                            y = labelCenterY - (textLayoutResult.size.height / 2f)
+                        )
+                    )
+                }
+
                 currentAngle += sweepAngle
             }
         }
