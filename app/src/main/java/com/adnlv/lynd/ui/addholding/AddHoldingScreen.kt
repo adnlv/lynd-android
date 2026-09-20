@@ -551,11 +551,8 @@ fun CompactMonthDatePicker(
     }
 
     val firstDayOfMonth = displayedYearMonth.atDay(1)
-    val daysInMonth = displayedYearMonth.lengthOfMonth()
     val firstDayOfWeekIndex = firstDayOfMonth.dayOfWeek.value - 1
-
-    val totalCells = firstDayOfWeekIndex + daysInMonth
-    val totalRows = (totalCells + 6) / 7
+    val gridStartDate = firstDayOfMonth.minusDays(firstDayOfWeekIndex.toLong())
 
     val monthTitle = remember(displayedYearMonth) {
         val monthName = displayedYearMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
@@ -629,48 +626,49 @@ fun CompactMonthDatePicker(
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            for (rowIndex in 0 until totalRows) {
+            for (rowIndex in 0 until 5) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     for (colIndex in 0 until 7) {
                         val cellIndex = rowIndex * 7 + colIndex
-                        val dayNumber = cellIndex - firstDayOfWeekIndex + 1
+                        val cellDate = gridStartDate.plusDays(cellIndex.toLong())
+                        val isCurrentMonth = cellDate.month == displayedYearMonth.month && cellDate.year == displayedYearMonth.year
+                        val isSelected = cellDate == selectedDate
+                        val isToday = cellDate == LocalDate.now()
 
-                        if (dayNumber in 1..daysInMonth) {
-                            val cellDate = displayedYearMonth.atDay(dayNumber)
-                            val isSelected = cellDate == selectedDate
-                            val isToday = cellDate == LocalDate.now()
-
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .aspectRatio(1f)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (isSelected) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            Color.Transparent
-                                        }
-                                    )
-                                    .clickable { onDateSelected(cellDate) },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = dayNumber.toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
-                                    color = when {
-                                        isSelected -> MaterialTheme.colorScheme.onPrimary
-                                        isToday -> MaterialTheme.colorScheme.primary
-                                        else -> MaterialTheme.colorScheme.onSurface
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .clip(CircleShape)
+                                .background(
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        Color.Transparent
                                     }
                                 )
-                            }
-                        } else {
-                            Spacer(modifier = Modifier.weight(1f))
+                                .clickable {
+                                    if (!isCurrentMonth) {
+                                        displayedYearMonth = YearMonth.from(cellDate)
+                                    }
+                                    onDateSelected(cellDate)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = cellDate.dayOfMonth.toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = if (isSelected || (isToday && isCurrentMonth)) FontWeight.Bold else FontWeight.Normal,
+                                color = when {
+                                    isSelected -> MaterialTheme.colorScheme.onPrimary
+                                    !isCurrentMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                    isToday -> MaterialTheme.colorScheme.primary
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                }
+                            )
                         }
                     }
                 }
