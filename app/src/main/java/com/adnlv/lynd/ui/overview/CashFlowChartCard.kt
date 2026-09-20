@@ -31,7 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.adnlv.lynd.domain.MonthlyCashFlow
 import com.adnlv.lynd.util.Formatters
 import java.math.BigDecimal
@@ -151,7 +153,10 @@ fun CashFlowChartCard(
                     cashFlows.forEachIndexed { index, monthFlow ->
                         val isSelected = index == selectedIndex
                         val monthLabel = remember(monthFlow.yearMonth) {
-                            monthFlow.yearMonth.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                            monthFlow.yearMonth.month
+                                .getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                                .filter { it.isLetter() }
+                                .take(3)
                         }
 
                         CashFlowBar(
@@ -272,8 +277,7 @@ private fun CashFlowBar(
     Column(
         modifier = modifier
             .fillMaxHeight()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 2.dp),
+            .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
@@ -281,7 +285,8 @@ private fun CashFlowBar(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(horizontal = 2.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
             if (totalHeightFraction > 0f) {
@@ -325,8 +330,11 @@ private fun CashFlowBar(
 
         // Month Label
         Text(
-            text = monthLabel.take(3),
-            style = MaterialTheme.typography.labelSmall,
+            text = monthLabel,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
         )
