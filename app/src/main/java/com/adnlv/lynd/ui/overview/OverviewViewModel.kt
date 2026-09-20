@@ -12,6 +12,7 @@ import com.adnlv.lynd.domain.HoldingItem
 import com.adnlv.lynd.domain.MonthlyCashFlow
 import com.adnlv.lynd.domain.PortfolioCalculator
 import com.adnlv.lynd.domain.PortfolioSummary
+import com.adnlv.lynd.domain.YearlyMaturity
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -25,6 +26,7 @@ data class OverviewUiState(
     val totalHoldingsCount: Int = 0,
     val holdings: List<HoldingItem> = emptyList(),
     val cashFlowsByCurrency: Map<String, List<MonthlyCashFlow>> = emptyMap(),
+    val yearlyMaturitiesByCurrency: Map<String, List<YearlyMaturity>> = emptyMap(),
     val currencyAllocations: List<CurrencyAllocation> = emptyList()
 )
 
@@ -42,6 +44,7 @@ class OverviewViewModel(
         val domainHoldings = PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
         val summaries = PortfolioCalculator.calculateSummaries(domainHoldings)
         val cashFlows = PortfolioCalculator.calculateMonthlyCashFlows(payoutRows)
+        val maturities = PortfolioCalculator.calculateYearlyMaturitySchedule(payoutRows)
         val allocations = PortfolioCalculator.calculateCurrencyAllocations(summaries)
 
         OverviewUiState(
@@ -49,6 +52,7 @@ class OverviewViewModel(
             totalHoldingsCount = domainHoldings.size,
             holdings = domainHoldings,
             cashFlowsByCurrency = cashFlows,
+            yearlyMaturitiesByCurrency = maturities,
             currencyAllocations = allocations
         )
     }.stateIn(

@@ -61,6 +61,7 @@ fun OverviewScreen(
         val activeSummary = uiState.summaries.getOrNull(pagerState.currentPage)
         val activeCurrency = activeSummary?.currency ?: uiState.summaries.firstOrNull()?.currency ?: "UAH"
         val activeCashFlows = uiState.cashFlowsByCurrency[activeCurrency].orEmpty()
+        val activeMaturities = uiState.yearlyMaturitiesByCurrency[activeCurrency].orEmpty()
 
         LazyColumn(
             modifier = modifier.fillMaxSize(),
@@ -87,6 +88,14 @@ fun OverviewScreen(
             item {
                 CashFlowChartCard(
                     cashFlows = activeCashFlows,
+                    currency = activeCurrency,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+            }
+
+            item {
+                MaturityScheduleChartCard(
+                    maturities = activeMaturities,
                     currency = activeCurrency,
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
