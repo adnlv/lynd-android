@@ -139,7 +139,42 @@ object PortfolioCalculator {
         }
     }
 
+    fun calculateYearlyMaturitySchedule(
+        payoutRows: List<com.adnlv.lynd.data.db.PayoutRow>,
+        startDate: java.time.LocalDate = java.time.LocalDate.now()
+    ): Map<String, List<YearlyMaturity>> {
+        val currencies = payoutRows.map { it.currency }.distinct()
+        val currentYear = startDate.year
+
+        val upcomingRedemptions = payoutRows.filter {
+            val isRedemption = it.payType.equals("redemption", ignoreCase = true) || it.payType == "2"
+            isRedemption && !it.payDate.isBefore(startDate) && !it.payDate.isBefore(it.purchaseDate)
+        }
+
+        return currencies.associateWith { currency ->
+            val currencyRedemptions = upcomingRedemptions.filter { it.currency.equals(currency, ignoreCase = true) }
+            if (currencyRedemptions.isEmpty()) {
+                emptyList()
+            } else {
+                val maxYear = maxOf(currentYear, currencyRedemptions.maxOf { it.payDate.year })
+                val redemptionsByYear = currencyRedemptions.groupBy { it.payDate.year }
+
+                (currentYear..maxYear).map { year ->
+                    val yearRows = redemptionsByYear[year].orEmpty()
+                    val totalYearAmount = yearRows.fold(BigDecimal.ZERO) { acc, row ->
+                        acc.add(row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong())))
+                    }
+                    YearlyMaturity(
+                        year = year,
+                        amount = totalYearAmount
+                    )
+                }
+            }
+        }
+    }
+
     fun getCurrencyDisplayName(currency: String): String = when (currency.uppercase()) {
+
         "UAH" -> "Ukrainian Hryvnia"
         "USD" -> "US Dollar"
         "EUR" -> "Euro"

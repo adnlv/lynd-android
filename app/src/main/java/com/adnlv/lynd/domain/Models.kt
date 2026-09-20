@@ -39,3 +39,9 @@ data class MonthlyCashFlow(
     val principalAmount: BigDecimal,
     val totalAmount: BigDecimal
 )
+
+data class YearlyMaturity(
+    val year: Int,
+    val amount: BigDecimal
+)
+
