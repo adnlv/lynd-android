@@ -174,12 +174,12 @@ fun AddHoldingScreen(
         onDismissRequest = onNavigateBack,
         sheetState = sheetState,
         shape = sheetShape,
-        containerColor = Color.Transparent,
+        containerColor = BottomSheetDefaults.ContainerColor,
         tonalElevation = 0.dp,
         modifier = modifier,
         dragHandle = null,
         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
-        contentWindowInsets = { BottomSheetDefaults.windowInsets }
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
         val outlineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         Surface(
