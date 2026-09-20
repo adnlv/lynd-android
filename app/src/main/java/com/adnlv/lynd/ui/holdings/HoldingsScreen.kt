@@ -554,21 +554,45 @@ fun HoldingGroupCard(
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            Badge(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                    shape = CircleShape
-                )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text(
-                    text = "${group.totalQuantity}",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                )
+                if (group.currency.isNotBlank()) {
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                            shape = CircleShape
+                        )
+                    ) {
+                        Text(
+                            text = group.currency,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
+                Badge(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                        shape = CircleShape
+                    )
+                ) {
+                    Text(
+                        text = "${group.totalQuantity}",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
             }
         }
 
@@ -908,7 +932,7 @@ fun HoldingCard(
                 },
                 trailingContent = {
                     Text(
-                        text = "${Formatters.formatAmount(holding.totalPaidAmount)} ${holding.currency}",
+                        text = Formatters.formatAmount(holding.totalPaidAmount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -959,7 +983,7 @@ fun HoldingCard(
                     ) {
                         HoldingMetricItem(
                             label = "Price per bond",
-                            value = "${Formatters.formatAmount(holding.pricePerBond)} ${holding.currency}",
+                            value = Formatters.formatAmount(holding.pricePerBond),
                             modifier = Modifier.weight(1f)
                         )
                         val displayRate = if (holding.profitPercentage != BigDecimal.ZERO) {
@@ -982,7 +1006,7 @@ fun HoldingCard(
                     ) {
                         HoldingMetricItem(
                             label = "Total payout",
-                            value = "${Formatters.formatAmount(holding.totalPayoutAmount)} ${holding.currency}",
+                            value = Formatters.formatAmount(holding.totalPayoutAmount),
                             valueColor = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f)
                         )
@@ -995,7 +1019,7 @@ fun HoldingCard(
                         }
                         HoldingMetricItem(
                             label = "Total profit",
-                            value = "$profitPrefix${Formatters.formatAmount(holding.totalProfitAmount)} ${holding.currency}",
+                            value = "$profitPrefix${Formatters.formatAmount(holding.totalProfitAmount)}",
                             valueColor = profitColor,
                             modifier = Modifier.weight(1f),
                             horizontalAlignment = Alignment.End
