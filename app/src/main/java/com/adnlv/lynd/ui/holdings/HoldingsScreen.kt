@@ -40,6 +40,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -188,7 +189,13 @@ fun HoldingsScreen(
                             onNavigateToAdd?.invoke()
                         }
                     },
-                    modifier = Modifier.padding(end = 4.dp, top = 4.dp)
+                    modifier = Modifier
+                        .padding(end = 4.dp, top = 4.dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                            shape = FloatingActionButtonDefaults.shape
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -260,6 +267,10 @@ fun HoldingsScreen(
                         shape = RoundedCornerShape(16.dp),
                         color = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurface,
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        ),
                         shadowElevation = 6.dp
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
@@ -349,7 +360,11 @@ fun HoldingsScreen(
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.25f)
+                        )
                     ) {
                         Row(
                             modifier = Modifier
@@ -537,7 +552,12 @@ fun HoldingGroupCard(
 
             Badge(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                    shape = CircleShape
+                )
             ) {
                 Text(
                     text = "${group.totalQuantity}",
