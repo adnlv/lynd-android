@@ -32,6 +32,9 @@ enum class PriceInputMode {
 
 data class AddHoldingUiState(
     val editingHoldingId: Int? = null,
+    val isinPrefix: String = "UA4000",
+    val isinNumber: String = "",
+    val availablePrefixes: List<String> = listOf("UA4000"),
     val isin: String = "UA4000",
     val quantity: String = "1",
     val pricePerBond: String = "",
@@ -42,7 +45,8 @@ data class AddHoldingUiState(
     val quantityError: String? = null,
     val priceError: String? = null,
     val suggestions: List<String> = emptyList(),
-    val isDropdownExpanded: Boolean = false
+    val isDropdownExpanded: Boolean = false,
+    val isPrefixDropdownExpanded: Boolean = false
 )
 
 class AddHoldingViewModel(
@@ -60,55 +64,108 @@ class AddHoldingViewModel(
     private var isinSearchJob: kotlinx.coroutines.Job? = null
 
     init {
+        loadPrefixes()
         reset()
+    }
+
+    private fun loadPrefixes() {
+        viewModelScope.launch {
+            val prefixes = nbuRepository.getIsinPrefixes()
+            _uiState.update { current ->
+                val activePrefix = if (prefixes.contains(current.isinPrefix)) {
+                    current.isinPrefix
+                } else {
+                    prefixes.firstOrNull() ?: "UA4000"
+                }
+                current.copy(
+                    availablePrefixes = prefixes,
+                    isinPrefix = activePrefix,
+                    isin = activePrefix + current.isinNumber
+                )
+            }
+        }
     }
 
     fun reset() {
         isinLookupJob?.cancel()
-        _uiState.update { AddHoldingUiState() }
-        searchSuggestions("UA4000")
+        val defaultPrefix = _uiState.value.isinPrefix.ifEmpty { "UA4000" }
+        _uiState.update { current ->
+            AddHoldingUiState(
+                availablePrefixes = current.availablePrefixes.ifEmpty { listOf("UA4000") },
+                isinPrefix = defaultPrefix,
+                isinNumber = "",
+                isin = defaultPrefix
+            )
+        }
+        searchSuggestions(defaultPrefix)
     }
 
-    fun onIsinChanged(value: String) {
-        if (value.length > 12) {
-            return
-        }
-        val trimmed = value.trim()
+    fun onPrefixDropdownToggled(expanded: Boolean) {
+        _uiState.update { it.copy(isPrefixDropdownExpanded = expanded) }
+    }
+
+    fun onIsinPrefixChanged(prefix: String) {
+        val fullIsin = prefix + _uiState.value.isinNumber
         _uiState.update {
             it.copy(
-                isin = value,
+                isinPrefix = prefix,
+                isin = fullIsin,
+                isPrefixDropdownExpanded = false,
                 fetchState = FetchState.Idle
             )
         }
+        searchSuggestions(fullIsin)
+        checkAndFetchIsin(fullIsin)
+    }
 
-        searchSuggestions(trimmed)
+    fun onIsinNumberChanged(number: String) {
+        val filtered = number.filter { it.isDigit() }.take(6)
+        val fullIsin = _uiState.value.isinPrefix + filtered
+        _uiState.update {
+            it.copy(
+                isinNumber = filtered,
+                isin = fullIsin,
+                fetchState = FetchState.Idle
+            )
+        }
+        searchSuggestions(fullIsin)
+        checkAndFetchIsin(fullIsin)
+    }
 
+    private fun checkAndFetchIsin(fullIsin: String) {
         isinLookupJob?.cancel()
-        if (trimmed.length != 12) {
+        if (fullIsin.length != 12) {
             return
         }
 
         isinLookupJob = viewModelScope.launch {
-            fetchBond(trimmed)
+            fetchBond(fullIsin)
         }
     }
 
     fun onIsinSelected(selectedIsin: String) {
+        val trimmed = selectedIsin.trim()
+        val matchingPrefix = _uiState.value.availablePrefixes.firstOrNull { trimmed.startsWith(it) }
+            ?: trimmed.take(6)
+        val numberSuffix = trimmed.removePrefix(matchingPrefix)
+
         _uiState.update {
             it.copy(
-                isin = selectedIsin,
+                isinPrefix = matchingPrefix,
+                isinNumber = numberSuffix,
+                isin = trimmed,
                 isDropdownExpanded = false,
                 fetchState = FetchState.Idle
             )
         }
         isinLookupJob?.cancel()
         isinLookupJob = viewModelScope.launch {
-            fetchBond(selectedIsin.trim())
+            fetchBond(trimmed)
         }
     }
 
     fun onDismissDropdown() {
-        _uiState.update { it.copy(isDropdownExpanded = false) }
+        _uiState.update { it.copy(isDropdownExpanded = false, isPrefixDropdownExpanded = false) }
     }
 
     fun onIsinFieldTapped() {
@@ -154,8 +211,6 @@ class AddHoldingViewModel(
         _uiState.update {
             it.copy(
                 priceMode = mode,
-                pricePerBond = "",
-                totalPrice = "",
                 priceError = null
             )
         }
@@ -194,10 +249,17 @@ class AddHoldingViewModel(
         pricePerBond: BigDecimal,
         purchaseDate: LocalDate
     ) {
+        val trimmed = isin.trim()
+        val matchingPrefix = _uiState.value.availablePrefixes.firstOrNull { trimmed.startsWith(it) }
+            ?: trimmed.take(6)
+        val numberSuffix = trimmed.removePrefix(matchingPrefix)
+
         _uiState.update {
             it.copy(
                 editingHoldingId = holdingId,
-                isin = isin,
+                isinPrefix = matchingPrefix,
+                isinNumber = numberSuffix,
+                isin = trimmed,
                 quantity = quantity.toString(),
                 pricePerBond = pricePerBond.toPlainString(),
                 totalPrice = pricePerBond.multiply(BigDecimal(quantity)).toPlainString(),
@@ -209,9 +271,9 @@ class AddHoldingViewModel(
             )
         }
         isinLookupJob?.cancel()
-        if (isin.trim().length == 12) {
+        if (trimmed.length == 12) {
             isinLookupJob = viewModelScope.launch {
-                fetchBond(isin.trim())
+                fetchBond(trimmed)
             }
         }
     }

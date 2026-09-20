@@ -21,9 +21,19 @@ import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -38,6 +48,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -88,13 +99,36 @@ fun AddHoldingScreen(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var isinTextFieldValue by remember {
-        mutableStateOf(TextFieldValue(uiState.isin, selection = TextRange(uiState.isin.length)))
+    var isinNumberTextFieldValue by remember {
+        mutableStateOf(TextFieldValue(uiState.isinNumber, selection = TextRange(uiState.isinNumber.length)))
     }
 
-    LaunchedEffect(uiState.isin) {
-        if (isinTextFieldValue.text != uiState.isin) {
-            isinTextFieldValue = TextFieldValue(uiState.isin, selection = TextRange(uiState.isin.length))
+    LaunchedEffect(uiState.isinNumber) {
+        if (isinNumberTextFieldValue.text != uiState.isinNumber) {
+            isinNumberTextFieldValue = TextFieldValue(uiState.isinNumber, selection = TextRange(uiState.isinNumber.length))
+        }
+    }
+
+    var hasUserTypedQuantity by remember { mutableStateOf(false) }
+    var quantityTextFieldValue by remember {
+        mutableStateOf(TextFieldValue(uiState.quantity))
+    }
+
+    LaunchedEffect(uiState.quantity) {
+        if (quantityTextFieldValue.text != uiState.quantity) {
+            quantityTextFieldValue = quantityTextFieldValue.copy(text = uiState.quantity)
+        }
+    }
+
+    val pricePagerState = rememberPagerState(
+        initialPage = if (uiState.priceMode == PriceInputMode.TOTAL) 1 else 0,
+        pageCount = { 2 }
+    )
+
+    LaunchedEffect(pricePagerState.currentPage) {
+        val targetMode = if (pricePagerState.currentPage == 0) PriceInputMode.PER_BOND else PriceInputMode.TOTAL
+        if (uiState.priceMode != targetMode) {
+            viewModel.onPriceModeChanged(targetMode)
         }
     }
 
@@ -197,98 +231,132 @@ fun AddHoldingScreen(
                     Text("Save")
                 }
             }
-            ExposedDropdownMenuBox(
-                expanded = uiState.isDropdownExpanded && uiState.suggestions.isNotEmpty(),
-                onExpandedChange = { expanded ->
-                    if (expanded) {
-                        viewModel.onIsinFieldTapped()
-                    } else {
-                        // Keep open when tapping the field repeatedly
-                        viewModel.onIsinFieldTapped()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top
             ) {
-                OutlinedTextField(
-                    value = isinTextFieldValue,
-                    onValueChange = { newValue ->
-                        isinTextFieldValue = newValue
-                        viewModel.onIsinChanged(newValue.text)
-                    },
-                    label = { Text("ISIN Code") },
-                    placeholder = { Text("e.g. UA4000187348") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable)
-                        .onFocusChanged {
-                            if (it.isFocused) {
-                                viewModel.onIsinFieldTapped()
-                            }
+                ExposedDropdownMenuBox(
+                    expanded = uiState.isPrefixDropdownExpanded,
+                    onExpandedChange = viewModel::onPrefixDropdownToggled,
+                    modifier = Modifier.width(136.dp)
+                ) {
+                    OutlinedTextField(
+                        value = uiState.isinPrefix,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Prefix") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = uiState.isPrefixDropdownExpanded)
                         },
-                    singleLine = true,
-                    isError = uiState.fetchState is FetchState.Error,
-                    supportingText = (uiState.fetchState as? FetchState.Error)?.message?.let {
-                        { Text(it) }
-                    },
-                    trailingIcon = {
-                        if (uiState.fetchState is FetchState.Loading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else if (uiState.fetchState is FetchState.Success) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Bond found",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        } else if (uiState.fetchState is FetchState.Idle && uiState.isin.trim().length in 1..11) {
-                            Text(
-                                text = "${12 - uiState.isin.trim().length}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                        singleLine = true
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = uiState.isPrefixDropdownExpanded,
+                        onDismissRequest = { viewModel.onPrefixDropdownToggled(false) }
+                    ) {
+                        uiState.availablePrefixes.forEach { prefix ->
+                            DropdownMenuItem(
+                                text = { Text(prefix) },
+                                onClick = { viewModel.onIsinPrefixChanged(prefix) }
                             )
                         }
                     }
-                )
+                }
 
                 val menuScrollState = rememberScrollState()
                 val scrollbarColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
 
-                ExposedDropdownMenu(
+                ExposedDropdownMenuBox(
                     expanded = uiState.isDropdownExpanded && uiState.suggestions.isNotEmpty(),
-                    onDismissRequest = viewModel::onDismissDropdown,
-                    scrollState = menuScrollState,
-                    modifier = Modifier
-                        .padding(top = 6.dp)
-                        .heightIn(max = 144.dp)
-                        .drawWithContent {
-                            drawContent()
-                            val totalScroll = menuScrollState.maxValue
-                            if (totalScroll > 0) {
-                                val verticalPadding = 4.dp.toPx()
-                                val viewHeight = size.height - (verticalPadding * 2)
-                                val contentHeight = viewHeight + totalScroll
-                                val thumbHeight = (viewHeight * (viewHeight / contentHeight)).coerceAtLeast(16.dp.toPx())
-                                val scrollProgress = menuScrollState.value.toFloat() / totalScroll.toFloat()
-                                val thumbOffsetY = verticalPadding + (scrollProgress * (viewHeight - thumbHeight))
-                                val barWidth = 3.dp.toPx()
-                                val rightMargin = 2.dp.toPx()
-
-                                drawRoundRect(
-                                    color = scrollbarColor,
-                                    topLeft = Offset(size.width - barWidth - rightMargin, thumbOffsetY),
-                                    size = Size(barWidth, thumbHeight),
-                                    cornerRadius = CornerRadius(barWidth / 2, barWidth / 2)
+                    onExpandedChange = {
+                        viewModel.onIsinFieldTapped()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    OutlinedTextField(
+                        value = isinNumberTextFieldValue,
+                        onValueChange = { newValue ->
+                            isinNumberTextFieldValue = newValue
+                            viewModel.onIsinNumberChanged(newValue.text)
+                        },
+                        label = { Text("ISIN Number") },
+                        placeholder = { Text("018734") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable)
+                            .onFocusChanged {
+                                if (it.isFocused) {
+                                    viewModel.onIsinFieldTapped()
+                                }
+                            },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = uiState.fetchState is FetchState.Error,
+                        supportingText = (uiState.fetchState as? FetchState.Error)?.message?.let {
+                            { Text(it) }
+                        },
+                        trailingIcon = {
+                            if (uiState.fetchState is FetchState.Loading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else if (uiState.fetchState is FetchState.Success) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Bond found",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            } else if (uiState.fetchState is FetchState.Idle && uiState.isinNumber.length in 0..5) {
+                                Text(
+                                    text = "${6 - uiState.isinNumber.length}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
-                ) {
-                    uiState.suggestions.forEach { suggestionIsin ->
-                        DropdownMenuItem(
-                            text = { Text(suggestionIsin) },
-                            onClick = { viewModel.onIsinSelected(suggestionIsin) }
-                        )
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = uiState.isDropdownExpanded && uiState.suggestions.isNotEmpty(),
+                        onDismissRequest = viewModel::onDismissDropdown,
+                        scrollState = menuScrollState,
+                        modifier = Modifier
+                            .padding(top = 6.dp)
+                            .heightIn(max = 144.dp)
+                            .drawWithContent {
+                                drawContent()
+                                val totalScroll = menuScrollState.maxValue
+                                if (totalScroll > 0) {
+                                    val verticalPadding = 4.dp.toPx()
+                                    val viewHeight = size.height - (verticalPadding * 2)
+                                    val contentHeight = viewHeight + totalScroll
+                                    val thumbHeight = (viewHeight * (viewHeight / contentHeight)).coerceAtLeast(16.dp.toPx())
+                                    val scrollProgress = menuScrollState.value.toFloat() / totalScroll.toFloat()
+                                    val thumbOffsetY = verticalPadding + (scrollProgress * (viewHeight - thumbHeight))
+                                    val barWidth = 3.dp.toPx()
+                                    val rightMargin = 2.dp.toPx()
+
+                                    drawRoundRect(
+                                        color = scrollbarColor,
+                                        topLeft = Offset(size.width - barWidth - rightMargin, thumbOffsetY),
+                                        size = Size(barWidth, thumbHeight),
+                                        cornerRadius = CornerRadius(barWidth / 2, barWidth / 2)
+                                    )
+                                }
+                            }
+                    ) {
+                        uiState.suggestions.forEach { suggestionIsin ->
+                            DropdownMenuItem(
+                                text = { Text(suggestionIsin) },
+                                onClick = { viewModel.onIsinSelected(suggestionIsin) }
+                            )
+                        }
                     }
                 }
             }
