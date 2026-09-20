@@ -717,12 +717,15 @@ fun CompactMonthDatePicker(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
+                    .weight(1f)
+                    .padding(top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 for (rowIndex in 0 until 4) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         for (colIndex in 0 until 3) {
@@ -733,7 +736,7 @@ fun CompactMonthDatePicker(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(38.dp)
+                                    .fillMaxHeight()
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(
                                         if (isSelectedMonth) {
