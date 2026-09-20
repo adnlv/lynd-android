@@ -18,7 +18,7 @@ The application helps individual investors monitor their bond portfolio and fore
 - **Language**: [Kotlin](https://kotlinlang.org/)
 - **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose) with Material 3
 - **Local Database**: [Room](https://developer.android.com/training/data-storage/room)
-- **Networking**: [Retrofit](https://square.github.io/retrofit/) with [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
+- **Networking**: [Retrofit](https://github.com/square/retrofit) with [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 - **Asynchronous Work**: Kotlin Coroutines and StateFlow
 
 ## Architecture
