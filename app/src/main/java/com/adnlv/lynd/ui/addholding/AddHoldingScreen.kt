@@ -1,6 +1,7 @@
 package com.adnlv.lynd.ui.addholding
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -129,6 +130,13 @@ fun AddHoldingScreen(
         val targetMode = if (pricePagerState.currentPage == 0) PriceInputMode.PER_BOND else PriceInputMode.TOTAL
         if (uiState.priceMode != targetMode) {
             viewModel.onPriceModeChanged(targetMode)
+        }
+    }
+
+    LaunchedEffect(uiState.priceMode) {
+        val targetPage = if (uiState.priceMode == PriceInputMode.TOTAL) 1 else 0
+        if (pricePagerState.currentPage != targetPage) {
+            pricePagerState.animateScrollToPage(targetPage)
         }
     }
 
@@ -410,90 +418,124 @@ fun AddHoldingScreen(
                 }
             }
 
-            var perBondFocused by remember { mutableStateOf(false) }
-            var totalFocused by remember { mutableStateOf(false) }
-
-            val perBondHasContent = uiState.pricePerBond.isNotEmpty()
-            val totalHasContent = uiState.totalPrice.isNotEmpty()
-
-            val showPerBondOnly = (perBondFocused || perBondHasContent) && !totalHasContent
-            val showTotalOnly = (totalFocused || totalHasContent) && !perBondHasContent
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (!showTotalOnly) {
-                    OutlinedTextField(
-                        value = uiState.pricePerBond,
-                        onValueChange = viewModel::onPricePerBondChanged,
-                        label = { Text("Price per Bond") },
-                        placeholder = { Text("e.g. 1025.50") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier
-                            .weight(1f)
-                            .onFocusChanged { perBondFocused = it.isFocused },
-                        singleLine = true,
-                        isError = uiState.priceError != null && uiState.priceMode == PriceInputMode.PER_BOND,
-                        supportingText = if (uiState.priceMode == PriceInputMode.PER_BOND) {
-                            uiState.priceError?.let { { Text(it) } }
-                        } else null
-                    )
-                }
-
-                if (!showPerBondOnly) {
-                    OutlinedTextField(
-                        value = uiState.totalPrice,
-                        onValueChange = viewModel::onTotalPriceChanged,
-                        label = { Text("Total Price") },
-                        placeholder = { Text("e.g. 10255.00") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier
-                            .weight(1f)
-                            .onFocusChanged { totalFocused = it.isFocused },
-                        singleLine = true,
-                        isError = uiState.priceError != null && uiState.priceMode == PriceInputMode.TOTAL,
-                        supportingText = if (uiState.priceMode == PriceInputMode.TOTAL) {
-                            uiState.priceError?.let { { Text(it) } }
-                        } else null
-                    )
-                }
-            }
-
             val currency = (uiState.fetchState as? FetchState.Success)?.bond?.currency ?: ""
-            val derivedPriceText = remember(uiState.priceMode, uiState.pricePerBond, uiState.totalPrice, uiState.quantity, currency) {
-                val qty = uiState.quantity.toIntOrNull()
-                if (qty == null || qty <= 0) return@remember null
+            val qty = uiState.quantity.toIntOrNull()
 
-                when (uiState.priceMode) {
-                    PriceInputMode.PER_BOND -> {
-                        val perBond = uiState.pricePerBond.toBigDecimalOrNull() ?: return@remember null
-                        val total = perBond.multiply(java.math.BigDecimal(qty))
-                            .setScale(2, java.math.RoundingMode.HALF_UP)
-                            .toPlainString()
-                        val prefix = if (currency.isNotBlank()) "$currency " else ""
-                        "Total: $prefix$total"
-                    }
-                    PriceInputMode.TOTAL -> {
-                        val total = uiState.totalPrice.toBigDecimalOrNull() ?: return@remember null
-                        val perBond = total.divide(java.math.BigDecimal(qty), 2, java.math.RoundingMode.HALF_UP)
-                            .toPlainString()
-                        val prefix = if (currency.isNotBlank()) "$currency " else ""
-                        "Per bond: $prefix$perBond"
-                    }
-                }
+            val derivedTotalPriceText = remember(uiState.pricePerBond, qty, currency) {
+                if (qty == null || qty <= 0) return@remember null
+                val perBond = uiState.pricePerBond.toBigDecimalOrNull() ?: return@remember null
+                val total = perBond.multiply(java.math.BigDecimal(qty))
+                    .setScale(2, java.math.RoundingMode.HALF_UP)
+                    .toPlainString()
+                val prefix = if (currency.isNotBlank()) "$currency " else ""
+                "Total: $prefix$total"
             }
 
-            if (derivedPriceText != null) {
-                Text(
-                    text = derivedPriceText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            val derivedPerBondPriceText = remember(uiState.totalPrice, qty, currency) {
+                if (qty == null || qty <= 0) return@remember null
+                val total = uiState.totalPrice.toBigDecimalOrNull() ?: return@remember null
+                val perBond = total.divide(java.math.BigDecimal(qty), 2, java.math.RoundingMode.HALF_UP)
+                    .toPlainString()
+                val prefix = if (currency.isNotBlank()) "$currency " else ""
+                "Per bond: $prefix$perBond"
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                HorizontalPager(
+                    state = pricePagerState,
+                    pageSpacing = 12.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) { page ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (page == 0) {
+                                OutlinedTextField(
+                                    value = uiState.pricePerBond,
+                                    onValueChange = viewModel::onPricePerBondChanged,
+                                    label = { Text("Price per Bond") },
+                                    placeholder = { Text("e.g. 1025.50") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    singleLine = true,
+                                    isError = uiState.priceError != null && uiState.priceMode == PriceInputMode.PER_BOND,
+                                    supportingText = if (uiState.priceMode == PriceInputMode.PER_BOND) {
+                                        uiState.priceError?.let { { Text(it) } }
+                                    } else null
+                                )
+                                if (derivedTotalPriceText != null) {
+                                    Text(
+                                        text = derivedTotalPriceText,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            } else {
+                                OutlinedTextField(
+                                    value = uiState.totalPrice,
+                                    onValueChange = viewModel::onTotalPriceChanged,
+                                    label = { Text("Total Price") },
+                                    placeholder = { Text("e.g. 10255.00") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    singleLine = true,
+                                    isError = uiState.priceError != null && uiState.priceMode == PriceInputMode.TOTAL,
+                                    supportingText = if (uiState.priceMode == PriceInputMode.TOTAL) {
+                                        uiState.priceError?.let { { Text(it) } }
+                                    } else null
+                                )
+                                if (derivedPerBondPriceText != null) {
+                                    Text(
+                                        text = derivedPerBondPriceText,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(2) { index ->
+                        val isSelected = pricePagerState.currentPage == index
+                        Box(
+                            modifier = Modifier
+                                .size(if (isSelected) 8.dp else 6.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                    }
+                                )
+                        )
+                    }
+                }
             }
 
             OutlinedTextField(
