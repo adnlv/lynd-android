@@ -826,7 +826,8 @@ fun CompactMonthDatePicker(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                daysOfWeek.forEach { dayName ->
+                daysOfWeek.forEachIndexed { index, dayName ->
+                    val isWeekendHeader = index >= 5
                     Box(
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.Center
@@ -835,7 +836,11 @@ fun CompactMonthDatePicker(
                             text = dayName,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isWeekendHeader) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
                         )
                     }
                 }
@@ -865,6 +870,7 @@ fun CompactMonthDatePicker(
                                 val isCurrentMonth = cellDate.month == pageYearMonth.month && cellDate.year == pageYearMonth.year
                                 val isSelected = cellDate == selectedDate
                                 val isToday = cellDate == LocalDate.now()
+                                val isWeekend = colIndex >= 5
 
                                 Box(
                                     modifier = Modifier
@@ -889,8 +895,10 @@ fun CompactMonthDatePicker(
                                         fontWeight = if (isSelected || (isToday && isCurrentMonth)) FontWeight.Bold else FontWeight.Normal,
                                         color = when {
                                             isSelected -> MaterialTheme.colorScheme.onPrimary
+                                            !isCurrentMonth && isWeekend -> MaterialTheme.colorScheme.error.copy(alpha = 0.45f)
                                             !isCurrentMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                                             isToday -> MaterialTheme.colorScheme.primary
+                                            isWeekend -> MaterialTheme.colorScheme.error
                                             else -> MaterialTheme.colorScheme.onSurface
                                         }
                                     )
