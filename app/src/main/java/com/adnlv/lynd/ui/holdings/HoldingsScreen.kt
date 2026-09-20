@@ -36,7 +36,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
@@ -782,15 +781,6 @@ fun HoldingCard(
             }
         }
 
-        val chevronRotation by animateFloatAsState(
-            targetValue = if (isExpanded) 180f else 0f,
-            animationSpec = tween(
-                durationMillis = 200,
-                easing = LinearOutSlowInEasing
-            ),
-            label = "chevronRotation"
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -917,25 +907,12 @@ fun HoldingCard(
                     }
                 },
                 trailingContent = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "${Formatters.formatAmount(holding.totalPaidAmount)} ${holding.currency}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = if (isExpanded) "Collapse" else "Expand",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .graphicsLayer { rotationZ = chevronRotation },
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = "${Formatters.formatAmount(holding.totalPaidAmount)} ${holding.currency}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 },
                 colors = ListItemDefaults.colors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
