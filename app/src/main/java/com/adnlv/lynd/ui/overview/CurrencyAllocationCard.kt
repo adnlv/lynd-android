@@ -96,7 +96,7 @@ fun CurrencyAllocationCard(
                         allocations = allocations,
                         colorMap = colorMap,
                         fallbackColor = fallbackColor,
-                        modifier = Modifier.size(160.dp)
+                        modifier = Modifier.size(200.dp)
                     )
                 }
 
@@ -129,7 +129,7 @@ private fun DonutChart(
     modifier: Modifier = Modifier
 ) {
     Canvas(modifier = modifier) {
-        val strokeWidth = 24.dp.toPx()
+        val strokeWidth = 48.dp.toPx()
         val diameter = size.minDimension - strokeWidth
         val arcSize = Size(diameter, diameter)
         val topLeftOffset = Offset(strokeWidth / 2f, strokeWidth / 2f)
