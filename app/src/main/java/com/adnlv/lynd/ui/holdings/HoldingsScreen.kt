@@ -6,6 +6,7 @@ import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -34,6 +35,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
@@ -41,6 +43,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -97,6 +100,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -628,6 +632,7 @@ fun HoldingCard(
     val slideAwayOffsetX = remember { Animatable(0f) }
     var itemWidthPx by remember { mutableFloatStateOf(0f) }
     var isDeleting by remember { mutableStateOf(false) }
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
     var hasTriggeredRevealHaptic by remember { mutableStateOf(false) }
 
     val swipeSpringSpec = spring<Float>(
@@ -770,72 +775,12 @@ fun HoldingCard(
             }
         }
 
-        ListItem(
-            headlineContent = {
-                Text(
-                    text = Formatters.formatDate(holding.purchaseDate),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            },
-            supportingContent = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f),
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                            shape = CircleShape
-                        )
-                    ) {
-                        Text(
-                            text = "${holding.quantity}",
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                        )
-                    }
+        val chevronRotation by animateFloatAsState(
+            targetValue = if (isExpanded) 180f else 0f,
+            label = "chevronRotation"
+        )
 
-                    val displayPercent = if (holding.profitPercentage != BigDecimal.ZERO) {
-                        holding.profitPercentage
-                    } else {
-                        holding.couponRate
-                    }
-                    if (displayPercent != BigDecimal.ZERO) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            border = BorderStroke(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f)
-                            )
-                        ) {
-                            Text(
-                                text = Formatters.formatPercentage(displayPercent),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
-                }
-            },
-            trailingContent = {
-                Text(
-                    text = Formatters.formatAmount(holding.totalPaidAmount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            },
-            colors = ListItemDefaults.colors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
-            ),
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
@@ -845,6 +790,8 @@ fun HoldingCard(
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                     shape = shape
                 )
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .animateContentSize()
                 .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe, fullSwipeThresholdPx, maxDragLeftPx) {
                     if (isDeleting) return@pointerInput
                     detectHorizontalDragGestures(
@@ -918,15 +865,157 @@ fun HoldingCard(
                         }
                     )
                 }
-                .then(
+                .clickable {
                     if (isRevealed) {
-                        Modifier.clickable {
-                            onCollapse()
-                        }
+                        onCollapse()
                     } else {
-                        Modifier
+                        isExpanded = !isExpanded
                     }
+                }
+        ) {
+            ListItem(
+                headlineContent = {
+                    Text(
+                        text = Formatters.formatDate(holding.purchaseDate),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                },
+                supportingContent = {
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f),
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                            shape = CircleShape
+                        )
+                    ) {
+                        Text(
+                            text = "${holding.quantity} pcs",
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                },
+                trailingContent = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = Formatters.formatAmount(holding.totalPaidAmount),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = if (isExpanded) "Collapse" else "Expand",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer { rotationZ = chevronRotation },
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = Color.Transparent
                 )
+            )
+
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        HoldingMetricItem(
+                            label = "Price per bond",
+                            value = "${Formatters.formatAmount(holding.pricePerBond)} ${holding.currency}",
+                            modifier = Modifier.weight(1f)
+                        )
+                        val displayRate = if (holding.profitPercentage != BigDecimal.ZERO) {
+                            holding.profitPercentage
+                        } else {
+                            holding.couponRate
+                        }
+                        HoldingMetricItem(
+                            label = "Coupon rate",
+                            value = Formatters.formatPercentage(displayRate),
+                            valueColor = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.End
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        HoldingMetricItem(
+                            label = "Total payout",
+                            value = "${Formatters.formatAmount(holding.totalPayoutAmount)} ${holding.currency}",
+                            valueColor = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        val isProfitPositive = holding.totalProfitAmount >= BigDecimal.ZERO
+                        val profitPrefix = if (isProfitPositive && holding.totalProfitAmount > BigDecimal.ZERO) "+" else ""
+                        val profitColor = if (isProfitPositive) {
+                            MaterialTheme.colorScheme.tertiary
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        }
+                        HoldingMetricItem(
+                            label = "Total profit",
+                            value = "$profitPrefix${Formatters.formatAmount(holding.totalProfitAmount)} ${holding.currency}",
+                            valueColor = profitColor,
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.End
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HoldingMetricItem(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = horizontalAlignment
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = valueColor
         )
     }
 }
