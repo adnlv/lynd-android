@@ -142,8 +142,7 @@ fun AddHoldingScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val containerFocusRequester = remember { FocusRequester() }
 
-    val isKeyboardOpen = WindowInsets.isImeVisible
-    val heightFraction = if (isKeyboardOpen) 1.0f else 0.80f
+    val heightFraction = 0.85f
 
     LaunchedEffect(initialHolding) {
         if (initialHolding != null) {
@@ -174,7 +173,7 @@ fun AddHoldingScreen(
         modifier = modifier,
         dragHandle = null,
         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+        contentWindowInsets = { BottomSheetDefaults.windowInsets }
     ) {
         Surface(
             shape = sheetShape,
