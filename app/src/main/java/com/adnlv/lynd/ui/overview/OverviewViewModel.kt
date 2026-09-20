@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.BondDao
 import com.adnlv.lynd.data.db.HoldingDao
+import com.adnlv.lynd.data.db.PayoutDao
 import com.adnlv.lynd.domain.HoldingItem
+import com.adnlv.lynd.domain.MonthlyCashFlow
 import com.adnlv.lynd.domain.PortfolioCalculator
 import com.adnlv.lynd.domain.PortfolioSummary
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,25 +22,30 @@ import java.math.RoundingMode
 data class OverviewUiState(
     val summaries: List<PortfolioSummary> = emptyList(),
     val totalHoldingsCount: Int = 0,
-    val holdings: List<HoldingItem> = emptyList()
+    val holdings: List<HoldingItem> = emptyList(),
+    val cashFlowsByCurrency: Map<String, List<MonthlyCashFlow>> = emptyMap()
 )
 
 class OverviewViewModel(
     private val holdingDao: HoldingDao,
-    private val bondDao: BondDao
+    private val bondDao: BondDao,
+    private val payoutDao: PayoutDao
 ) : ViewModel() {
 
     val uiState: StateFlow<OverviewUiState> = combine(
         holdingDao.getAllHoldings(),
-        holdingDao.getPaymentsForHoldings()
-    ) { holdingsList, paymentsList ->
+        holdingDao.getPaymentsForHoldings(),
+        payoutDao.getAllPayoutRows()
+    ) { holdingsList, paymentsList, payoutRows ->
         val domainHoldings = PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
         val summaries = PortfolioCalculator.calculateSummaries(domainHoldings)
+        val cashFlows = PortfolioCalculator.calculateMonthlyCashFlows(payoutRows)
 
         OverviewUiState(
             summaries = summaries,
             totalHoldingsCount = domainHoldings.size,
-            holdings = domainHoldings
+            holdings = domainHoldings,
+            cashFlowsByCurrency = cashFlows
         )
     }.stateIn(
         scope = viewModelScope,
@@ -55,12 +62,13 @@ class OverviewViewModel(
     companion object {
         fun provideFactory(
             holdingDao: HoldingDao,
-            bondDao: BondDao
+            bondDao: BondDao,
+            payoutDao: PayoutDao
         ): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return OverviewViewModel(holdingDao, bondDao) as T
+                    return OverviewViewModel(holdingDao, bondDao, payoutDao) as T
                 }
             }
     }

@@ -127,7 +127,8 @@ fun MainApp(appContainer: AppContainer) {
                 val overviewViewModel: OverviewViewModel = viewModel(
                     factory = OverviewViewModel.provideFactory(
                         holdingDao = appContainer.database.holdingDao(),
-                        bondDao = appContainer.database.bondDao()
+                        bondDao = appContainer.database.bondDao(),
+                        payoutDao = appContainer.database.payoutDao()
                     )
                 )
                 OverviewScreen(viewModel = overviewViewModel)
