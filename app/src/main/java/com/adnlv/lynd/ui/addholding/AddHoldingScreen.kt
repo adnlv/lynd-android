@@ -48,6 +48,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -205,41 +206,53 @@ fun AddHoldingScreen(
                             viewModel.onDismissDropdown()
                         }
                         .navigationBarsPadding()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = if (uiState.editingHoldingId != null) "Edit Bond Holding" else "Add Bond Holding",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                val isSaveEnabled = uiState.fetchState is FetchState.Success
-                Button(
-                    onClick = viewModel::saveHolding,
-                    enabled = isSaveEnabled,
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = if (isSaveEnabled) {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
-                        } else {
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (uiState.editingHoldingId != null) "Edit Bond Holding" else "Add Bond Holding",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        val isSaveEnabled = uiState.fetchState is FetchState.Success
+                        Button(
+                            onClick = viewModel::saveHolding,
+                            enabled = isSaveEnabled,
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = if (isSaveEnabled) {
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                                } else {
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                }
+                            )
+                        ) {
+                            Text("Save")
                         }
+                    }
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        thickness = 1.dp
                     )
-                ) {
-                    Text("Save")
-                }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.Top
-            ) {
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
                 ExposedDropdownMenuBox(
                     expanded = uiState.isPrefixDropdownExpanded,
                     onExpandedChange = viewModel::onPrefixDropdownToggled,
@@ -580,6 +593,7 @@ fun AddHoldingScreen(
             )
         }
     }
+}
 }
 }
 }
