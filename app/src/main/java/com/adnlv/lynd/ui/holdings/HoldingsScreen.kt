@@ -41,7 +41,6 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -151,8 +150,6 @@ fun HoldingsScreen(
         }
     }
 
-    var isFabExpanded by remember { mutableStateOf(true) }
-
     LaunchedEffect(listState.isScrollInProgress) {
         if (listState.isScrollInProgress) {
             revealedHoldingId = null
@@ -162,13 +159,6 @@ fun HoldingsScreen(
                 sharedPrefs.edit().putBoolean("has_seen_swipe_peek", true).apply()
                 hasSeenSwipePeek = true
             }
-            delay(500L)
-            if (listState.isScrollInProgress) {
-                isFabExpanded = false
-            }
-        } else {
-            delay(1000L)
-            isFabExpanded = true
         }
     }
 
@@ -201,53 +191,10 @@ fun HoldingsScreen(
                     },
                     modifier = Modifier.padding(end = 4.dp, top = 4.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(
-                            start = 16.dp,
-                            end = if (isFabExpanded) 20.dp else 16.dp
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Holding"
-                        )
-                        AnimatedVisibility(
-                            visible = isFabExpanded,
-                            enter = androidx.compose.animation.fadeIn(
-                                animationSpec = tween(
-                                    durationMillis = 300,
-                                    delayMillis = 100,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + androidx.compose.animation.expandHorizontally(
-                                animationSpec = tween(
-                                    durationMillis = 400,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ),
-                            exit = androidx.compose.animation.fadeOut(
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + androidx.compose.animation.shrinkHorizontally(
-                                animationSpec = tween(
-                                    durationMillis = 400,
-                                    easing = FastOutSlowInEasing
-                                )
-                            )
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Add holding",
-                                    maxLines = 1,
-                                    softWrap = false
-                                )
-                            }
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Holding"
+                    )
                 }
 
                 SnackbarHost(
