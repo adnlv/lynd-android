@@ -4,9 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
@@ -15,14 +22,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -94,6 +104,14 @@ fun MainApp(appContainer: AppContainer) {
                 ) {
                     bottomTabs.forEach { screen ->
                         val selected = currentRoute == screen.route
+                        val pillBackground by animateColorAsState(
+                            targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                            label = "pillBackground"
+                        )
+                        val pillBorderColor by animateColorAsState(
+                            targetValue = if (selected) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f) else Color.Transparent,
+                            label = "pillBorder"
+                        )
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
@@ -108,21 +126,33 @@ fun MainApp(appContainer: AppContainer) {
                                     }
                                 }
                             },
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = Color.Transparent
+                            ),
                             icon = {
-                                when (screen) {
-                                    Screen.Overview -> Icon(
-                                        imageVector = Icons.Default.Dashboard,
-                                        contentDescription = screen.title
-                                    )
-                                    Screen.Payouts -> Icon(
-                                        imageVector = Icons.Default.DateRange,
-                                        contentDescription = screen.title
-                                    )
-                                    Screen.Holdings -> Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.List,
-                                        contentDescription = screen.title
-                                    )
-                                    else -> {}
+                                Box(
+                                    modifier = Modifier
+                                        .width(64.dp)
+                                        .height(32.dp)
+                                        .background(color = pillBackground, shape = CircleShape)
+                                        .border(width = 1.dp, color = pillBorderColor, shape = CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    when (screen) {
+                                        Screen.Overview -> Icon(
+                                            imageVector = Icons.Default.Dashboard,
+                                            contentDescription = screen.title
+                                        )
+                                        Screen.Payouts -> Icon(
+                                            imageVector = Icons.Default.DateRange,
+                                            contentDescription = screen.title
+                                        )
+                                        Screen.Holdings -> Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.List,
+                                            contentDescription = screen.title
+                                        )
+                                        else -> {}
+                                    }
                                 }
                             },
                             label = { Text(screen.title) }
