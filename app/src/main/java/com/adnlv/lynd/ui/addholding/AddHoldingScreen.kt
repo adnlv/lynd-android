@@ -181,16 +181,60 @@ fun AddHoldingScreen(
         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
         contentWindowInsets = { BottomSheetDefaults.windowInsets }
     ) {
+        val outlineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         Surface(
             shape = sheetShape,
             color = BottomSheetDefaults.ContainerColor,
-            border = BorderStroke(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(heightFraction)
+                .drawWithContent {
+                    drawContent()
+                    val strokeWidth = 1.dp.toPx()
+                    val halfStroke = strokeWidth / 2f
+                    val cornerRadiusPx = 28.dp.toPx()
+                    // Left vertical border (below top corner radius)
+                    drawLine(
+                        color = outlineColor,
+                        start = Offset(halfStroke, cornerRadiusPx),
+                        end = Offset(halfStroke, size.height),
+                        strokeWidth = strokeWidth
+                    )
+                    // Right vertical border (below top corner radius)
+                    drawLine(
+                        color = outlineColor,
+                        start = Offset(size.width - halfStroke, cornerRadiusPx),
+                        end = Offset(size.width - halfStroke, size.height),
+                        strokeWidth = strokeWidth
+                    )
+                    // Top horizontal border (between rounded corners)
+                    drawLine(
+                        color = outlineColor,
+                        start = Offset(cornerRadiusPx, halfStroke),
+                        end = Offset(size.width - cornerRadiusPx, halfStroke),
+                        strokeWidth = strokeWidth
+                    )
+                    // Top-left arc
+                    drawArc(
+                        color = outlineColor,
+                        startAngle = 180f,
+                        sweepAngle = 90f,
+                        useCenter = false,
+                        topLeft = Offset(halfStroke, halfStroke),
+                        size = Size(cornerRadiusPx * 2 - strokeWidth, cornerRadiusPx * 2 - strokeWidth),
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                    )
+                    // Top-right arc
+                    drawArc(
+                        color = outlineColor,
+                        startAngle = 270f,
+                        sweepAngle = 90f,
+                        useCenter = false,
+                        topLeft = Offset(size.width - cornerRadiusPx * 2 + halfStroke, halfStroke),
+                        size = Size(cornerRadiusPx * 2 - strokeWidth, cornerRadiusPx * 2 - strokeWidth),
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                    )
+                }
                 .imePadding()
         ) {
             Box(
