@@ -37,6 +37,6 @@ class FormattersTest {
     fun formatDate_formatsTextualUkDate() {
         val date = LocalDate.of(2026, 9, 15)
         val formatted = Formatters.formatDate(date, Locale.forLanguageTag("uk-UA"))
-        assertEquals("15 вересня 2026", formatted)
+        assertEquals("15 вер. 2026", formatted)
     }
 }
