@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -33,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -104,13 +107,10 @@ fun MainApp(appContainer: AppContainer) {
                 ) {
                     bottomTabs.forEach { screen ->
                         val selected = currentRoute == screen.route
-                        val pillBackground by animateColorAsState(
-                            targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-                            label = "pillBackground"
-                        )
-                        val pillBorderColor by animateColorAsState(
-                            targetValue = if (selected) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f) else Color.Transparent,
-                            label = "pillBorder"
+                        val pillAlpha by animateFloatAsState(
+                            targetValue = if (selected) 1f else 0f,
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                            label = "pillAlpha"
                         )
                         NavigationBarItem(
                             selected = selected,
@@ -133,11 +133,23 @@ fun MainApp(appContainer: AppContainer) {
                                 Box(
                                     modifier = Modifier
                                         .width(64.dp)
-                                        .height(32.dp)
-                                        .background(color = pillBackground, shape = CircleShape)
-                                        .border(width = 1.dp, color = pillBorderColor, shape = CircleShape),
+                                        .height(32.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .matchParentSize()
+                                            .graphicsLayer { alpha = pillAlpha }
+                                            .background(
+                                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                                shape = CircleShape
+                                            )
+                                            .border(
+                                                width = 1.dp,
+                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                                shape = CircleShape
+                                            )
+                                    )
                                     when (screen) {
                                         Screen.Overview -> Icon(
                                             imageVector = Icons.Default.Dashboard,
