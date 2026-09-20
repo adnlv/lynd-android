@@ -40,6 +40,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.BottomSheetDefaults
@@ -566,6 +567,9 @@ fun CompactMonthDatePicker(
         yearMonthFromPage(pagerState.currentPage)
     }
 
+    var isMonthYearPickerVisible by remember { mutableStateOf(false) }
+    var pickerYear by remember(currentYearMonth) { mutableStateOf(currentYearMonth.year) }
+
     val daysOfWeek = remember {
         listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
     }
@@ -587,129 +591,246 @@ fun CompactMonthDatePicker(
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = {
-                    if (pagerState.currentPage > 0) {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                        }
-                    }
-                },
-                modifier = Modifier.size(36.dp)
+        if (isMonthYearPickerVisible) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = "Previous Month"
-                )
-            }
+                IconButton(
+                    onClick = { pickerYear -= 1 },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Previous Year"
+                    )
+                }
 
-            Text(
-                text = monthTitle,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            IconButton(
-                onClick = {
-                    if (pagerState.currentPage < TOTAL_CALENDAR_MONTHS - 1) {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                        }
-                    }
-                },
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Next Month"
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            daysOfWeek.forEach { dayName ->
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
+                TextButton(
+                    onClick = { isMonthYearPickerVisible = false }
                 ) {
                     Text(
-                        text = dayName,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = pickerYear.toString(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                IconButton(
+                    onClick = { pickerYear += 1 },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "Next Year"
                     )
                 }
             }
-        }
 
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxWidth()
-        ) { page ->
-            val pageYearMonth = yearMonthFromPage(page)
-            val firstDayOfMonth = pageYearMonth.atDay(1)
-            val firstDayOfWeekIndex = firstDayOfMonth.dayOfWeek.value - 1
-            val gridStartDate = firstDayOfMonth.minusDays(firstDayOfWeekIndex.toLong())
+            val monthNames = remember {
+                (1..12).map { m ->
+                    YearMonth.of(2000, m).month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                }
+            }
 
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                for (rowIndex in 0 until 5) {
+                for (rowIndex in 0 until 4) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        for (colIndex in 0 until 7) {
-                            val cellIndex = rowIndex * 7 + colIndex
-                            val cellDate = gridStartDate.plusDays(cellIndex.toLong())
-                            val isCurrentMonth = cellDate.month == pageYearMonth.month && cellDate.year == pageYearMonth.year
-                            val isSelected = cellDate == selectedDate
-                            val isToday = cellDate == LocalDate.now()
+                        for (colIndex in 0 until 3) {
+                            val monthValue = rowIndex * 3 + colIndex + 1
+                            val isSelectedMonth = monthValue == currentYearMonth.monthValue && pickerYear == currentYearMonth.year
+                            val monthText = monthNames[monthValue - 1]
 
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .aspectRatio(1f)
-                                    .clip(CircleShape)
+                                    .height(38.dp)
+                                    .clip(RoundedCornerShape(12.dp))
                                     .background(
-                                        if (isSelected) {
+                                        if (isSelectedMonth) {
                                             MaterialTheme.colorScheme.primary
                                         } else {
-                                            Color.Transparent
+                                            MaterialTheme.colorScheme.surfaceContainerHigh
                                         }
                                     )
                                     .clickable {
-                                        if (!isCurrentMonth) {
-                                            val targetPage = pageFromYearMonth(YearMonth.from(cellDate))
-                                            coroutineScope.launch {
-                                                pagerState.animateScrollToPage(targetPage)
-                                            }
+                                        val targetYearMonth = YearMonth.of(pickerYear, monthValue)
+                                        val targetPage = pageFromYearMonth(targetYearMonth)
+                                        coroutineScope.launch {
+                                            pagerState.scrollToPage(targetPage)
                                         }
-                                        onDateSelected(cellDate)
+                                        isMonthYearPickerVisible = false
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = cellDate.dayOfMonth.toString(),
+                                    text = monthText,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (isSelected || (isToday && isCurrentMonth)) FontWeight.Bold else FontWeight.Normal,
-                                    color = when {
-                                        isSelected -> MaterialTheme.colorScheme.onPrimary
-                                        !isCurrentMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                                        isToday -> MaterialTheme.colorScheme.primary
-                                        else -> MaterialTheme.colorScheme.onSurface
+                                    fontWeight = if (isSelectedMonth) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelectedMonth) {
+                                        MaterialTheme.colorScheme.onPrimary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
                                     }
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        if (pagerState.currentPage > 0) {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                            }
+                        }
+                    },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Previous Month"
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            pickerYear = currentYearMonth.year
+                            isMonthYearPickerVisible = true
+                        }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = monthTitle,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Select Month and Year",
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        if (pagerState.currentPage < TOTAL_CALENDAR_MONTHS - 1) {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "Next Month"
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                daysOfWeek.forEach { dayName ->
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = dayName,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxWidth()
+            ) { page ->
+                val pageYearMonth = yearMonthFromPage(page)
+                val firstDayOfMonth = pageYearMonth.atDay(1)
+                val firstDayOfWeekIndex = firstDayOfMonth.dayOfWeek.value - 1
+                val gridStartDate = firstDayOfMonth.minusDays(firstDayOfWeekIndex.toLong())
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    for (rowIndex in 0 until 5) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            for (colIndex in 0 until 7) {
+                                val cellIndex = rowIndex * 7 + colIndex
+                                val cellDate = gridStartDate.plusDays(cellIndex.toLong())
+                                val isCurrentMonth = cellDate.month == pageYearMonth.month && cellDate.year == pageYearMonth.year
+                                val isSelected = cellDate == selectedDate
+                                val isToday = cellDate == LocalDate.now()
+
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (isSelected) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                Color.Transparent
+                                            }
+                                        )
+                                        .clickable {
+                                            if (!isCurrentMonth) {
+                                                val targetPage = pageFromYearMonth(YearMonth.from(cellDate))
+                                                coroutineScope.launch {
+                                                    pagerState.animateScrollToPage(targetPage)
+                                                }
+                                            }
+                                            onDateSelected(cellDate)
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = cellDate.dayOfMonth.toString(),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = if (isSelected || (isToday && isCurrentMonth)) FontWeight.Bold else FontWeight.Normal,
+                                        color = when {
+                                            isSelected -> MaterialTheme.colorScheme.onPrimary
+                                            !isCurrentMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                            isToday -> MaterialTheme.colorScheme.primary
+                                            else -> MaterialTheme.colorScheme.onSurface
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
