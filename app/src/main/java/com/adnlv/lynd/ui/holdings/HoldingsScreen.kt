@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -699,6 +700,12 @@ fun HoldingCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 200,
+                    easing = LinearOutSlowInEasing
+                )
+            )
             .onSizeChanged { itemWidthPx = it.width.toFloat() }
             .offset { IntOffset(slideAwayOffsetX.value.roundToInt(), 0) }
             .clip(shape)
@@ -777,6 +784,10 @@ fun HoldingCard(
 
         val chevronRotation by animateFloatAsState(
             targetValue = if (isExpanded) 180f else 0f,
+            animationSpec = tween(
+                durationMillis = 200,
+                easing = LinearOutSlowInEasing
+            ),
             label = "chevronRotation"
         )
 
@@ -792,8 +803,8 @@ fun HoldingCard(
                 )
                 .animateContentSize(
                     animationSpec = tween(
-                        durationMillis = 250,
-                        easing = FastOutSlowInEasing
+                        durationMillis = 200,
+                        easing = LinearOutSlowInEasing
                     )
                 )
                 .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe, fullSwipeThresholdPx, maxDragLeftPx) {
@@ -935,23 +946,23 @@ fun HoldingCard(
                 visible = isExpanded,
                 enter = expandVertically(
                     animationSpec = tween(
-                        durationMillis = 250,
-                        easing = FastOutSlowInEasing
+                        durationMillis = 200,
+                        easing = LinearOutSlowInEasing
                     )
                 ) + fadeIn(
                     animationSpec = tween(
-                        durationMillis = 150,
-                        delayMillis = 100
+                        durationMillis = 120,
+                        delayMillis = 60
                     )
                 ),
                 exit = shrinkVertically(
                     animationSpec = tween(
-                        durationMillis = 200,
+                        durationMillis = 180,
                         easing = FastOutLinearInEasing
                     )
                 ) + fadeOut(
                     animationSpec = tween(
-                        durationMillis = 150
+                        durationMillis = 120
                     )
                 )
             ) {
