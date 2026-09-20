@@ -93,9 +93,9 @@ fun PortfolioSummaryCard(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
@@ -143,6 +143,7 @@ fun PortfolioSummaryCard(
                 MetricItem(
                     label = "Expected Payout",
                     value = "${Formatters.formatAmount(summary.expectedPayout)} ${summary.currency}",
+                    valueColor = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.End
                 )
@@ -155,7 +156,7 @@ fun PortfolioSummaryCard(
                 val isProfitPositive = summary.totalProfit >= BigDecimal.ZERO
                 val profitPrefix = if (isProfitPositive && summary.totalProfit > BigDecimal.ZERO) "+" else ""
                 val profitColor = if (isProfitPositive) {
-                    MaterialTheme.colorScheme.primary
+                    MaterialTheme.colorScheme.tertiary
                 } else {
                     MaterialTheme.colorScheme.error
                 }
