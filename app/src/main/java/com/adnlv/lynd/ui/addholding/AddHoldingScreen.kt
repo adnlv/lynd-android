@@ -366,18 +366,33 @@ fun AddHoldingScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = viewModel::decrementQuantity,
+                    onClick = {
+                        hasUserTypedQuantity = true
+                        viewModel.decrementQuantity()
+                    },
                     enabled = (uiState.quantity.toIntOrNull() ?: 1) > 1
                 ) {
                     Icon(imageVector = Icons.Default.Remove, contentDescription = "Decrease Quantity")
                 }
 
                 OutlinedTextField(
-                    value = uiState.quantity,
-                    onValueChange = viewModel::onQuantityChanged,
+                    value = quantityTextFieldValue,
+                    onValueChange = { newValue ->
+                        hasUserTypedQuantity = true
+                        quantityTextFieldValue = newValue
+                        viewModel.onQuantityChanged(newValue.text)
+                    },
                     label = { Text("Quantity") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .onFocusChanged { focusState ->
+                            if (focusState.isFocused && !hasUserTypedQuantity) {
+                                quantityTextFieldValue = quantityTextFieldValue.copy(
+                                    selection = TextRange(0, quantityTextFieldValue.text.length)
+                                )
+                            }
+                        },
                     singleLine = true,
                     isError = uiState.quantityError != null,
                     supportingText = uiState.quantityError?.let {
@@ -386,7 +401,10 @@ fun AddHoldingScreen(
                 )
 
                 IconButton(
-                    onClick = viewModel::incrementQuantity
+                    onClick = {
+                        hasUserTypedQuantity = true
+                        viewModel.incrementQuantity()
+                    }
                 ) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = "Increase Quantity")
                 }
