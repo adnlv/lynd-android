@@ -874,12 +874,6 @@ fun CompactMonthDatePicker(
                                             }
                                         )
                                         .clickable {
-                                            if (!isCurrentMonth) {
-                                                val targetPage = pageFromYearMonth(YearMonth.from(cellDate))
-                                                coroutineScope.launch {
-                                                    pagerState.animateScrollToPage(targetPage)
-                                                }
-                                            }
                                             onDateSelected(cellDate)
                                         },
                                     contentAlignment = Alignment.Center
