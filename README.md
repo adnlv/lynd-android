@@ -1,7 +1,11 @@
+![Lynd Banner](docs/banner.png)
+
 # Lynd
 
 Lynd is an open-source Android application to track Ukrainian domestic government bonds (OVDP).
 The application helps individual investors monitor their bond portfolio and forecast cash flows.
+
+## Screenshots
 
 ![Lynd Screenshots](docs/screenshots.jpg)
 
