@@ -790,11 +790,10 @@ fun HoldingCard(
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                     shape = shape
                 )
-                .background(MaterialTheme.colorScheme.surfaceContainer)
                 .animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = 0.8f,
-                        stiffness = Spring.StiffnessMediumLow
+                    animationSpec = tween(
+                        durationMillis = 250,
+                        easing = FastOutSlowInEasing
                     )
                 )
                 .pointerInput(actionButtonsWidthPx, isDeleting, canSwipe, fullSwipeThresholdPx, maxDragLeftPx) {
@@ -928,14 +927,33 @@ fun HoldingCard(
                     }
                 },
                 colors = ListItemDefaults.colors(
-                    containerColor = Color.Transparent
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
 
             AnimatedVisibility(
                 visible = isExpanded,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
+                enter = expandVertically(
+                    animationSpec = tween(
+                        durationMillis = 250,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    animationSpec = tween(
+                        durationMillis = 150,
+                        delayMillis = 100
+                    )
+                ),
+                exit = shrinkVertically(
+                    animationSpec = tween(
+                        durationMillis = 200,
+                        easing = FastOutLinearInEasing
+                    )
+                ) + fadeOut(
+                    animationSpec = tween(
+                        durationMillis = 150
+                    )
+                )
             ) {
                 Column(
                     modifier = Modifier
