@@ -256,7 +256,7 @@ fun AddHoldingScreen(
                 ExposedDropdownMenuBox(
                     expanded = uiState.isPrefixDropdownExpanded,
                     onExpandedChange = viewModel::onPrefixDropdownToggled,
-                    modifier = Modifier.width(136.dp)
+                    modifier = Modifier.width(112.dp)
                 ) {
                     OutlinedTextField(
                         value = uiState.isinPrefix,
@@ -369,8 +369,15 @@ fun AddHoldingScreen(
                             }
                     ) {
                         uiState.suggestions.forEach { suggestionIsin ->
+                            val suffix = suggestionIsin.removePrefix(uiState.isinPrefix)
                             DropdownMenuItem(
-                                text = { Text(suggestionIsin) },
+                                text = {
+                                    Text(
+                                        text = suffix,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                },
                                 onClick = { viewModel.onIsinSelected(suggestionIsin) }
                             )
                         }
