@@ -41,6 +41,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.BottomSheetDefaults
@@ -658,7 +659,9 @@ fun CompactMonthDatePicker(
     ) {
         if (isMonthYearPickerVisible) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -672,14 +675,25 @@ fun CompactMonthDatePicker(
                     )
                 }
 
-                TextButton(
-                    onClick = { isMonthYearPickerVisible = false }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { isMonthYearPickerVisible = false }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = pickerYear.toString(),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropUp,
+                        contentDescription = "Close Year Picker",
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
 
@@ -755,7 +769,9 @@ fun CompactMonthDatePicker(
             }
         } else {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
