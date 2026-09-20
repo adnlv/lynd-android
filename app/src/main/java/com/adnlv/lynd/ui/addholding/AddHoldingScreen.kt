@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -43,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -128,38 +130,47 @@ fun AddHoldingScreen(
         onDismissRequest = onNavigateBack,
         sheetState = sheetState,
         shape = sheetShape,
-        modifier = modifier.border(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-            shape = sheetShape
-        ),
+        containerColor = Color.Transparent,
+        tonalElevation = 0.dp,
+        modifier = modifier,
         dragHandle = null,
-        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
-        Box(
+        Surface(
+            shape = sheetShape,
+            color = BottomSheetDefaults.ContainerColor,
+            border = BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(heightFraction)
                 .imePadding()
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .focusRequester(containerFocusRequester)
-                    .focusable()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        containerFocusRequester.requestFocus()
-                        focusManager.clearFocus(force = true)
-                        keyboardController?.hide()
-                        viewModel.onDismissDropdown()
-                    }
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            Box(
+                modifier = Modifier.fillMaxSize()
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .focusRequester(containerFocusRequester)
+                        .focusable()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            containerFocusRequester.requestFocus()
+                            focusManager.clearFocus(force = true)
+                            keyboardController?.hide()
+                            viewModel.onDismissDropdown()
+                        }
+                        .navigationBarsPadding()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -410,6 +421,7 @@ fun AddHoldingScreen(
             )
         }
     }
+}
 }
 
     if (showDatePicker) {
