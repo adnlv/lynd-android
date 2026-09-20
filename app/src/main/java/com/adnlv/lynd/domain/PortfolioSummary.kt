@@ -13,6 +13,13 @@ data class PortfolioSummary(
     val averageInterestRate: BigDecimal
 )
 
+data class CurrencyAllocation(
+    val currency: String,
+    val currencyName: String,
+    val amount: BigDecimal,
+    val percentage: BigDecimal
+)
+
 object PortfolioCalculator {
     fun mapHoldingsWithPayments(
         holdingsList: List<HoldingWithBond>,
@@ -129,6 +136,43 @@ object PortfolioCalculator {
                     totalAmount = couponSum.add(principalSum)
                 )
             }
+        }
+    }
+
+    fun getCurrencyDisplayName(currency: String): String = when (currency.uppercase()) {
+        "UAH" -> "Ukrainian Hryvnia"
+        "USD" -> "US Dollar"
+        "EUR" -> "Euro"
+        else -> currency
+    }
+
+    fun calculateCurrencyAllocations(summaries: List<PortfolioSummary>): List<CurrencyAllocation> {
+        val totalNominal = summaries.fold(BigDecimal.ZERO) { acc, summary ->
+            acc.add(summary.investedCapital)
+        }
+
+        val preferredOrder = listOf("UAH", "USD", "EUR")
+        val sortedSummaries = summaries.sortedWith(
+            compareBy(
+                { val idx = preferredOrder.indexOf(it.currency.uppercase()); if (idx >= 0) idx else Int.MAX_VALUE },
+                { it.currency }
+            )
+        )
+
+        return sortedSummaries.map { summary ->
+            val percentage = if (totalNominal > BigDecimal.ZERO) {
+                summary.investedCapital.multiply(BigDecimal("100"))
+                    .divide(totalNominal, 2, RoundingMode.HALF_UP)
+            } else {
+                BigDecimal.ZERO
+            }
+
+            CurrencyAllocation(
+                currency = summary.currency,
+                currencyName = getCurrencyDisplayName(summary.currency),
+                amount = summary.investedCapital,
+                percentage = percentage
+            )
         }
     }
 }
