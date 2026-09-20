@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -20,7 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adnlv.lynd.util.HapticFeedbackHelper
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -75,7 +79,19 @@ fun MainApp(appContainer: AppContainer) {
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar {
+                val navBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                NavigationBar(
+                    modifier = Modifier.drawWithContent {
+                        drawContent()
+                        val strokeWidth = 1.dp.toPx()
+                        drawLine(
+                            color = navBorderColor,
+                            start = Offset(0f, strokeWidth / 2),
+                            end = Offset(size.width, strokeWidth / 2),
+                            strokeWidth = strokeWidth
+                        )
+                    }
+                ) {
                     bottomTabs.forEach { screen ->
                         val selected = currentRoute == screen.route
                         NavigationBarItem(
