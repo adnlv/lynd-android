@@ -11,6 +11,8 @@ The application helps individual investors monitor their bond portfolio and fore
 
 ## Features
 
+- **Portfolio Analytics**: Track invested capital, expected payouts, net profit, and currency allocation across holdings.
+- **Cash Flow Projections**: Forecast monthly payouts for the next 12 months and track principal redemption by year.
 - **Bond Catalog Sync**: The app downloads official bond specifications from the National Bank of Ukraine (NBU) Depository API.
 - **Portfolio Tracking**: You can log purchases with custom quantities, purchase dates, and total paid prices.
 - **Payout Timeline**: The app calculates and displays coupon payments and principal redemptions in chronological order.

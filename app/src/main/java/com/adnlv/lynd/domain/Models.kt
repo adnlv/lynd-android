@@ -32,3 +32,16 @@ data class HoldingGroup(
     val totalQuantity: Int,
     val items: List<HoldingItem>
 )
+
+data class MonthlyCashFlow(
+    val yearMonth: java.time.YearMonth,
+    val couponAmount: BigDecimal,
+    val principalAmount: BigDecimal,
+    val totalAmount: BigDecimal
+)
+
+data class YearlyMaturity(
+    val year: Int,
+    val amount: BigDecimal
+)
+

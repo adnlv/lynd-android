@@ -78,40 +78,7 @@ class HoldingsViewModel(
         holdingDao.getAllHoldings(),
         holdingDao.getPaymentsForHoldings()
     ) { holdingsList, paymentsList ->
-        val paymentsByIsin = paymentsList.groupBy { it.bondIsin }
-
-        holdingsList.map { item ->
-            val paymentsForHolding = paymentsByIsin[item.isin].orEmpty()
-                .filter { !it.payDate.isBefore(item.purchaseDate) }
-
-            val totalPayout = paymentsForHolding.fold(BigDecimal.ZERO) { acc, payment ->
-                acc.add(payment.payVal.multiply(BigDecimal.valueOf(item.quantity.toLong())))
-            }
-
-            val profitAmount = totalPayout.subtract(item.totalPaidAmount)
-
-            val profitPercent = if (item.totalPaidAmount > BigDecimal.ZERO) {
-                profitAmount.multiply(BigDecimal("100"))
-                    .divide(item.totalPaidAmount, 4, RoundingMode.HALF_UP)
-            } else {
-                BigDecimal.ZERO
-            }
-
-            HoldingItem(
-                id = item.id,
-                isin = item.isin,
-                bondName = item.bondName.ifBlank { item.isin },
-                quantity = item.quantity,
-                pricePerBond = item.pricePerBond,
-                totalPaidAmount = item.totalPaidAmount,
-                purchaseDate = item.purchaseDate,
-                currency = item.currency,
-                couponRate = item.couponRate,
-                totalPayoutAmount = totalPayout,
-                totalProfitAmount = profitAmount,
-                profitPercentage = profitPercent
-            )
-        }
+        com.adnlv.lynd.domain.PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
