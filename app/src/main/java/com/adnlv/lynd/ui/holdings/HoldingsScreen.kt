@@ -922,7 +922,7 @@ fun HoldingCard(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = Formatters.formatAmount(holding.totalPaidAmount),
+                            text = "${Formatters.formatAmount(holding.totalPaidAmount)} ${holding.currency}",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
