@@ -1,5 +1,7 @@
 package com.adnlv.lynd.domain
 
+import com.adnlv.lynd.data.db.BondPaymentEntity
+import com.adnlv.lynd.data.db.HoldingWithBond
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -12,6 +14,46 @@ data class PortfolioSummary(
 )
 
 object PortfolioCalculator {
+    fun mapHoldingsWithPayments(
+        holdingsList: List<HoldingWithBond>,
+        paymentsList: List<BondPaymentEntity>
+    ): List<HoldingItem> {
+        val paymentsByIsin = paymentsList.groupBy { it.bondIsin }
+
+        return holdingsList.map { item ->
+            val paymentsForHolding = paymentsByIsin[item.isin].orEmpty()
+                .filter { !it.payDate.isBefore(item.purchaseDate) }
+
+            val totalPayout = paymentsForHolding.fold(BigDecimal.ZERO) { acc, payment ->
+                acc.add(payment.payVal.multiply(BigDecimal.valueOf(item.quantity.toLong())))
+            }
+
+            val profitAmount = totalPayout.subtract(item.totalPaidAmount)
+
+            val profitPercent = if (item.totalPaidAmount > BigDecimal.ZERO) {
+                profitAmount.multiply(BigDecimal("100"))
+                    .divide(item.totalPaidAmount, 4, RoundingMode.HALF_UP)
+            } else {
+                BigDecimal.ZERO
+            }
+
+            HoldingItem(
+                id = item.id,
+                isin = item.isin,
+                bondName = item.bondName.ifBlank { item.isin },
+                quantity = item.quantity,
+                pricePerBond = item.pricePerBond,
+                totalPaidAmount = item.totalPaidAmount,
+                purchaseDate = item.purchaseDate,
+                currency = item.currency,
+                couponRate = item.couponRate,
+                totalPayoutAmount = totalPayout,
+                totalProfitAmount = profitAmount,
+                profitPercentage = profitPercent
+            )
+        }
+    }
+
     fun calculateSummary(currency: String, holdings: List<HoldingItem>): PortfolioSummary {
         val currencyHoldings = holdings.filter { it.currency.equals(currency, ignoreCase = true) }
         val invested = currencyHoldings.fold(BigDecimal.ZERO) { acc, item ->

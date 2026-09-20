@@ -78,7 +78,7 @@ class HoldingsViewModel(
         holdingDao.getAllHoldings(),
         holdingDao.getPaymentsForHoldings()
     ) { holdingsList, paymentsList ->
-        com.adnlv.lynd.domain.PortfolioCalculators.mapHoldingsWithPayments(holdingsList, paymentsList)
+        com.adnlv.lynd.domain.PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
