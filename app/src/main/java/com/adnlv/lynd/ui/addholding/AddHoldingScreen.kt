@@ -202,11 +202,7 @@ fun AddHoldingScreen(
                 if (calendarPagerState.isScrollInProgress || pricePagerState.isScrollInProgress) {
                     return Offset(x = 0f, y = available.y)
                 }
-                return if (available.y > 0f) {
-                    available
-                } else {
-                    Offset(x = 0f, y = available.y)
-                }
+                return Offset.Zero
             }
 
             override suspend fun onPreFling(available: Velocity): Velocity {
@@ -223,11 +219,7 @@ fun AddHoldingScreen(
                 if (calendarPagerState.isScrollInProgress || pricePagerState.isScrollInProgress) {
                     return Velocity(x = 0f, y = available.y)
                 }
-                return if (available.y > 0f) {
-                    available
-                } else {
-                    Velocity(x = 0f, y = available.y)
-                }
+                return Velocity.Zero
             }
         }
     }
