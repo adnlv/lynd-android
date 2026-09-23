@@ -27,7 +27,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import kotlin.math.abs
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -175,18 +177,58 @@ fun AddHoldingScreen(
         }
     }
 
+    val calendarPagerInitialPage = remember(uiState.purchaseDate) {
+        pageFromYearMonth(YearMonth.from(uiState.purchaseDate))
+    }
+    val calendarPagerState = rememberPagerState(
+        initialPage = calendarPagerInitialPage,
+        pageCount = { TOTAL_CALENDAR_MONTHS }
+    )
+
     val contentNestedScrollConnection = remember {
         object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (calendarPagerState.isScrollInProgress || pricePagerState.isScrollInProgress) {
+                    return Offset(x = 0f, y = available.y)
+                }
+                return Offset.Zero
+            }
+
             override fun onPostScroll(
                 consumed: Offset,
                 available: Offset,
                 source: NestedScrollSource
-            ): Offset = available
+            ): Offset {
+                if (calendarPagerState.isScrollInProgress || pricePagerState.isScrollInProgress) {
+                    return Offset(x = 0f, y = available.y)
+                }
+                return if (available.y > 0f) {
+                    available
+                } else {
+                    Offset(x = 0f, y = available.y)
+                }
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (calendarPagerState.isScrollInProgress || pricePagerState.isScrollInProgress) {
+                    return Velocity(x = 0f, y = available.y)
+                }
+                return Velocity.Zero
+            }
 
             override suspend fun onPostFling(
                 consumed: Velocity,
                 available: Velocity
-            ): Velocity = available
+            ): Velocity {
+                if (calendarPagerState.isScrollInProgress || pricePagerState.isScrollInProgress) {
+                    return Velocity(x = 0f, y = available.y)
+                }
+                return if (available.y > 0f) {
+                    available
+                } else {
+                    Velocity(x = 0f, y = available.y)
+                }
+            }
         }
     }
 
@@ -612,6 +654,7 @@ fun AddHoldingScreen(
             CompactMonthDatePicker(
                 selectedDate = uiState.purchaseDate,
                 onDateSelected = viewModel::onPurchaseDateChanged,
+                pagerState = calendarPagerState,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -634,16 +677,15 @@ private fun yearMonthFromPage(page: Int): YearMonth =
 fun CompactMonthDatePicker(
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val coroutineScope = rememberCoroutineScope()
-    val initialPage = remember(selectedDate) {
-        pageFromYearMonth(YearMonth.from(selectedDate))
-    }
-    val pagerState = rememberPagerState(
-        initialPage = initialPage,
+    modifier: Modifier = Modifier,
+    pagerState: PagerState = rememberPagerState(
+        initialPage = remember(selectedDate) {
+            pageFromYearMonth(YearMonth.from(selectedDate))
+        },
         pageCount = { TOTAL_CALENDAR_MONTHS }
     )
+) {
+    val coroutineScope = rememberCoroutineScope()
 
     val currentYearMonth = remember(pagerState.currentPage) {
         yearMonthFromPage(pagerState.currentPage)
@@ -672,6 +714,33 @@ fun CompactMonthDatePicker(
         onDateSelected(today)
     }
 
+    val calendarNestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                return if (abs(consumed.x) > 0f) {
+                    Offset(x = 0f, y = available.y)
+                } else {
+                    Offset.Zero
+                }
+            }
+
+            override suspend fun onPostFling(
+                consumed: Velocity,
+                available: Velocity
+            ): Velocity {
+                return if (abs(consumed.x) > 0f) {
+                    Velocity(x = 0f, y = available.y)
+                } else {
+                    Velocity.Zero
+                }
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -682,6 +751,7 @@ fun CompactMonthDatePicker(
                 RoundedCornerShape(16.dp)
             )
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .nestedScroll(calendarNestedScrollConnection)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
