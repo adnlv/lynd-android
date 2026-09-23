@@ -675,7 +675,7 @@ fun CompactMonthDatePicker(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .height(310.dp)
+            .height(320.dp)
             .clip(RoundedCornerShape(16.dp))
             .border(
                 BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
@@ -917,7 +917,9 @@ fun CompactMonthDatePicker(
 
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
             ) { page ->
                 val pageYearMonth = yearMonthFromPage(page)
                 val firstDayOfMonth = pageYearMonth.atDay(1)
@@ -925,12 +927,14 @@ fun CompactMonthDatePicker(
                 val gridStartDate = firstDayOfMonth.minusDays(firstDayOfWeekIndex.toLong())
 
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    for (rowIndex in 0 until 5) {
+                    for (rowIndex in 0 until 6) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             for (colIndex in 0 until 7) {
@@ -944,33 +948,39 @@ fun CompactMonthDatePicker(
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .aspectRatio(1f)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (isSelected) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                Color.Transparent
-                                            }
-                                        )
-                                        .clickable {
-                                            onDateSelected(cellDate)
-                                        },
+                                        .fillMaxHeight(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = cellDate.dayOfMonth.toString(),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = if (isSelected || (isToday && isCurrentMonth)) FontWeight.Bold else FontWeight.Normal,
-                                        color = when {
-                                            isSelected -> MaterialTheme.colorScheme.onPrimary
-                                            !isCurrentMonth && isWeekend -> MaterialTheme.colorScheme.error.copy(alpha = 0.45f)
-                                            !isCurrentMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                                            isToday -> MaterialTheme.colorScheme.primary
-                                            isWeekend -> MaterialTheme.colorScheme.error
-                                            else -> MaterialTheme.colorScheme.onSurface
-                                        }
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .size(34.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (isSelected) {
+                                                    MaterialTheme.colorScheme.primary
+                                                } else {
+                                                    Color.Transparent
+                                                }
+                                            )
+                                            .clickable {
+                                                onDateSelected(cellDate)
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = cellDate.dayOfMonth.toString(),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = if (isSelected || (isToday && isCurrentMonth)) FontWeight.Bold else FontWeight.Normal,
+                                            color = when {
+                                                isSelected -> MaterialTheme.colorScheme.onPrimary
+                                                !isCurrentMonth && isWeekend -> MaterialTheme.colorScheme.error.copy(alpha = 0.45f)
+                                                !isCurrentMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                                isToday -> MaterialTheme.colorScheme.primary
+                                                isWeekend -> MaterialTheme.colorScheme.error
+                                                else -> MaterialTheme.colorScheme.onSurface
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
