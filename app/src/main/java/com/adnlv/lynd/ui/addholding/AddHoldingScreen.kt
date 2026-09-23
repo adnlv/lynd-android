@@ -154,7 +154,9 @@ fun AddHoldingScreen(
         pageCount = { TOTAL_CALENDAR_MONTHS }
     )
 
-    val contentNestedScrollConnection = remember {
+    val contentScrollState = rememberScrollState()
+
+    val contentNestedScrollConnection = remember(calendarPagerState, pricePagerState, contentScrollState) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 if (calendarPagerState.isScrollInProgress || pricePagerState.isScrollInProgress) {
@@ -329,7 +331,7 @@ fun AddHoldingScreen(
                         modifier = Modifier
                             .weight(1f)
                             .nestedScroll(contentNestedScrollConnection)
-                            .verticalScroll(rememberScrollState())
+                            .verticalScroll(contentScrollState)
                             .padding(horizontal = 20.dp, vertical = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
