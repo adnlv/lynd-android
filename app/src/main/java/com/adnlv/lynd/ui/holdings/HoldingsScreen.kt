@@ -58,6 +58,7 @@ fun HoldingsScreen(
     var revealedHoldingId by remember { mutableStateOf<Int?>(null) }
     var swipingHoldingId by remember { mutableStateOf<Int?>(null) }
     var peekingHoldingId by remember { mutableStateOf<Int?>(null) }
+    var showAddSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
@@ -106,7 +107,11 @@ fun HoldingsScreen(
                 FloatingActionButton(
                     onClick = {
                         revealedHoldingId = null
-                        onNavigateToAdd?.invoke()
+                        if (onNavigateToAdd != null) {
+                            onNavigateToAdd.invoke()
+                        } else {
+                            showAddSheet = true
+                        }
                     },
                     modifier = Modifier
                         .padding(end = 4.dp, top = 4.dp)
@@ -227,6 +232,13 @@ fun HoldingsScreen(
                     }
                 }
             }
+        }
+
+        if (showAddSheet) {
+            AddHoldingBottomSheet(
+                viewModel = viewModel,
+                onDismissRequest = { showAddSheet = false }
+            )
         }
     }
 }
