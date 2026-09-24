@@ -1,8 +1,6 @@
 package com.adnlv.lynd.ui.holdings
 
 import android.content.Context
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -24,13 +22,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,11 +33,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -56,19 +49,15 @@ fun HoldingsScreen(
     viewModel: HoldingsViewModel,
     modifier: Modifier = Modifier,
     onNavigateToAdd: (() -> Unit)? = null,
-    onNavigateToEdit: ((HoldingItem) -> Unit)? = null,
-    addHoldingContent: (@Composable (sheetState: SheetState, holdingToEdit: HoldingItem?, onDismiss: () -> Unit) -> Unit)? = null
+    onNavigateToEdit: ((HoldingItem) -> Unit)? = null
 ) {
     val holdings by viewModel.holdings.collectAsState()
     val groupedHoldings by viewModel.groupedHoldings.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
     val syncError by viewModel.syncError.collectAsState()
-    var showHoldingSheet by rememberSaveable { mutableStateOf(false) }
-    var editingHolding by remember { mutableStateOf<HoldingItem?>(null) }
     var revealedHoldingId by remember { mutableStateOf<Int?>(null) }
     var swipingHoldingId by remember { mutableStateOf<Int?>(null) }
     var peekingHoldingId by remember { mutableStateOf<Int?>(null) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
@@ -104,13 +93,6 @@ fun HoldingsScreen(
         }
     }
 
-    val isSheetActive = showHoldingSheet && sheetState.targetValue != SheetValue.Hidden
-    val blurRadius by animateDpAsState(
-        targetValue = if (isSheetActive) 16.dp else 0.dp,
-        animationSpec = tween(durationMillis = 150),
-        label = "holdingsBackgroundBlur"
-    )
-
     Scaffold(
         modifier = modifier,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -124,12 +106,7 @@ fun HoldingsScreen(
                 FloatingActionButton(
                     onClick = {
                         revealedHoldingId = null
-                        if (addHoldingContent != null) {
-                            editingHolding = null
-                            showHoldingSheet = true
-                        } else {
-                            onNavigateToAdd?.invoke()
-                        }
+                        onNavigateToAdd?.invoke()
                     },
                     modifier = Modifier
                         .padding(end = 4.dp, top = 4.dp)
@@ -158,9 +135,6 @@ fun HoldingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .then(
-                    if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier
-                )
                 .pointerInput(Unit) {
                     detectTapGestures {
                         if (revealedHoldingId != null) {
@@ -232,12 +206,7 @@ fun HoldingsScreen(
                             },
                             onEditHolding = { holding ->
                                 revealedHoldingId = null
-                                if (addHoldingContent != null) {
-                                    editingHolding = holding
-                                    showHoldingSheet = true
-                                } else {
-                                    onNavigateToEdit?.invoke(holding)
-                                }
+                                onNavigateToEdit?.invoke(holding)
                             },
                             onDeleteHolding = { holding ->
                                 revealedHoldingId = null
@@ -258,13 +227,6 @@ fun HoldingsScreen(
                     }
                 }
             }
-        }
-    }
-
-    if (showHoldingSheet && addHoldingContent != null) {
-        addHoldingContent(sheetState, editingHolding) {
-            showHoldingSheet = false
-            editingHolding = null
         }
     }
 }
