@@ -64,10 +64,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.data.db.HoldingEntity
+import com.adnlv.lynd.domain.IsinValidator
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -102,16 +105,20 @@ fun AddHoldingBottomSheet(
 
     var hasUserModifiedIsin by remember { mutableStateOf(false) }
     var prefixDropdownExpanded by remember { mutableStateOf(false) }
+    val initialCode = holdingToEdit?.isin?.drop(6) ?: ""
     var codeInput by remember {
-        mutableStateOf(holdingToEdit?.isin?.substring(6) ?: "")
+        mutableStateOf(TextFieldValue(text = initialCode, selection = TextRange(initialCode.length)))
+    }
+    var codeError by remember {
+        mutableStateOf(IsinValidator.validateCodeInput(initialCode, selectedPrefix))
     }
     var matchingBonds by remember { mutableStateOf<List<String>>(emptyList()) }
     var bondSuggestionsExpanded by remember { mutableStateOf(false) }
     var isCodeFocused by remember { mutableStateOf(false) }
 
-    LaunchedEffect(codeInput, selectedPrefix, isCodeFocused) {
-        if (isCodeFocused) {
-            val query = "$selectedPrefix$codeInput"
+    LaunchedEffect(codeInput.text, selectedPrefix, isCodeFocused) {
+        if (isCodeFocused && codeInput.text.isNotEmpty()) {
+            val query = "$selectedPrefix${codeInput.text}"
             val results = viewModel.searchBonds(query)
             matchingBonds = results
             bondSuggestionsExpanded = results.isNotEmpty()
@@ -201,11 +208,13 @@ fun AddHoldingBottomSheet(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                val fullIsin = "$selectedPrefix$codeInput"
+                val fullIsin = "$selectedPrefix${codeInput.text}"
                 val isFormValid = fullIsin.length == 12 &&
+                    codeError == null &&
+                    IsinValidator.isValid(fullIsin) &&
                     quantity >= 1 &&
-                    (totalPriceInput.toDoubleOrNull() ?: 0.0) > 0.0 &&
-                    (pricePerBondInput.toDoubleOrNull() ?: 0.0) > 0.0
+                    (totalPriceInput.toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } ?: false) &&
+                    (pricePerBondInput.toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } ?: false)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -222,8 +231,8 @@ fun AddHoldingBottomSheet(
 
                     Button(
                         onClick = {
-                            val perBond = BigDecimal(pricePerBondInput).setScale(2, RoundingMode.HALF_UP)
-                            val totalPaid = BigDecimal(totalPriceInput).setScale(2, RoundingMode.HALF_UP)
+                            val perBond = pricePerBondInput.toBigDecimalOrNull()?.setScale(2, RoundingMode.HALF_UP) ?: return@Button
+                            val totalPaid = totalPriceInput.toBigDecimalOrNull()?.setScale(2, RoundingMode.HALF_UP) ?: return@Button
 
                             val holding = HoldingEntity(
                                 id = holdingToEdit?.id ?: 0,
@@ -278,6 +287,7 @@ fun AddHoldingBottomSheet(
                                         hasUserModifiedIsin = true
                                     }
                                     selectedPrefix = prefix
+                                    codeError = IsinValidator.validateCodeInput(codeInput.text, prefix)
                                     prefixDropdownExpanded = false
                                 }
                             )
@@ -292,14 +302,16 @@ fun AddHoldingBottomSheet(
                 ) {
                     OutlinedTextField(
                         value = codeInput,
-                        onValueChange = {
-                            val filtered = it.filter { char -> char.isDigit() }.take(6)
+                        onValueChange = { newValue ->
                             hasUserModifiedIsin = true
-                            codeInput = filtered
+                            codeInput = newValue
+                            codeError = IsinValidator.validateCodeInput(newValue.text, selectedPrefix)
                         },
                         label = { Text("Code") },
                         placeholder = { Text("238281") },
                         singleLine = true,
+                        isError = codeError != null,
+                        supportingText = codeError?.let { { Text(it) } },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -317,11 +329,13 @@ fun AddHoldingBottomSheet(
                                 text = { Text(isin) },
                                 onClick = {
                                     hasUserModifiedIsin = true
-                                    if (isin.startsWith(selectedPrefix)) {
-                                        codeInput = isin.removePrefix(selectedPrefix)
+                                    val code = if (isin.startsWith(selectedPrefix)) {
+                                        isin.removePrefix(selectedPrefix)
                                     } else {
-                                        codeInput = isin.takeLast(6)
+                                        isin.takeLast(6)
                                     }
+                                    codeInput = TextFieldValue(text = code, selection = TextRange(code.length))
+                                    codeError = IsinValidator.validateCodeInput(code, selectedPrefix)
                                     bondSuggestionsExpanded = false
                                     focusManager.clearFocus()
                                 }
@@ -401,9 +415,9 @@ fun AddHoldingBottomSheet(
                                 value = totalPriceInput,
                                 onValueChange = { input ->
                                     totalPriceInput = input
-                                    val parsed = input.toDoubleOrNull()
-                                    if (parsed != null && parsed >= 0 && quantity > 0) {
-                                        val computedPerBond = BigDecimal(parsed.toString())
+                                    val parsed = input.toBigDecimalOrNull()
+                                    if (parsed != null && parsed >= BigDecimal.ZERO && quantity > 0) {
+                                        val computedPerBond = parsed
                                             .divide(BigDecimal(quantity), 2, RoundingMode.HALF_UP)
                                         pricePerBondInput = computedPerBond.toPlainString()
                                     }
@@ -419,9 +433,9 @@ fun AddHoldingBottomSheet(
                                 value = pricePerBondInput,
                                 onValueChange = { input ->
                                     pricePerBondInput = input
-                                    val parsed = input.toDoubleOrNull()
-                                    if (parsed != null && parsed >= 0) {
-                                        val computedTotal = BigDecimal(parsed.toString())
+                                    val parsed = input.toBigDecimalOrNull()
+                                    if (parsed != null && parsed >= BigDecimal.ZERO) {
+                                        val computedTotal = parsed
                                             .multiply(BigDecimal(quantity))
                                             .setScale(2, RoundingMode.HALF_UP)
                                         totalPriceInput = computedTotal.toPlainString()
