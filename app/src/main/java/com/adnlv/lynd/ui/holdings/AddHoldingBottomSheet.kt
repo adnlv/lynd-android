@@ -61,6 +61,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -134,9 +139,53 @@ fun AddHoldingBottomSheet(
         }
     }
 
+    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        modifier = Modifier.drawWithContent {
+            drawContent()
+            val strokeWidth = 1.dp.toPx()
+            val halfStroke = strokeWidth / 2f
+            val cornerRadius = 28.dp.toPx()
+
+            val borderPath = Path().apply {
+                moveTo(halfStroke, size.height)
+                lineTo(halfStroke, cornerRadius)
+                arcTo(
+                    rect = Rect(
+                        left = halfStroke,
+                        top = halfStroke,
+                        right = halfStroke + 2 * (cornerRadius - halfStroke),
+                        bottom = halfStroke + 2 * (cornerRadius - halfStroke)
+                    ),
+                    startAngleDegrees = 180f,
+                    sweepAngleDegrees = 90f,
+                    forceMoveTo = false
+                )
+                lineTo(size.width - cornerRadius, halfStroke)
+                arcTo(
+                    rect = Rect(
+                        left = size.width - 2 * cornerRadius + halfStroke,
+                        top = halfStroke,
+                        right = size.width - halfStroke,
+                        bottom = halfStroke + 2 * (cornerRadius - halfStroke)
+                    ),
+                    startAngleDegrees = 270f,
+                    sweepAngleDegrees = 90f,
+                    forceMoveTo = false
+                )
+                lineTo(size.width - halfStroke, size.height)
+            }
+
+            drawPath(
+                path = borderPath,
+                color = borderColor,
+                style = Stroke(width = strokeWidth)
+            )
+        },
         contentWindowInsets = { WindowInsets.statusBars },
         dragHandle = {
             Box(
