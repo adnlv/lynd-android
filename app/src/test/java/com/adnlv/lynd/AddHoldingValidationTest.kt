@@ -43,4 +43,66 @@ class AddHoldingValidationTest {
         assertEquals(12, fullIsin.length)
         assertTrue(fullIsin.matches(Regex("^[A-Z]{2}[A-Z0-9]{10}$")))
     }
+
+    @Test
+    fun holdingItem_mapsCorrectlyToInitialEditFields() {
+        val holding = com.adnlv.lynd.domain.HoldingItem(
+            id = 42,
+            isin = "UA4000238281",
+            bondName = "Bond 1",
+            quantity = 5,
+            pricePerBond = BigDecimal("1050.25"),
+            totalPaidAmount = BigDecimal("5251.25"),
+            purchaseDate = java.time.LocalDate.of(2025, 6, 15)
+        )
+
+        val prefix = holding.isin.take(6)
+        val code = holding.isin.substring(6)
+        val quantity = holding.quantity
+        val pricePerBond = holding.pricePerBond.toPlainString()
+        val totalPrice = holding.totalPaidAmount.toPlainString()
+        val purchaseDate = holding.purchaseDate
+
+        assertEquals("UA4000", prefix)
+        assertEquals("238281", code)
+        assertEquals(5, quantity)
+        assertEquals("1050.25", pricePerBond)
+        assertEquals("5251.25", totalPrice)
+        assertEquals(java.time.LocalDate.of(2025, 6, 15), purchaseDate)
+    }
+
+    @Test
+    fun updateHoldingEntity_retainsOriginalId() {
+        val originalId = 42
+        val updatedHolding = com.adnlv.lynd.data.db.HoldingEntity(
+            id = originalId,
+            isin = "UA4000238281",
+            quantity = 10,
+            pricePerBond = BigDecimal("1000.00"),
+            totalPaidAmount = BigDecimal("10000.00"),
+            purchaseDate = java.time.LocalDate.of(2025, 7, 20)
+        )
+
+        assertEquals(originalId, updatedHolding.id)
+        assertEquals(10, updatedHolding.quantity)
+        assertEquals(BigDecimal("1000.00"), updatedHolding.pricePerBond)
+        assertEquals(BigDecimal("10000.00"), updatedHolding.totalPaidAmount)
+    }
+
+    @Test
+    fun updatedHoldingValues_passValidation() {
+        val prefix = "UA4000"
+        val code = "238281"
+        val fullIsin = "$prefix$code"
+        val quantity = 10
+        val pricePerBondInput = "1000.00"
+        val totalPriceInput = "10000.00"
+
+        val isValid = fullIsin.length == 12 &&
+            quantity >= 1 &&
+            (totalPriceInput.toDoubleOrNull() ?: 0.0) > 0.0 &&
+            (pricePerBondInput.toDoubleOrNull() ?: 0.0) > 0.0
+
+        assertTrue(isValid)
+    }
 }

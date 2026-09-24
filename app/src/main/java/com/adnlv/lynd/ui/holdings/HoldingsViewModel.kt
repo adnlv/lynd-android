@@ -72,6 +72,13 @@ class HoldingsViewModel(
         }
     }
 
+    fun updateHolding(holding: HoldingEntity, onComplete: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            holdingDao.updateHolding(holding)
+            onComplete?.invoke()
+        }
+    }
+
     private fun checkAndSyncCatalogue() {
         viewModelScope.launch {
             if (nbuRepository.isDataStale()) {
