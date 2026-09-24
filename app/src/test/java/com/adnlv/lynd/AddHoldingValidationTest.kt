@@ -98,11 +98,15 @@ class AddHoldingValidationTest {
         val pricePerBondInput = "1000.00"
         val totalPriceInput = "10000.00"
 
-        val isValid = fullIsin.length == 12 &&
+        val isValid = com.adnlv.lynd.domain.IsinValidator.isValid(fullIsin) &&
             quantity >= 1 &&
             (totalPriceInput.toDoubleOrNull() ?: 0.0) > 0.0 &&
             (pricePerBondInput.toDoubleOrNull() ?: 0.0) > 0.0
 
         assertTrue(isValid)
+
+        val invalidFullIsin = "${prefix}238282"
+        val isInvalidValid = com.adnlv.lynd.domain.IsinValidator.isValid(invalidFullIsin)
+        org.junit.Assert.assertFalse(isInvalidValid)
     }
 }
