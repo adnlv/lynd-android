@@ -184,9 +184,7 @@ fun AddHoldingScreen(
                     return Offset(x = 0f, y = available.y)
                 }
                 if (available.y > 0f) {
-                    if (!isDismissAllowed || contentScrollState.value > 0) {
-                        return Offset(x = 0f, y = available.y)
-                    }
+                    return Offset(x = 0f, y = available.y)
                 }
                 return Offset.Zero
             }
@@ -206,9 +204,7 @@ fun AddHoldingScreen(
                     return Velocity(x = 0f, y = available.y)
                 }
                 if (available.y > 0f) {
-                    if (!isDismissAllowed || contentScrollState.value > 0) {
-                        return Velocity(x = 0f, y = available.y)
-                    }
+                    return Velocity(x = 0f, y = available.y)
                 }
                 return Velocity.Zero
             }
