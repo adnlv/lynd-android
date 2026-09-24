@@ -40,8 +40,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,7 +52,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
@@ -158,13 +155,6 @@ fun AddHoldingScreen(
     )
 
     val contentScrollState = rememberScrollState()
-    var isDismissAllowed by remember { mutableStateOf(false) }
-
-    LaunchedEffect(contentScrollState.value) {
-        if (contentScrollState.value > 0) {
-            isDismissAllowed = false
-        }
-    }
 
     val contentNestedScrollConnection = remember(calendarPagerState, pricePagerState, contentScrollState) {
         object : NestedScrollConnection {
@@ -347,19 +337,6 @@ fun AddHoldingScreen(
                         modifier = Modifier
                             .weight(1f)
                             .nestedScroll(contentNestedScrollConnection)
-                            .pointerInput(Unit) {
-                                awaitEachGesture {
-                                    awaitFirstDown(requireUnconsumed = false)
-                                    isDismissAllowed = (contentScrollState.value == 0)
-                                    do {
-                                        val event = awaitPointerEvent()
-                                        if (contentScrollState.value > 0) {
-                                            isDismissAllowed = false
-                                        }
-                                    } while (event.changes.any { it.pressed })
-                                    isDismissAllowed = false
-                                }
-                            }
                             .verticalScroll(contentScrollState)
                             .padding(horizontal = 20.dp, vertical = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
