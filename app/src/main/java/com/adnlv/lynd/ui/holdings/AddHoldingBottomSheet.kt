@@ -380,37 +380,26 @@ fun AddHoldingBottomSheet(
                 (totalPriceInput.toDoubleOrNull() ?: 0.0) > 0.0 &&
                 (pricePerBondInput.toDoubleOrNull() ?: 0.0) > 0.0
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
+            Button(
+                onClick = {
+                    val perBond = BigDecimal(pricePerBondInput).setScale(2, RoundingMode.HALF_UP)
+                    val totalPaid = BigDecimal(totalPriceInput).setScale(2, RoundingMode.HALF_UP)
+
+                    val holding = HoldingEntity(
+                        isin = fullIsin,
+                        quantity = quantity,
+                        pricePerBond = perBond,
+                        totalPaidAmount = totalPaid,
+                        purchaseDate = purchaseDate
+                    )
+                    viewModel.saveHolding(holding) {
+                        onDismissRequest()
+                    }
+                },
+                enabled = isFormValid,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                TextButton(onClick = onDismissRequest) {
-                    Text("Cancel")
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Button(
-                    onClick = {
-                        val perBond = BigDecimal(pricePerBondInput).setScale(2, RoundingMode.HALF_UP)
-                        val totalPaid = BigDecimal(totalPriceInput).setScale(2, RoundingMode.HALF_UP)
-
-                        val holding = HoldingEntity(
-                            isin = fullIsin,
-                            quantity = quantity,
-                            pricePerBond = perBond,
-                            totalPaidAmount = totalPaid,
-                            purchaseDate = purchaseDate
-                        )
-                        viewModel.saveHolding(holding) {
-                            onDismissRequest()
-                        }
-                    },
-                    enabled = isFormValid
-                ) {
-                    Text("Save Holding")
-                }
+                Text("Save Holding")
             }
         }
     }
