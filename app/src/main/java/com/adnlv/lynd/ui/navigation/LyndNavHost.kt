@@ -9,8 +9,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.adnlv.lynd.AppContainer
-import com.adnlv.lynd.ui.addholding.AddHoldingScreen
-import com.adnlv.lynd.ui.addholding.AddHoldingViewModel
 import com.adnlv.lynd.ui.holdings.HoldingsScreen
 import com.adnlv.lynd.ui.holdings.HoldingsViewModel
 import com.adnlv.lynd.ui.overview.OverviewScreen
@@ -48,46 +46,13 @@ fun LyndNavHost(
                     bondDao = appContainer.database.bondDao()
                 )
             )
-            val addHoldingViewModel: AddHoldingViewModel = viewModel(
-                factory = AddHoldingViewModel.provideFactory(
-                    nbuRepository = appContainer.nbuRepository,
-                    holdingDao = appContainer.database.holdingDao()
-                )
-            )
-            HoldingsScreen(
-                viewModel = holdingsViewModel,
-                addHoldingContent = { sheetState, holdingToEdit, onDismiss ->
-                    LaunchedEffect(holdingToEdit) {
-                        if (holdingToEdit == null) {
-                            addHoldingViewModel.reset()
-                        }
-                    }
-                    AddHoldingScreen(
-                        viewModel = addHoldingViewModel,
-                        onNavigateBack = onDismiss,
-                        initialHolding = holdingToEdit,
-                        sheetState = sheetState
-                    )
-                }
-            )
+            HoldingsScreen(viewModel = holdingsViewModel)
         }
         composable(Screen.Payouts.route) {
             val payoutsViewModel: PayoutsViewModel = viewModel(
                 factory = PayoutsViewModel.provideFactory(appContainer.database.payoutDao())
             )
             PayoutsScreen(viewModel = payoutsViewModel)
-        }
-        composable(Screen.AddHolding.route) {
-            val addHoldingViewModel: AddHoldingViewModel = viewModel(
-                factory = AddHoldingViewModel.provideFactory(
-                    nbuRepository = appContainer.nbuRepository,
-                    holdingDao = appContainer.database.holdingDao()
-                )
-            )
-            AddHoldingScreen(
-                viewModel = addHoldingViewModel,
-                onNavigateBack = { navController.popBackStack() }
-            )
         }
     }
 }

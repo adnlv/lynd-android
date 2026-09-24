@@ -4,5 +4,4 @@ sealed class Screen(val route: String, val title: String) {
     data object Overview : Screen("overview", "Overview")
     data object Payouts : Screen("payouts", "Payouts")
     data object Holdings : Screen("holdings", "Holdings")
-    data object AddHolding : Screen("add_holding", "Add Holding")
 }
