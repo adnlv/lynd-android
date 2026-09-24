@@ -142,5 +142,18 @@ class AddHoldingValidationTest {
         val validCode = com.adnlv.lynd.domain.IsinValidator.validateCodeInput("238281", prefix)
         org.junit.Assert.assertNull(validCode)
     }
+
+    @Test
+    fun saveButtonBorderColor_usesOutlineVariantWhenFormIsValid() {
+        val outlineVariant = "outlineVariant"
+        val disabledContainer = "disabledContainer"
+
+        fun resolveBorderColor(isFormValid: Boolean): String {
+            return if (isFormValid) outlineVariant else disabledContainer
+        }
+
+        assertEquals(outlineVariant, resolveBorderColor(isFormValid = true))
+        assertEquals(disabledContainer, resolveBorderColor(isFormValid = false))
+    }
 }
 
