@@ -174,21 +174,27 @@ fun AddHoldingBottomSheet(
                 }
             }
 
-            Box(modifier = Modifier.fillMaxWidth()) {
+            ExposedDropdownMenuBox(
+                expanded = bondSuggestionsExpanded,
+                onExpandedChange = { bondSuggestionsExpanded = it },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 OutlinedTextField(
                     value = codeInput,
                     onValueChange = {
-                        val filtered = it.filter { char -> char.isLetterOrDigit() }.take(6).uppercase()
+                        val filtered = it.filter { char -> char.isDigit() }.take(6)
                         codeInput = filtered
                     },
-                    label = { Text("Code (6 digits)") },
+                    label = { Text("Code") },
                     placeholder = { Text("e.g. 238281") },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryEditable)
                 )
 
-                DropdownMenu(
+                ExposedDropdownMenu(
                     expanded = bondSuggestionsExpanded,
                     onDismissRequest = { bondSuggestionsExpanded = false },
                     modifier = Modifier.fillMaxWidth()
