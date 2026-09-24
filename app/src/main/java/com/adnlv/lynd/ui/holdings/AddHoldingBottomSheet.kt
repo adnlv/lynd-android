@@ -196,11 +196,50 @@ fun AddHoldingBottomSheet(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = if (holdingToEdit != null) "Edit Holding" else "Add Holding",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                val fullIsin = "$selectedPrefix$codeInput"
+                val isFormValid = fullIsin.length == 12 &&
+                    quantity >= 1 &&
+                    (totalPriceInput.toDoubleOrNull() ?: 0.0) > 0.0 &&
+                    (pricePerBondInput.toDoubleOrNull() ?: 0.0) > 0.0
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (holdingToEdit != null) "Edit Holding" else "Add Holding",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Button(
+                        onClick = {
+                            val perBond = BigDecimal(pricePerBondInput).setScale(2, RoundingMode.HALF_UP)
+                            val totalPaid = BigDecimal(totalPriceInput).setScale(2, RoundingMode.HALF_UP)
+
+                            val holding = HoldingEntity(
+                                id = holdingToEdit?.id ?: 0,
+                                isin = fullIsin,
+                                quantity = quantity,
+                                pricePerBond = perBond,
+                                totalPaidAmount = totalPaid,
+                                purchaseDate = purchaseDate
+                            )
+                            if (holdingToEdit != null) {
+                                viewModel.updateHolding(holding) {
+                                    onDismissRequest()
+                                }
+                            } else {
+                                viewModel.saveHolding(holding) {
+                                    onDismissRequest()
+                                }
+                            }
+                        },
+                        enabled = isFormValid
+                    ) {
+                        Text("Save")
+                    }
+                }
 
                 ExposedDropdownMenuBox(
                     expanded = prefixDropdownExpanded,
@@ -439,40 +478,7 @@ fun AddHoldingBottomSheet(
                     }
                 }
 
-                val fullIsin = "$selectedPrefix$codeInput"
-                val isFormValid = fullIsin.length == 12 &&
-                    quantity >= 1 &&
-                    (totalPriceInput.toDoubleOrNull() ?: 0.0) > 0.0 &&
-                    (pricePerBondInput.toDoubleOrNull() ?: 0.0) > 0.0
 
-                Button(
-                    onClick = {
-                        val perBond = BigDecimal(pricePerBondInput).setScale(2, RoundingMode.HALF_UP)
-                        val totalPaid = BigDecimal(totalPriceInput).setScale(2, RoundingMode.HALF_UP)
-
-                        val holding = HoldingEntity(
-                            id = holdingToEdit?.id ?: 0,
-                            isin = fullIsin,
-                            quantity = quantity,
-                            pricePerBond = perBond,
-                            totalPaidAmount = totalPaid,
-                            purchaseDate = purchaseDate
-                        )
-                        if (holdingToEdit != null) {
-                            viewModel.updateHolding(holding) {
-                                onDismissRequest()
-                            }
-                        } else {
-                            viewModel.saveHolding(holding) {
-                                onDismissRequest()
-                            }
-                        }
-                    },
-                    enabled = isFormValid,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(if (holdingToEdit != null) "Save Changes" else "Save Holding")
-                }
             }
         }
     }
