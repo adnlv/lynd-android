@@ -72,28 +72,39 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+import com.adnlv.lynd.domain.HoldingItem
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddHoldingBottomSheet(viewModel: HoldingsViewModel, onDismissRequest: () -> Unit) {
+fun AddHoldingBottomSheet(
+    viewModel: HoldingsViewModel,
+    onDismissRequest: () -> Unit,
+    holdingToEdit: HoldingItem? = null
+) {
     var isSheetExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
 
     val prefixes by viewModel.isinPrefixes.collectAsState()
-    var selectedPrefix by remember { mutableStateOf("UA4000") }
+    var selectedPrefix by remember {
+        mutableStateOf(holdingToEdit?.isin?.take(6) ?: "UA4000")
+    }
     LaunchedEffect(prefixes) {
         if (selectedPrefix.isEmpty() && prefixes.isNotEmpty()) {
             selectedPrefix = prefixes.first()
         }
     }
 
+    var hasUserModifiedIsin by remember { mutableStateOf(false) }
     var prefixDropdownExpanded by remember { mutableStateOf(false) }
-    var codeInput by remember { mutableStateOf("") }
+    var codeInput by remember {
+        mutableStateOf(holdingToEdit?.isin?.substring(6) ?: "")
+    }
     var matchingBonds by remember { mutableStateOf<List<String>>(emptyList()) }
     var bondSuggestionsExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(codeInput, selectedPrefix) {
-        if (codeInput.isNotEmpty()) {
+        if (codeInput.isNotEmpty() && hasUserModifiedIsin) {
             val query = "$selectedPrefix$codeInput"
             val results = viewModel.searchBonds(query)
             matchingBonds = results
@@ -104,14 +115,20 @@ fun AddHoldingBottomSheet(viewModel: HoldingsViewModel, onDismissRequest: () -> 
         }
     }
 
-    var quantity by remember { mutableIntStateOf(1) }
+    var quantity by remember { mutableIntStateOf(holdingToEdit?.quantity ?: 1) }
     val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
     val coroutineScope = rememberCoroutineScope()
 
-    var pricePerBondInput by remember { mutableStateOf("") }
-    var totalPriceInput by remember { mutableStateOf("") }
+    var pricePerBondInput by remember {
+        mutableStateOf(holdingToEdit?.pricePerBond?.toPlainString() ?: "")
+    }
+    var totalPriceInput by remember {
+        mutableStateOf(holdingToEdit?.totalPaidAmount?.toPlainString() ?: "")
+    }
 
-    var purchaseDate by remember { mutableStateOf(LocalDate.now()) }
+    var purchaseDate by remember {
+        mutableStateOf(holdingToEdit?.purchaseDate ?: LocalDate.now())
+    }
     var showDatePicker by remember { mutableStateOf(false) }
 
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
@@ -180,7 +197,7 @@ fun AddHoldingBottomSheet(viewModel: HoldingsViewModel, onDismissRequest: () -> 
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Add Holding",
+                    text = if (holdingToEdit != null) "Edit Holding" else "Add Holding",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -209,6 +226,9 @@ fun AddHoldingBottomSheet(viewModel: HoldingsViewModel, onDismissRequest: () -> 
                             DropdownMenuItem(
                                 text = { Text(prefix) },
                                 onClick = {
+                                    if (selectedPrefix != prefix) {
+                                        hasUserModifiedIsin = true
+                                    }
                                     selectedPrefix = prefix
                                     prefixDropdownExpanded = false
                                 }
@@ -226,6 +246,7 @@ fun AddHoldingBottomSheet(viewModel: HoldingsViewModel, onDismissRequest: () -> 
                         value = codeInput,
                         onValueChange = {
                             val filtered = it.filter { char -> char.isDigit() }.take(6)
+                            hasUserModifiedIsin = true
                             codeInput = filtered
                         },
                         label = { Text("Code") },
@@ -246,6 +267,7 @@ fun AddHoldingBottomSheet(viewModel: HoldingsViewModel, onDismissRequest: () -> 
                             DropdownMenuItem(
                                 text = { Text(isin) },
                                 onClick = {
+                                    hasUserModifiedIsin = true
                                     if (isin.startsWith(selectedPrefix)) {
                                         codeInput = isin.removePrefix(selectedPrefix)
                                     } else {
@@ -429,20 +451,27 @@ fun AddHoldingBottomSheet(viewModel: HoldingsViewModel, onDismissRequest: () -> 
                         val totalPaid = BigDecimal(totalPriceInput).setScale(2, RoundingMode.HALF_UP)
 
                         val holding = HoldingEntity(
+                            id = holdingToEdit?.id ?: 0,
                             isin = fullIsin,
                             quantity = quantity,
                             pricePerBond = perBond,
                             totalPaidAmount = totalPaid,
                             purchaseDate = purchaseDate
                         )
-                        viewModel.saveHolding(holding) {
-                            onDismissRequest()
+                        if (holdingToEdit != null) {
+                            viewModel.updateHolding(holding) {
+                                onDismissRequest()
+                            }
+                        } else {
+                            viewModel.saveHolding(holding) {
+                                onDismissRequest()
+                            }
                         }
                     },
                     enabled = isFormValid,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Save Holding")
+                    Text(if (holdingToEdit != null) "Save Changes" else "Save Holding")
                 }
             }
         }
