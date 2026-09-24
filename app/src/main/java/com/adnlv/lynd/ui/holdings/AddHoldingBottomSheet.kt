@@ -60,6 +60,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -84,6 +86,7 @@ fun AddHoldingBottomSheet(
     var isSheetExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
+    val focusManager = LocalFocusManager.current
 
     val prefixes by viewModel.isinPrefixes.collectAsState()
     var selectedPrefix by remember {
@@ -102,15 +105,15 @@ fun AddHoldingBottomSheet(
     }
     var matchingBonds by remember { mutableStateOf<List<String>>(emptyList()) }
     var bondSuggestionsExpanded by remember { mutableStateOf(false) }
+    var isCodeFocused by remember { mutableStateOf(false) }
 
-    LaunchedEffect(codeInput, selectedPrefix) {
-        if (codeInput.isNotEmpty() && hasUserModifiedIsin) {
+    LaunchedEffect(codeInput, selectedPrefix, isCodeFocused) {
+        if (isCodeFocused) {
             val query = "$selectedPrefix$codeInput"
             val results = viewModel.searchBonds(query)
             matchingBonds = results
             bondSuggestionsExpanded = results.isNotEmpty()
         } else {
-            matchingBonds = emptyList()
             bondSuggestionsExpanded = false
         }
     }
@@ -295,6 +298,7 @@ fun AddHoldingBottomSheet(
                         modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor(MenuAnchorType.PrimaryEditable)
+                            .onFocusChanged { isCodeFocused = it.isFocused }
                     )
 
                     ExposedDropdownMenu(
@@ -313,6 +317,7 @@ fun AddHoldingBottomSheet(
                                         codeInput = isin.takeLast(6)
                                     }
                                     bondSuggestionsExpanded = false
+                                    focusManager.clearFocus()
                                 }
                             )
                         }
