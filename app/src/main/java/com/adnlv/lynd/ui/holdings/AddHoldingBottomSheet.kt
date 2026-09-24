@@ -289,7 +289,7 @@ fun AddHoldingBottomSheet(
                             codeInput = filtered
                         },
                         label = { Text("Code") },
-                        placeholder = { Text("e.g. 238281") },
+                        placeholder = { Text("238281") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
