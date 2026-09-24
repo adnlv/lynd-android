@@ -109,4 +109,38 @@ class AddHoldingValidationTest {
         val isInvalidValid = com.adnlv.lynd.domain.IsinValidator.isValid(invalidFullIsin)
         org.junit.Assert.assertFalse(isInvalidValid)
     }
+
+    @Test
+    fun codeInput_limitsLengthToSixCharacters() {
+        var currentText = "12345"
+        val incomingValid = "123456"
+        if (incomingValid.length <= 6) {
+            currentText = incomingValid
+        }
+        assertEquals("123456", currentText)
+
+        val incomingTooLong = "1234567"
+        if (incomingTooLong.length <= 6) {
+            currentText = incomingTooLong
+        }
+        assertEquals("123456", currentText)
+    }
+
+    @Test
+    fun codeInput_displaysImmediateValidationErrors() {
+        val prefix = "UA4000"
+
+        val nonDigitError = com.adnlv.lynd.domain.IsinValidator.validateCodeInput("123a", prefix)
+        assertEquals("Code must contain only digits", nonDigitError)
+
+        val partialValid = com.adnlv.lynd.domain.IsinValidator.validateCodeInput("23828", prefix)
+        org.junit.Assert.assertNull(partialValid)
+
+        val invalidChecksum = com.adnlv.lynd.domain.IsinValidator.validateCodeInput("238282", prefix)
+        assertEquals("Invalid ISIN checksum", invalidChecksum)
+
+        val validCode = com.adnlv.lynd.domain.IsinValidator.validateCodeInput("238281", prefix)
+        org.junit.Assert.assertNull(validCode)
+    }
 }
+

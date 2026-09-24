@@ -303,9 +303,11 @@ fun AddHoldingBottomSheet(
                     OutlinedTextField(
                         value = codeInput,
                         onValueChange = { newValue ->
-                            hasUserModifiedIsin = true
-                            codeInput = newValue
-                            codeError = IsinValidator.validateCodeInput(newValue.text, selectedPrefix)
+                            if (newValue.text.length <= 6) {
+                                hasUserModifiedIsin = true
+                                codeInput = newValue
+                                codeError = IsinValidator.validateCodeInput(newValue.text, selectedPrefix)
+                            }
                         },
                         label = { Text("Code") },
                         placeholder = { Text("238281") },
