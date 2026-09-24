@@ -33,10 +33,43 @@ class HoldingsViewModel(
     private val _syncError = MutableStateFlow<String?>(null)
     val syncError: StateFlow<String?> = _syncError.asStateFlow()
 
+    private val _isinPrefixes = MutableStateFlow<List<String>>(listOf("UA4000"))
+    val isinPrefixes: StateFlow<List<String>> = _isinPrefixes.asStateFlow()
+
     private var recentlyDeletedHolding: HoldingEntity? = null
 
     init {
         checkAndSyncCatalogue()
+        loadIsinPrefixes()
+    }
+
+    private fun loadIsinPrefixes() {
+        viewModelScope.launch {
+            try {
+                val prefixes = bondDao.getDistinctIsinPrefixes()
+                if (prefixes.isNotEmpty()) {
+                    val defaultPrefix = "UA4000"
+                    val orderedPrefixes = if (prefixes.contains(defaultPrefix)) {
+                        listOf(defaultPrefix) + prefixes.filter { it != defaultPrefix }
+                    } else {
+                        prefixes
+                    }
+                    _isinPrefixes.value = orderedPrefixes
+                }
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    suspend fun searchBonds(query: String): List<String> {
+        return bondDao.searchBondsByIsin(query)
+    }
+
+    fun saveHolding(holding: HoldingEntity, onComplete: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            holdingDao.insertHolding(holding)
+            onComplete?.invoke()
+        }
     }
 
     private fun checkAndSyncCatalogue() {
