@@ -2,6 +2,7 @@ package com.adnlv.lynd.ui.holdings
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -119,7 +121,7 @@ fun AddHoldingBottomSheet(
     }
 
     var quantity by remember { mutableIntStateOf(holdingToEdit?.quantity ?: 1) }
-    val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
     val coroutineScope = rememberCoroutineScope()
 
     var pricePerBondInput by remember {
@@ -215,6 +217,9 @@ fun AddHoldingBottomSheet(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
+                    val buttonColors = ButtonDefaults.buttonColors()
+                    val buttonBorderColor = if (isFormValid) buttonColors.containerColor else buttonColors.disabledContainerColor
+
                     Button(
                         onClick = {
                             val perBond = BigDecimal(pricePerBondInput).setScale(2, RoundingMode.HALF_UP)
@@ -238,7 +243,8 @@ fun AddHoldingBottomSheet(
                                 }
                             }
                         },
-                        enabled = isFormValid
+                        enabled = isFormValid,
+                        border = BorderStroke(1.dp, buttonBorderColor)
                     ) {
                         Text("Save")
                     }
@@ -371,7 +377,7 @@ fun AddHoldingBottomSheet(
                                     pagerState.animateScrollToPage(0)
                                 }
                             },
-                            text = { Text("Price per Bond") }
+                            text = { Text("Total Paid Price") }
                         )
                         Tab(
                             selected = pagerState.currentPage == 1,
@@ -380,7 +386,7 @@ fun AddHoldingBottomSheet(
                                     pagerState.animateScrollToPage(1)
                                 }
                             },
-                            text = { Text("Total Paid Price") }
+                            text = { Text("Price per Bond") }
                         )
                     }
 
@@ -391,6 +397,24 @@ fun AddHoldingBottomSheet(
                         modifier = Modifier.fillMaxWidth()
                     ) { page ->
                         if (page == 0) {
+                            OutlinedTextField(
+                                value = totalPriceInput,
+                                onValueChange = { input ->
+                                    totalPriceInput = input
+                                    val parsed = input.toDoubleOrNull()
+                                    if (parsed != null && parsed >= 0 && quantity > 0) {
+                                        val computedPerBond = BigDecimal(parsed.toString())
+                                            .divide(BigDecimal(quantity), 2, RoundingMode.HALF_UP)
+                                        pricePerBondInput = computedPerBond.toPlainString()
+                                    }
+                                },
+                                label = { Text("Total Paid Price") },
+                                placeholder = { Text("1000.00") },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        } else {
                             OutlinedTextField(
                                 value = pricePerBondInput,
                                 onValueChange = { input ->
@@ -404,24 +428,6 @@ fun AddHoldingBottomSheet(
                                     }
                                 },
                                 label = { Text("Price per Bond") },
-                                placeholder = { Text("1000.00") },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        } else {
-                            OutlinedTextField(
-                                value = totalPriceInput,
-                                onValueChange = { input ->
-                                    totalPriceInput = input
-                                    val parsed = input.toDoubleOrNull()
-                                    if (parsed != null && parsed >= 0 && quantity > 0) {
-                                        val computedPerBond = BigDecimal(parsed.toString())
-                                            .divide(BigDecimal(quantity), 2, RoundingMode.HALF_UP)
-                                        pricePerBondInput = computedPerBond.toPlainString()
-                                    }
-                                },
-                                label = { Text("Total Paid Price") },
                                 placeholder = { Text("1000.00") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
