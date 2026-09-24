@@ -416,7 +416,7 @@ fun AddHoldingBottomSheet(
                                         pricePerBondInput = computedPerBond.toPlainString()
                                     }
                                 },
-                                label = { Text("Total Paid Price (inc. fee)") },
+                                label = { Text("Total Paid Price") },
                                 placeholder = { Text("1000.00") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
