@@ -155,5 +155,16 @@ class AddHoldingValidationTest {
         assertEquals(outline, resolveBorderColor(isFormValid = true))
         assertEquals(disabledContainer, resolveBorderColor(isFormValid = false))
     }
+
+    @Test
+    fun codeInput_displaysInvalidCodeWhenNoMatchingRecords() {
+        val prefix = "UA4000"
+        val error = com.adnlv.lynd.domain.IsinValidator.validateCodeInput(
+            code = "999",
+            prefix = prefix,
+            hasMatchingRecord = false
+        )
+        assertEquals("Invalid code", error)
+    }
 }
 

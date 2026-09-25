@@ -10,7 +10,11 @@ object IsinValidator {
         return validateLuhn(isin)
     }
 
-    fun validateCodeInput(code: String, prefix: String): String? {
+    fun validateCodeInput(
+        code: String,
+        prefix: String,
+        hasMatchingRecord: Boolean = true
+    ): String? {
         if (code.isEmpty()) return null
 
         if (!code.all { it.isDigit() }) {
@@ -19,6 +23,10 @@ object IsinValidator {
 
         if (code.length > 6) {
             return "Code must not exceed 6 digits"
+        }
+
+        if (!hasMatchingRecord) {
+            return "Invalid code"
         }
 
         if (code.length == 6) {

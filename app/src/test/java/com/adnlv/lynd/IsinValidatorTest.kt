@@ -65,4 +65,13 @@ class IsinValidatorTest {
         val error = IsinValidator.validateCodeInput("238282", "UA4000")
         assertEquals("Invalid ISIN checksum", error)
     }
+
+    @Test
+    fun validateCodeInput_returnsInvalidCodeWhenNoMatchingRecord() {
+        val error = IsinValidator.validateCodeInput("2", "UA4000", hasMatchingRecord = false)
+        assertEquals("Invalid code", error)
+
+        val validWithRecord = IsinValidator.validateCodeInput("2", "UA4000", hasMatchingRecord = true)
+        assertNull(validWithRecord)
+    }
 }
