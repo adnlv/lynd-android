@@ -5,6 +5,7 @@ import com.adnlv.lynd.data.db.BondEntity
 import com.adnlv.lynd.data.db.BondPaymentEntity
 import com.adnlv.lynd.data.db.SyncMetadataDao
 import com.adnlv.lynd.data.db.SyncMetadataEntity
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -13,19 +14,20 @@ import java.time.LocalDate
 class NbuRepository(
     private val apiService: NbuApiService,
     private val bondDao: BondDao,
-    private val syncMetadataDao: SyncMetadataDao
+    private val syncMetadataDao: SyncMetadataDao,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     companion object {
         const val SYNC_INTERVAL_MS: Long = 12 * 60 * 60 * 1000L // 12 hours
     }
 
-    suspend fun isDataStale(): Boolean = withContext(Dispatchers.IO) {
+    suspend fun isDataStale(): Boolean = withContext(ioDispatcher) {
         val lastSync = syncMetadataDao.getLastSyncTime() ?: return@withContext true
         val currentTime = System.currentTimeMillis()
         (currentTime - lastSync) >= SYNC_INTERVAL_MS
     }
 
-    suspend fun syncAllBonds(): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun syncAllBonds(): Result<Unit> = withContext(ioDispatcher) {
         try {
             val securities = apiService.getSecurities()
             val bonds = ArrayList<BondEntity>(securities.size)
@@ -79,11 +81,11 @@ class NbuRepository(
         }
     }
 
-    suspend fun getLocalBond(isin: String): BondEntity? = withContext(Dispatchers.IO) {
+    suspend fun getLocalBond(isin: String): BondEntity? = withContext(ioDispatcher) {
         bondDao.getBond(isin.trim())
     }
 
-    suspend fun searchMatchingIsins(query: String): List<String> = withContext(Dispatchers.IO) {
+    suspend fun searchMatchingIsins(query: String): List<String> = withContext(ioDispatcher) {
         if (query.isBlank()) {
             emptyList()
         } else {
@@ -91,12 +93,12 @@ class NbuRepository(
         }
     }
 
-    suspend fun getIsinPrefixes(): List<String> = withContext(Dispatchers.IO) {
+    suspend fun getIsinPrefixes(): List<String> = withContext(ioDispatcher) {
         val prefixes = bondDao.getDistinctIsinPrefixes()
         if (prefixes.isNotEmpty()) prefixes else listOf("UA4000")
     }
 
-    suspend fun getOrFetchBond(isin: String): Result<BondEntity> = withContext(Dispatchers.IO) {
+    suspend fun getOrFetchBond(isin: String): Result<BondEntity> = withContext(ioDispatcher) {
         val trimmedIsin = isin.trim()
         val cached = bondDao.getBond(trimmedIsin)
         if (cached != null) {
