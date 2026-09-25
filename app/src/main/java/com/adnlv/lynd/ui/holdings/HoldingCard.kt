@@ -66,6 +66,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingItem
 import com.adnlv.lynd.ui.components.MetricItem
+import com.adnlv.lynd.ui.holdings.components.HoldingCardActionButtons
+import com.adnlv.lynd.ui.holdings.components.HoldingCardExpandedDetails
 import com.adnlv.lynd.util.Formatters
 import com.adnlv.lynd.util.HapticFeedbackHelper
 import kotlinx.coroutines.launch
@@ -176,77 +178,30 @@ fun HoldingCard(
             .offset { IntOffset(slideAwayOffsetX.value.roundToInt(), 0) }
             .clip(shape)
     ) {
-        Row(
+        HoldingCardActionButtons(
+            deleteWidthDp = deleteWidthDp,
+            editWidthDp = editWidthDp,
+            deleteAlpha = deleteAlpha,
+            buttonSpacingDp = buttonSpacingDp,
+            buttonGapDp = buttonGapDp,
+            onDeleteClick = {
+                if (!isDeleting) {
+                    isDeleting = true
+                    coroutineScope.launch {
+                        val targetOffset = if (itemWidthPx > 0f) -itemWidthPx - with(density) { 32.dp.toPx() } else -1500f
+                        slideAwayOffsetX.animateTo(
+                            targetValue = targetOffset,
+                            animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
+                        )
+                        onDelete()
+                    }
+                }
+            },
+            onEditClick = onEdit,
             modifier = Modifier
                 .matchParentSize()
-                .padding(horizontal = buttonGapDp),
-            horizontalArrangement = Arrangement.spacedBy(buttonSpacingDp, Alignment.End),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (deleteWidthDp > 0.dp) {
-                Surface(
-                    onClick = {
-                        if (!isDeleting) {
-                            isDeleting = true
-                            coroutineScope.launch {
-                                val targetOffset = if (itemWidthPx > 0f) -itemWidthPx - with(density) { 32.dp.toPx() } else -1500f
-                                slideAwayOffsetX.animateTo(
-                                    targetValue = targetOffset,
-                                    animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
-                                )
-                                onDelete()
-                            }
-                        }
-                    },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.25f)
-                    ),
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(deleteWidthDp)
-                        .graphicsLayer { alpha = deleteAlpha }
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Holding"
-                        )
-                    }
-                }
-            }
-            if (editWidthDp > 0.dp) {
-                Surface(
-                    onClick = onEdit,
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
-                    ),
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(editWidthDp)
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Holding"
-                        )
-                    }
-                }
-            }
-        }
+                .padding(horizontal = buttonGapDp)
+        )
 
         Column(
             modifier = Modifier
@@ -410,65 +365,7 @@ fun HoldingCard(
                     )
                 )
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        MetricItem(
-                            label = "Price per bond",
-                            value = Formatters.formatAmount(holding.pricePerBond),
-                            modifier = Modifier.weight(1f)
-                        )
-                        val displayRate = if (holding.profitPercentage != BigDecimal.ZERO) {
-                            holding.profitPercentage
-                        } else {
-                            holding.couponRate
-                        }
-                        MetricItem(
-                            label = "Coupon rate",
-                            value = Formatters.formatPercentage(displayRate),
-                            valueColor = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.End
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        MetricItem(
-                            label = "Total payout",
-                            value = Formatters.formatAmount(holding.totalPayoutAmount),
-                            valueColor = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.weight(1f)
-                        )
-                        val isProfitPositive = holding.totalProfitAmount >= BigDecimal.ZERO
-                        val profitPrefix = if (isProfitPositive && holding.totalProfitAmount > BigDecimal.ZERO) "+" else ""
-                        val profitColor = if (isProfitPositive) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        }
-                        MetricItem(
-                            label = "Total profit",
-                            value = "$profitPrefix${Formatters.formatAmount(holding.totalProfitAmount)}",
-                            valueColor = profitColor,
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.End
-                        )
-                    }
-                }
+                HoldingCardExpandedDetails(holding = holding)
             }
         }
     }
