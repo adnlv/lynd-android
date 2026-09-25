@@ -125,6 +125,7 @@ fun OverviewScreen(
             OverviewTab.PLANNER -> {
                 PlannerSection(
                     uiState = uiState,
+                    onPlannerTabSelected = { viewModel.selectPlannerTab(it) },
                     onHorizonSelected = { viewModel.setPlannerHorizon(it) },
                     onCurrencySelected = { viewModel.setPlannerCurrency(it) },
                     onLoadTestPortfolio = { viewModel.loadTestPortfolio() }
