@@ -27,8 +27,20 @@ enum class OverviewTab {
     PLANNER
 }
 
+enum class PlannerTab(val title: String) {
+    INCOME_GAPS("Income Gaps")
+}
+
+private data class CombinedPlannerState(
+    val tab: OverviewTab,
+    val plannerTab: PlannerTab,
+    val horizon: Int,
+    val currency: String
+)
+
 data class OverviewUiState(
     val selectedTab: OverviewTab = OverviewTab.OVERVIEW,
+    val selectedPlannerTab: PlannerTab = PlannerTab.INCOME_GAPS,
     val summaries: List<PortfolioSummary> = emptyList(),
     val totalHoldingsCount: Int = 0,
     val holdings: List<HoldingItem> = emptyList(),
@@ -47,17 +59,18 @@ class OverviewViewModel(
 ) : ViewModel() {
 
     private val _selectedTab = MutableStateFlow(OverviewTab.OVERVIEW)
+    private val _selectedPlannerTab = MutableStateFlow(PlannerTab.INCOME_GAPS)
     private val _plannerHorizon = MutableStateFlow(12)
     private val _plannerCurrency = MutableStateFlow("UAH")
 
     val uiState: StateFlow<OverviewUiState> = combine(
-        combine(_selectedTab, _plannerHorizon, _plannerCurrency) { tab, horizon, currency ->
-            Triple(tab, horizon, currency)
+        combine(_selectedTab, _selectedPlannerTab, _plannerHorizon, _plannerCurrency) { tab, plannerTab, horizon, currency ->
+            CombinedPlannerState(tab, plannerTab, horizon, currency)
         },
         holdingDao.getAllHoldings(),
         holdingDao.getPaymentsForHoldings(),
         payoutDao.getAllPayoutRows()
-    ) { (selectedTab, plannerHorizon, plannerCurrency), holdingsList, paymentsList, payoutRows ->
+    ) { plannerState, holdingsList, paymentsList, payoutRows ->
         val domainHoldings = PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
         val summaries = PortfolioCalculator.calculateSummaries(domainHoldings)
         val cashFlows = PortfolioCalculator.calculateMonthlyCashFlows(payoutRows)
@@ -65,20 +78,21 @@ class OverviewViewModel(
         val allocations = PortfolioCalculator.calculateCurrencyAllocations(summaries)
         val incomeGaps = IncomeGapDetector.detectGaps(
             payoutRows = payoutRows,
-            currency = plannerCurrency,
-            monthCount = plannerHorizon
+            currency = plannerState.currency,
+            monthCount = plannerState.horizon
         )
 
         OverviewUiState(
-            selectedTab = selectedTab,
+            selectedTab = plannerState.tab,
+            selectedPlannerTab = plannerState.plannerTab,
             summaries = summaries,
             totalHoldingsCount = domainHoldings.size,
             holdings = domainHoldings,
             cashFlowsByCurrency = cashFlows,
             yearlyMaturitiesByCurrency = maturities,
             currencyAllocations = allocations,
-            plannerHorizonMonths = plannerHorizon,
-            plannerSelectedCurrency = plannerCurrency,
+            plannerHorizonMonths = plannerState.horizon,
+            plannerSelectedCurrency = plannerState.currency,
             incomeGaps = incomeGaps
         )
     }.stateIn(
@@ -89,6 +103,10 @@ class OverviewViewModel(
 
     fun selectTab(tab: OverviewTab) {
         _selectedTab.value = tab
+    }
+
+    fun selectPlannerTab(tab: PlannerTab) {
+        _selectedPlannerTab.value = tab
     }
 
     fun setPlannerHorizon(months: Int) {

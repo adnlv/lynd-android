@@ -5,6 +5,7 @@ import com.adnlv.lynd.data.db.HoldingWithBond
 import com.adnlv.lynd.data.db.PayoutRow
 import com.adnlv.lynd.ui.overview.OverviewTab
 import com.adnlv.lynd.ui.overview.OverviewViewModel
+import com.adnlv.lynd.ui.overview.PlannerTab
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -111,6 +112,23 @@ class OverviewViewModelTest {
 
         viewModel.selectTab(OverviewTab.OVERVIEW)
         assertEquals(OverviewTab.OVERVIEW, viewModel.uiState.value.selectedTab)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun selectPlannerTab_updatesSelectedPlannerTabInUiState() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao()
+        val payoutDao = FakePayoutDao()
+
+        val viewModel = OverviewViewModel(holdingDao, bondDao, payoutDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals(PlannerTab.INCOME_GAPS, viewModel.uiState.value.selectedPlannerTab)
+
+        viewModel.selectPlannerTab(PlannerTab.INCOME_GAPS)
+        assertEquals(PlannerTab.INCOME_GAPS, viewModel.uiState.value.selectedPlannerTab)
 
         collectJob.cancel()
     }
