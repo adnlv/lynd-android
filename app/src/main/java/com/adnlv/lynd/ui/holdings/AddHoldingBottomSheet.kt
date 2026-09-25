@@ -277,97 +277,113 @@ fun AddHoldingBottomSheet(
                     }
                 }
 
-                ExposedDropdownMenuBox(
-                    expanded = prefixDropdownExpanded,
-                    onExpandedChange = { prefixDropdownExpanded = it },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = selectedPrefix,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("ISIN Prefix") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = prefixDropdownExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = prefixDropdownExpanded,
-                        onDismissRequest = { prefixDropdownExpanded = false }
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.Top
                     ) {
-                        prefixes.forEach { prefix ->
-                            DropdownMenuItem(
-                                text = { Text(prefix) },
-                                onClick = {
-                                    if (selectedPrefix != prefix) {
-                                        hasUserModifiedIsin = true
-                                    }
-                                    selectedPrefix = prefix
-                                    prefixDropdownExpanded = false
-                                }
+                        ExposedDropdownMenuBox(
+                            expanded = prefixDropdownExpanded,
+                            onExpandedChange = { prefixDropdownExpanded = it },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            OutlinedTextField(
+                                value = selectedPrefix,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("ISIN Prefix") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = prefixDropdownExpanded) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                             )
+
+                            ExposedDropdownMenu(
+                                expanded = prefixDropdownExpanded,
+                                onDismissRequest = { prefixDropdownExpanded = false }
+                            ) {
+                                prefixes.forEach { prefix ->
+                                    DropdownMenuItem(
+                                        text = { Text(prefix) },
+                                        onClick = {
+                                            if (selectedPrefix != prefix) {
+                                                hasUserModifiedIsin = true
+                                            }
+                                            selectedPrefix = prefix
+                                            prefixDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        ExposedDropdownMenuBox(
+                            expanded = bondSuggestionsExpanded && matchingBonds.isNotEmpty(),
+                            onExpandedChange = { expanded ->
+                                bondSuggestionsExpanded = expanded && matchingBonds.isNotEmpty()
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            OutlinedTextField(
+                                value = codeInput,
+                                onValueChange = { newValue ->
+                                    if (newValue.text.length <= 6) {
+                                        hasUserModifiedIsin = true
+                                        codeInput = newValue
+                                    }
+                                },
+                                label = { Text("Code") },
+                                placeholder = { Text("238281") },
+                                singleLine = true,
+                                isError = codeError != null,
+                                supportingText = {
+                                    Text(
+                                        text = "${codeInput.text.length}/6",
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.End,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(MenuAnchorType.PrimaryEditable)
+                                    .onFocusChanged { isCodeFocused = it.isFocused }
+                            )
+
+                            ExposedDropdownMenu(
+                                expanded = bondSuggestionsExpanded && matchingBonds.isNotEmpty(),
+                                onDismissRequest = { bondSuggestionsExpanded = false }
+                            ) {
+                                matchingBonds.forEach { isin ->
+                                    DropdownMenuItem(
+                                        text = { Text(isin) },
+                                        onClick = {
+                                            hasUserModifiedIsin = true
+                                            val code = if (isin.startsWith(selectedPrefix)) {
+                                                isin.removePrefix(selectedPrefix)
+                                            } else {
+                                                isin.takeLast(6)
+                                            }
+                                            codeInput = TextFieldValue(text = code, selection = TextRange(code.length))
+                                            codeError = IsinValidator.validateCodeInput(code, selectedPrefix)
+                                            bondSuggestionsExpanded = false
+                                            focusManager.clearFocus()
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
-                }
 
-                ExposedDropdownMenuBox(
-                    expanded = bondSuggestionsExpanded && matchingBonds.isNotEmpty(),
-                    onExpandedChange = { expanded ->
-                        bondSuggestionsExpanded = expanded && matchingBonds.isNotEmpty()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = codeInput,
-                        onValueChange = { newValue ->
-                            if (newValue.text.length <= 6) {
-                                hasUserModifiedIsin = true
-                                codeInput = newValue
-                            }
-                        },
-                        label = { Text("Code") },
-                        placeholder = { Text("238281") },
-                        singleLine = true,
-                        isError = codeError != null,
-                        supportingText = {
-                            Text(
-                                text = "${codeInput.text.length}/6",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.End,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryEditable)
-                            .onFocusChanged { isCodeFocused = it.isFocused }
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = bondSuggestionsExpanded && matchingBonds.isNotEmpty(),
-                        onDismissRequest = { bondSuggestionsExpanded = false },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        matchingBonds.forEach { isin ->
-                            DropdownMenuItem(
-                                text = { Text(isin) },
-                                onClick = {
-                                    hasUserModifiedIsin = true
-                                    val code = if (isin.startsWith(selectedPrefix)) {
-                                        isin.removePrefix(selectedPrefix)
-                                    } else {
-                                        isin.takeLast(6)
-                                    }
-                                    codeInput = TextFieldValue(text = code, selection = TextRange(code.length))
-                                    codeError = IsinValidator.validateCodeInput(code, selectedPrefix)
-                                    bondSuggestionsExpanded = false
-                                    focusManager.clearFocus()
-                                }
-                            )
-                        }
+                    if (codeError != null) {
+                        Text(
+                            text = codeError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        )
                     }
                 }
 
