@@ -87,7 +87,12 @@ fun PlannerSection(
                     )
                 }
                 PlannerTab.PURCHASING_POWER -> {
-                    // Implemented in subsequent step
+                    PurchasingPowerGroup(
+                        uiState = uiState,
+                        onHorizonSelected = onCompoundingHorizonSelected,
+                        onCurrencySelected = onCurrencySelected,
+                        onRateSelected = onCompoundingRateSelected
+                    )
                 }
             }
         }
