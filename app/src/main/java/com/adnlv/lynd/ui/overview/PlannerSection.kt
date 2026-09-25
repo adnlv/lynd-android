@@ -85,6 +85,9 @@ fun PlannerSection(
                         onRateSelected = onCompoundingRateSelected
                     )
                 }
+                PlannerTab.PURCHASING_POWER -> {
+                    // Implemented in subsequent step
+                }
             }
         }
     }

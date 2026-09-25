@@ -273,5 +273,48 @@ class OverviewViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun purchasingPowerForecast_updatesWithHorizonAndCurrency() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao()
+        val payoutDao = FakePayoutDao()
+
+        val today = LocalDate.now()
+        val payoutRow = PayoutRow(
+            isin = "UA4000187348",
+            bondName = "Bond 1",
+            payDate = today.plusMonths(1),
+            payType = "coupon",
+            payVal = BigDecimal("100.00"),
+            quantity = 12,
+            currency = "UAH",
+            purchaseDate = today.minusMonths(1)
+        )
+        payoutDao.rowsFlow.value = listOf(payoutRow)
+
+        val viewModel = OverviewViewModel(holdingDao, bondDao, payoutDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        val initialState = viewModel.uiState.value
+        org.junit.Assert.assertNotNull(initialState.purchasingPowerForecast)
+        assertEquals("UAH", initialState.purchasingPowerForecast?.currency)
+        assertEquals(5, initialState.purchasingPowerForecast?.horizonYears)
+        assertEquals(5, initialState.purchasingPowerForecast?.points?.size)
+
+        viewModel.selectPlannerTab(PlannerTab.PURCHASING_POWER)
+        assertEquals(PlannerTab.PURCHASING_POWER, viewModel.uiState.value.selectedPlannerTab)
+
+        viewModel.setCompoundingHorizon(3)
+        val state3Y = viewModel.uiState.value
+        assertEquals(3, state3Y.purchasingPowerForecast?.horizonYears)
+        assertEquals(3, state3Y.purchasingPowerForecast?.points?.size)
+
+        viewModel.setPlannerCurrency("USD")
+        val stateUsd = viewModel.uiState.value
+        assertEquals("USD", stateUsd.purchasingPowerForecast?.currency)
+
+        collectJob.cancel()
+    }
 }
 

@@ -34,7 +34,8 @@ enum class OverviewTab {
 enum class PlannerTab(val title: String) {
     INCOME_GAPS("Income Gaps"),
     LADDER_MATCHER("Ladder Matcher"),
-    COMPOUNDING("Compounding")
+    COMPOUNDING("Compounding"),
+    PURCHASING_POWER("Purchasing Power")
 }
 
 private data class CombinedPlannerState(
@@ -61,7 +62,8 @@ data class OverviewUiState(
     val ladderMatches: List<com.adnlv.lynd.domain.GapMatches> = emptyList(),
     val compoundingHorizonYears: Int = 5,
     val compoundingCustomRate: BigDecimal? = null,
-    val compoundingSimulation: CompoundingSimulationResult? = null
+    val compoundingSimulation: CompoundingSimulationResult? = null,
+    val purchasingPowerForecast: com.adnlv.lynd.domain.PurchasingPowerForecastResult? = null
 )
 
 class OverviewViewModel(
@@ -135,6 +137,16 @@ class OverviewViewModel(
             horizonYears = plannerState.compoundingHorizonYears
         )
 
+        val inflationRates = com.adnlv.lynd.domain.NbuInflationData.getRatesForCurrency(
+            currency = selectedCurrency,
+            horizonYears = plannerState.compoundingHorizonYears
+        )
+
+        val purchasingPowerForecast = com.adnlv.lynd.domain.PurchasingPowerForecaster.forecast(
+            compoundingResult = compoundingSimulation,
+            inflationRates = inflationRates
+        )
+
         OverviewUiState(
             selectedTab = plannerState.tab,
             selectedPlannerTab = plannerState.plannerTab,
@@ -150,7 +162,8 @@ class OverviewViewModel(
             ladderMatches = ladderMatches,
             compoundingHorizonYears = plannerState.compoundingHorizonYears,
             compoundingCustomRate = plannerState.compoundingCustomRate,
-            compoundingSimulation = compoundingSimulation
+            compoundingSimulation = compoundingSimulation,
+            purchasingPowerForecast = purchasingPowerForecast
         )
     }.stateIn(
         scope = viewModelScope,
