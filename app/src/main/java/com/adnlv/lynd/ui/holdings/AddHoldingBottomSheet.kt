@@ -117,12 +117,13 @@ fun AddHoldingBottomSheet(
     var isCodeFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(codeInput.text, selectedPrefix, isCodeFocused) {
-        if (isCodeFocused && codeInput.text.isNotEmpty()) {
+        if (isCodeFocused || codeInput.text.isNotEmpty()) {
             val query = "$selectedPrefix${codeInput.text}"
             val results = viewModel.searchBonds(query)
             matchingBonds = results
-            bondSuggestionsExpanded = results.isNotEmpty()
+            bondSuggestionsExpanded = isCodeFocused && results.isNotEmpty()
         } else {
+            matchingBonds = emptyList()
             bondSuggestionsExpanded = false
         }
     }
