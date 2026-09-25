@@ -28,7 +28,8 @@ enum class OverviewTab {
 }
 
 enum class PlannerTab(val title: String) {
-    INCOME_GAPS("Income Gaps")
+    INCOME_GAPS("Income Gaps"),
+    LADDER_MATCHER("Ladder Matcher")
 }
 
 private data class CombinedPlannerState(
@@ -49,7 +50,8 @@ data class OverviewUiState(
     val currencyAllocations: List<CurrencyAllocation> = emptyList(),
     val plannerHorizonMonths: Int = 12,
     val plannerSelectedCurrency: String = "UAH",
-    val incomeGaps: List<IncomeGap> = emptyList()
+    val incomeGaps: List<IncomeGap> = emptyList(),
+    val ladderMatches: List<com.adnlv.lynd.domain.GapMatches> = emptyList()
 )
 
 class OverviewViewModel(
@@ -69,8 +71,11 @@ class OverviewViewModel(
         },
         holdingDao.getAllHoldings(),
         holdingDao.getPaymentsForHoldings(),
-        payoutDao.getAllPayoutRows()
-    ) { plannerState, holdingsList, paymentsList, payoutRows ->
+        payoutDao.getAllPayoutRows(),
+        combine(bondDao.getAllBonds(), bondDao.getAllPayments()) { bonds, payments ->
+            bonds to payments
+        }
+    ) { plannerState, holdingsList, paymentsList, payoutRows, catalogData ->
         val domainHoldings = PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
         val summaries = PortfolioCalculator.calculateSummaries(domainHoldings)
         val cashFlows = PortfolioCalculator.calculateMonthlyCashFlows(payoutRows)
@@ -80,6 +85,11 @@ class OverviewViewModel(
             payoutRows = payoutRows,
             currency = plannerState.currency,
             monthCount = plannerState.horizon
+        )
+        val ladderMatches = com.adnlv.lynd.domain.SmartLadderMatcher.matchGaps(
+            gaps = incomeGaps,
+            bonds = catalogData.first,
+            payments = catalogData.second
         )
 
         OverviewUiState(
@@ -93,7 +103,8 @@ class OverviewViewModel(
             currencyAllocations = allocations,
             plannerHorizonMonths = plannerState.horizon,
             plannerSelectedCurrency = plannerState.currency,
-            incomeGaps = incomeGaps
+            incomeGaps = incomeGaps,
+            ladderMatches = ladderMatches
         )
     }.stateIn(
         scope = viewModelScope,

@@ -66,6 +66,13 @@ fun PlannerSection(
                         onCurrencySelected = onCurrencySelected
                     )
                 }
+                PlannerTab.LADDER_MATCHER -> {
+                    LadderMatcherGroup(
+                        uiState = uiState,
+                        onHorizonSelected = onHorizonSelected,
+                        onCurrencySelected = onCurrencySelected
+                    )
+                }
             }
         }
     }

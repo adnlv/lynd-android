@@ -127,8 +127,52 @@ class OverviewViewModelTest {
 
         assertEquals(PlannerTab.INCOME_GAPS, viewModel.uiState.value.selectedPlannerTab)
 
+        viewModel.selectPlannerTab(PlannerTab.LADDER_MATCHER)
+        assertEquals(PlannerTab.LADDER_MATCHER, viewModel.uiState.value.selectedPlannerTab)
+
         viewModel.selectPlannerTab(PlannerTab.INCOME_GAPS)
         assertEquals(PlannerTab.INCOME_GAPS, viewModel.uiState.value.selectedPlannerTab)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun uiState_computesLadderMatchesWhenBondsArePresent() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao()
+        val payoutDao = FakePayoutDao()
+
+        val today = LocalDate.now()
+        val bond = com.adnlv.lynd.data.db.BondEntity(
+            isin = "UA4000187348",
+            name = "Gov Bond Match",
+            currency = "UAH",
+            nominalValue = BigDecimal("1000.00"),
+            couponRate = BigDecimal("15.00"),
+            maturityDate = today.plusMonths(3)
+        )
+        val payment = BondPaymentEntity(
+            bondIsin = "UA4000187348",
+            payDate = today.plusMonths(2),
+            payType = "coupon",
+            payVal = BigDecimal("75.00")
+        )
+        bondDao.allBondsFlow.value = listOf(bond)
+        bondDao.allPaymentsFlow.value = listOf(payment)
+
+        val viewModel = OverviewViewModel(holdingDao, bondDao, payoutDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        val state = viewModel.uiState.value
+        assertEquals(12, state.incomeGaps.size)
+        assertEquals(12, state.ladderMatches.size)
+
+        val matchForMonth2 = state.ladderMatches.firstOrNull {
+            java.time.YearMonth.from(it.gap.yearMonth) == java.time.YearMonth.from(today.plusMonths(2))
+        }
+        org.junit.Assert.assertNotNull(matchForMonth2)
+        assertEquals(1, matchForMonth2?.recommendedBonds?.size)
+        assertEquals("UA4000187348", matchForMonth2?.recommendedBonds?.first()?.bond?.isin)
 
         collectJob.cancel()
     }
