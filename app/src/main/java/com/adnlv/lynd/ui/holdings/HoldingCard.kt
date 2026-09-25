@@ -65,6 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingItem
+import com.adnlv.lynd.ui.components.MetricItem
 import com.adnlv.lynd.util.Formatters
 import com.adnlv.lynd.util.HapticFeedbackHelper
 import kotlinx.coroutines.launch
@@ -153,7 +154,7 @@ fun HoldingCard(
             val delAlpha = (1f - deepProgress).coerceIn(0f, 1f)
             val totalRevealedWidthDp = with(density) {
                 (dragDistance - with(density) { (buttonGapDp * 2).toPx() }).toDp()
-            }.coerceAtLeast(baseButtonWidthWidthDp(baseButtonWidthDp))
+            }.coerceAtLeast(baseButtonWidthDp)
             val spacingDp = if (delWidth > 0.dp) buttonGapDp else 0.dp
             val edWidth = (totalRevealedWidthDp - delWidth - spacingDp).coerceAtLeast(baseButtonWidthDp)
             Triple(delWidth, edWidth, delAlpha)
@@ -423,7 +424,7 @@ fun HoldingCard(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        HoldingMetricItem(
+                        MetricItem(
                             label = "Price per bond",
                             value = Formatters.formatAmount(holding.pricePerBond),
                             modifier = Modifier.weight(1f)
@@ -433,7 +434,7 @@ fun HoldingCard(
                         } else {
                             holding.couponRate
                         }
-                        HoldingMetricItem(
+                        MetricItem(
                             label = "Coupon rate",
                             value = Formatters.formatPercentage(displayRate),
                             valueColor = MaterialTheme.colorScheme.secondary,
@@ -446,7 +447,7 @@ fun HoldingCard(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        HoldingMetricItem(
+                        MetricItem(
                             label = "Total payout",
                             value = Formatters.formatAmount(holding.totalPayoutAmount),
                             valueColor = MaterialTheme.colorScheme.primary,
@@ -459,7 +460,7 @@ fun HoldingCard(
                         } else {
                             MaterialTheme.colorScheme.error
                         }
-                        HoldingMetricItem(
+                        MetricItem(
                             label = "Total profit",
                             value = "$profitPrefix${Formatters.formatAmount(holding.totalProfitAmount)}",
                             valueColor = profitColor,
@@ -470,34 +471,5 @@ fun HoldingCard(
                 }
             }
         }
-    }
-}
-
-private fun baseButtonWidthWidthDp(dp: androidx.compose.ui.unit.Dp) = dp
-
-@Composable
-private fun HoldingMetricItem(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface,
-    horizontalAlignment: Alignment.Horizontal = Alignment.Start
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = horizontalAlignment
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = valueColor
-        )
     }
 }
