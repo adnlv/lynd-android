@@ -23,8 +23,8 @@ The application helps individual investors monitor their bond portfolio and fore
 
 - **Language**: [Kotlin](https://kotlinlang.org/)
 - **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose) with Material 3
-- **Local Database**: [Room](https://developer.android.com/training/data-storage/room)
-- **Networking**: [Retrofit](https://github.com/square/retrofit) with [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
+- **Local Database**: [Room](https://developer.android.com/training/data-storage/room) with KSP
+- **Networking**: [Retrofit](https://github.com/square/retrofit) and [OkHttp](https://square.github.io/okhttp/) with [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 - **Asynchronous Work**: Kotlin Coroutines and StateFlow
 
 ## Architecture
@@ -32,14 +32,15 @@ The application helps individual investors monitor their bond portfolio and fore
 The project follows the official Android architecture guidelines:
 - MVVM (Model-View-ViewModel) pattern
 - Unidirectional Data Flow (UDF)
-- Repository pattern for data operations
+- Repository pattern for data access
+- Manual dependency injection with an application container
 
 ## Prerequisites
 
 To build and run the project, ensure you have:
 - Android Studio Ladybug (2024.2) or newer
 - JDK 17 or Android Studio JetBrains Runtime (JBR)
-- Android SDK with API 35+ installed (compileSdk 37, minSdk 24)
+- Android SDK Platform 37 (`compileSdk 37`, `targetSdk 37`, `minSdk 24`)
 
 ## Building and Testing
 
@@ -54,10 +55,18 @@ To build and run the project, ensure you have:
    ```bash
    ./gradlew testDebugUnitTest
    ```
+   On Windows PowerShell:
+   ```powershell
+   .\gradlew.bat testDebugUnitTest
+   ```
 
 4. Assemble the debug APK:
    ```bash
    ./gradlew assembleDebug
+   ```
+   On Windows PowerShell:
+   ```powershell
+   .\gradlew.bat assembleDebug
    ```
 
 ## Data Source
