@@ -37,7 +37,7 @@ fun HoldingCardActionButtons(
         modifier = modifier
             .fillMaxHeight()
             .padding(vertical = buttonGapDp),
-        horizontalArrangement = Arrangement.spacedBy(buttonSpacingDp),
+        horizontalArrangement = Arrangement.spacedBy(buttonSpacingDp, Alignment.End),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (deleteWidthDp > 0.dp) {
