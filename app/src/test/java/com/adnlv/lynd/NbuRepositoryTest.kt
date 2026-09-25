@@ -67,6 +67,13 @@ class FakeBondDao : BondDao {
     override suspend fun getDistinctIsinPrefixes(): List<String> {
         return prefixesToReturn
     }
+
+    val allBondsFlow = kotlinx.coroutines.flow.MutableStateFlow<List<BondEntity>>(emptyList())
+    val allPaymentsFlow = kotlinx.coroutines.flow.MutableStateFlow<List<BondPaymentEntity>>(emptyList())
+
+    override fun getAllBonds(): kotlinx.coroutines.flow.Flow<List<BondEntity>> = allBondsFlow
+
+    override fun getAllPayments(): kotlinx.coroutines.flow.Flow<List<BondPaymentEntity>> = allPaymentsFlow
 }
 
 class FakeSyncMetadataDao : SyncMetadataDao {
