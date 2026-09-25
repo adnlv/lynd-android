@@ -130,6 +130,7 @@ fun AddHoldingBottomSheet(
         } else {
             matchingBonds = emptyList()
             bondSuggestionsExpanded = false
+            codeError = null
         }
     }
 
@@ -303,7 +304,6 @@ fun AddHoldingBottomSheet(
                                         hasUserModifiedIsin = true
                                     }
                                     selectedPrefix = prefix
-                                    codeError = IsinValidator.validateCodeInput(codeInput.text, prefix)
                                     prefixDropdownExpanded = false
                                 }
                             )
@@ -324,7 +324,6 @@ fun AddHoldingBottomSheet(
                             if (newValue.text.length <= 6) {
                                 hasUserModifiedIsin = true
                                 codeInput = newValue
-                                codeError = IsinValidator.validateCodeInput(newValue.text, selectedPrefix)
                             }
                         },
                         label = { Text("Code") },
