@@ -300,8 +300,10 @@ fun AddHoldingBottomSheet(
                 }
 
                 ExposedDropdownMenuBox(
-                    expanded = bondSuggestionsExpanded,
-                    onExpandedChange = { bondSuggestionsExpanded = it },
+                    expanded = bondSuggestionsExpanded && matchingBonds.isNotEmpty(),
+                    onExpandedChange = { expanded ->
+                        bondSuggestionsExpanded = expanded && matchingBonds.isNotEmpty()
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     OutlinedTextField(
@@ -326,7 +328,7 @@ fun AddHoldingBottomSheet(
                     )
 
                     ExposedDropdownMenu(
-                        expanded = bondSuggestionsExpanded,
+                        expanded = bondSuggestionsExpanded && matchingBonds.isNotEmpty(),
                         onDismissRequest = { bondSuggestionsExpanded = false },
                         modifier = Modifier.fillMaxWidth()
                     ) {
