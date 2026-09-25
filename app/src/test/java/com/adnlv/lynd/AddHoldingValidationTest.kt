@@ -9,16 +9,6 @@ import java.math.RoundingMode
 class AddHoldingValidationTest {
 
     @Test
-    fun quantityCounter_enforcesMinimumValueOfOne() {
-        val initialQuantity = 1
-        val decremented = if (initialQuantity > 1) initialQuantity - 1 else initialQuantity
-        assertEquals(1, decremented)
-
-        val increased = initialQuantity + 1
-        assertEquals(2, increased)
-    }
-
-    @Test
     fun totalPrice_computesPricePerBondCorrectly() {
         val totalPrice = BigDecimal("2050.00")
         val quantity = 2
@@ -111,22 +101,6 @@ class AddHoldingValidationTest {
     }
 
     @Test
-    fun codeInput_limitsLengthToSixCharacters() {
-        var currentText = "12345"
-        val incomingValid = "123456"
-        if (incomingValid.length <= 6) {
-            currentText = incomingValid
-        }
-        assertEquals("123456", currentText)
-
-        val incomingTooLong = "1234567"
-        if (incomingTooLong.length <= 6) {
-            currentText = incomingTooLong
-        }
-        assertEquals("123456", currentText)
-    }
-
-    @Test
     fun codeInput_displaysImmediateValidationErrors() {
         val prefix = "UA4000"
 
@@ -144,19 +118,6 @@ class AddHoldingValidationTest {
     }
 
     @Test
-    fun saveButtonBorderColor_usesDarkerPrimaryWhenFormIsValid() {
-        val darkerPrimary = "darkerPrimary"
-        val disabledContainer = "disabledContainer"
-
-        fun resolveBorderColor(isFormValid: Boolean): String {
-            return if (isFormValid) darkerPrimary else disabledContainer
-        }
-
-        assertEquals(darkerPrimary, resolveBorderColor(isFormValid = true))
-        assertEquals(disabledContainer, resolveBorderColor(isFormValid = false))
-    }
-
-    @Test
     fun codeInput_displaysInvalidCodeWhenNoMatchingRecords() {
         val prefix = "UA4000"
         val error = com.adnlv.lynd.domain.IsinValidator.validateCodeInput(
@@ -165,15 +126,6 @@ class AddHoldingValidationTest {
             hasMatchingRecord = false
         )
         assertEquals("Invalid code", error)
-    }
-
-    @Test
-    fun codeInput_formatsCharacterCounterCorrectly() {
-        fun formatCounter(code: String): String = "${code.length}/6"
-
-        assertEquals("0/6", formatCounter(""))
-        assertEquals("3/6", formatCounter("238"))
-        assertEquals("6/6", formatCounter("238281"))
     }
 }
 
