@@ -13,13 +13,20 @@ import com.adnlv.lynd.domain.MonthlyCashFlow
 import com.adnlv.lynd.domain.PortfolioCalculator
 import com.adnlv.lynd.domain.PortfolioSummary
 import com.adnlv.lynd.domain.YearlyMaturity
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+enum class OverviewTab {
+    OVERVIEW,
+    PLANNER
+}
+
 data class OverviewUiState(
+    val selectedTab: OverviewTab = OverviewTab.OVERVIEW,
     val summaries: List<PortfolioSummary> = emptyList(),
     val totalHoldingsCount: Int = 0,
     val holdings: List<HoldingItem> = emptyList(),
@@ -34,11 +41,14 @@ class OverviewViewModel(
     private val payoutDao: PayoutDao
 ) : ViewModel() {
 
+    private val _selectedTab = MutableStateFlow(OverviewTab.OVERVIEW)
+
     val uiState: StateFlow<OverviewUiState> = combine(
+        _selectedTab,
         holdingDao.getAllHoldings(),
         holdingDao.getPaymentsForHoldings(),
         payoutDao.getAllPayoutRows()
-    ) { holdingsList, paymentsList, payoutRows ->
+    ) { selectedTab, holdingsList, paymentsList, payoutRows ->
         val domainHoldings = PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
         val summaries = PortfolioCalculator.calculateSummaries(domainHoldings)
         val cashFlows = PortfolioCalculator.calculateMonthlyCashFlows(payoutRows)
@@ -46,6 +56,7 @@ class OverviewViewModel(
         val allocations = PortfolioCalculator.calculateCurrencyAllocations(summaries)
 
         OverviewUiState(
+            selectedTab = selectedTab,
             summaries = summaries,
             totalHoldingsCount = domainHoldings.size,
             holdings = domainHoldings,
@@ -58,6 +69,10 @@ class OverviewViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = OverviewUiState()
     )
+
+    fun selectTab(tab: OverviewTab) {
+        _selectedTab.value = tab
+    }
 
     fun loadTestPortfolio() {
         viewModelScope.launch {
