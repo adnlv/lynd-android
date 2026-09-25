@@ -233,8 +233,14 @@ fun AddHoldingBottomSheet(
                         fontWeight = FontWeight.Bold
                     )
                     val buttonColors = ButtonDefaults.buttonColors()
+                    val primaryColor = MaterialTheme.colorScheme.primary
+                    val activeBorderColor = primaryColor.copy(
+                        red = primaryColor.red * 0.8f,
+                        green = primaryColor.green * 0.8f,
+                        blue = primaryColor.blue * 0.8f
+                    )
                     val buttonBorderColor = if (isFormValid) {
-                        MaterialTheme.colorScheme.outline
+                        activeBorderColor
                     } else {
                         buttonColors.disabledContainerColor
                     }

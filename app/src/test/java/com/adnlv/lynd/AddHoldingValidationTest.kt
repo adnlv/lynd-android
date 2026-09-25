@@ -144,15 +144,15 @@ class AddHoldingValidationTest {
     }
 
     @Test
-    fun saveButtonBorderColor_usesOutlineWhenFormIsValid() {
-        val outline = "outline"
+    fun saveButtonBorderColor_usesDarkerPrimaryWhenFormIsValid() {
+        val darkerPrimary = "darkerPrimary"
         val disabledContainer = "disabledContainer"
 
         fun resolveBorderColor(isFormValid: Boolean): String {
-            return if (isFormValid) outline else disabledContainer
+            return if (isFormValid) darkerPrimary else disabledContainer
         }
 
-        assertEquals(outline, resolveBorderColor(isFormValid = true))
+        assertEquals(darkerPrimary, resolveBorderColor(isFormValid = true))
         assertEquals(disabledContainer, resolveBorderColor(isFormValid = false))
     }
 
