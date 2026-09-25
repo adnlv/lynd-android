@@ -68,6 +68,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.data.db.HoldingEntity
 import com.adnlv.lynd.domain.IsinValidator
@@ -330,7 +331,14 @@ fun AddHoldingBottomSheet(
                         placeholder = { Text("238281") },
                         singleLine = true,
                         isError = codeError != null,
-                        supportingText = codeError?.let { { Text(it) } },
+                        supportingText = {
+                            Text(
+                                text = "${codeInput.text.length}/6",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.End,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .fillMaxWidth()

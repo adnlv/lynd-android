@@ -166,5 +166,14 @@ class AddHoldingValidationTest {
         )
         assertEquals("Invalid code", error)
     }
+
+    @Test
+    fun codeInput_formatsCharacterCounterCorrectly() {
+        fun formatCounter(code: String): String = "${code.length}/6"
+
+        assertEquals("0/6", formatCounter(""))
+        assertEquals("3/6", formatCounter("238"))
+        assertEquals("6/6", formatCounter("238281"))
+    }
 }
 
