@@ -44,6 +44,7 @@ class HoldingGroupTest {
             .map { (isin, items) ->
                 HoldingGroup(
                     isin = isin,
+                    currency = items.firstOrNull()?.currency ?: "",
                     totalQuantity = items.sumOf { it.quantity },
                     items = items
                 )
@@ -51,10 +52,12 @@ class HoldingGroupTest {
 
         assertEquals(2, groups.size)
         val group1 = groups.first { it.isin == "UA4000238281" }
+        assertEquals("UAH", group1.currency)
         assertEquals(5, group1.totalQuantity)
         assertEquals(2, group1.items.size)
 
         val group2 = groups.first { it.isin == "UA4000187348" }
+        assertEquals("UAH", group2.currency)
         assertEquals(1, group2.totalQuantity)
         assertEquals(1, group2.items.size)
     }

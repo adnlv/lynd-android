@@ -91,6 +91,11 @@ class NbuRepository(
         }
     }
 
+    suspend fun getIsinPrefixes(): List<String> = withContext(Dispatchers.IO) {
+        val prefixes = bondDao.getDistinctIsinPrefixes()
+        if (prefixes.isNotEmpty()) prefixes else listOf("UA4000")
+    }
+
     suspend fun getOrFetchBond(isin: String): Result<BondEntity> = withContext(Dispatchers.IO) {
         val trimmedIsin = isin.trim()
         val cached = bondDao.getBond(trimmedIsin)

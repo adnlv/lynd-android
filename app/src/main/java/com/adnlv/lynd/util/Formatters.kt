@@ -29,6 +29,6 @@ object Formatters {
     }
 
     fun formatDate(date: LocalDate, locale: Locale = Locale.getDefault()): String {
-        return date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", locale))
+        return date.format(DateTimeFormatter.ofPattern("d MMM yyyy", locale))
     }
 }
