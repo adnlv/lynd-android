@@ -7,7 +7,7 @@ The application helps individual investors monitor their bond portfolio and fore
 
 ## Screenshots
 
-![Lynd Screenshots](docs/screenshots.jpg)
+![Lynd Screenshots](docs/screenshots.webp)
 
 ## Features
 
