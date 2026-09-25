@@ -130,6 +130,7 @@ fun OverviewScreen(
                     onCurrencySelected = { viewModel.setPlannerCurrency(it) },
                     onCompoundingHorizonSelected = { viewModel.setCompoundingHorizon(it) },
                     onCompoundingRateSelected = { viewModel.setCompoundingRate(it) },
+                    onThresholdSelected = { viewModel.setLargeRedemptionThreshold(it) },
                     onLoadTestPortfolio = { viewModel.loadTestPortfolio() }
                 )
             }

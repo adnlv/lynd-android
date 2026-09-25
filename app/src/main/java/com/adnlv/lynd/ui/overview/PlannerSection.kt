@@ -25,6 +25,7 @@ fun PlannerSection(
     onCurrencySelected: (String) -> Unit,
     onCompoundingHorizonSelected: (Int) -> Unit,
     onCompoundingRateSelected: (BigDecimal) -> Unit,
+    onThresholdSelected: (BigDecimal) -> Unit = {},
     onLoadTestPortfolio: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -92,6 +93,13 @@ fun PlannerSection(
                         onHorizonSelected = onCompoundingHorizonSelected,
                         onCurrencySelected = onCurrencySelected,
                         onRateSelected = onCompoundingRateSelected
+                    )
+                }
+                PlannerTab.MATURITY_REBALANCING -> {
+                    MaturityRebalancingGroup(
+                        uiState = uiState,
+                        onCurrencySelected = onCurrencySelected,
+                        onThresholdSelected = onThresholdSelected
                     )
                 }
             }

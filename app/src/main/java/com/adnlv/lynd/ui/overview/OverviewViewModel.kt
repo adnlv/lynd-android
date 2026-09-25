@@ -24,6 +24,9 @@ import kotlinx.coroutines.launch
 
 import com.adnlv.lynd.domain.CompoundingSimulationResult
 import com.adnlv.lynd.domain.CompoundingSimulator
+import com.adnlv.lynd.domain.MaturityAlert
+import com.adnlv.lynd.domain.MaturityAlertEngine
+import com.adnlv.lynd.domain.RebalancingSummary
 import java.math.BigDecimal
 
 enum class OverviewTab {
@@ -35,7 +38,8 @@ enum class PlannerTab(val title: String) {
     INCOME_GAPS("Income Gaps"),
     LADDER_MATCHER("Ladder Matcher"),
     COMPOUNDING("Compounding"),
-    PURCHASING_POWER("Purchasing Power")
+    PURCHASING_POWER("Purchasing Power"),
+    MATURITY_REBALANCING("Maturity Alerts")
 }
 
 private data class CombinedPlannerState(
@@ -44,7 +48,8 @@ private data class CombinedPlannerState(
     val horizon: Int,
     val currency: String,
     val compoundingHorizonYears: Int,
-    val compoundingCustomRate: BigDecimal?
+    val compoundingCustomRate: BigDecimal?,
+    val largeRedemptionThreshold: BigDecimal
 )
 
 data class OverviewUiState(
@@ -63,7 +68,10 @@ data class OverviewUiState(
     val compoundingHorizonYears: Int = 5,
     val compoundingCustomRate: BigDecimal? = null,
     val compoundingSimulation: CompoundingSimulationResult? = null,
-    val purchasingPowerForecast: com.adnlv.lynd.domain.PurchasingPowerForecastResult? = null
+    val purchasingPowerForecast: com.adnlv.lynd.domain.PurchasingPowerForecastResult? = null,
+    val maturityAlerts: List<MaturityAlert> = emptyList(),
+    val rebalancingSummary: RebalancingSummary? = null,
+    val largeRedemptionThreshold: BigDecimal = BigDecimal("10000")
 )
 
 class OverviewViewModel(
@@ -78,14 +86,16 @@ class OverviewViewModel(
     private val _plannerCurrency = MutableStateFlow("UAH")
     private val _compoundingHorizonYears = MutableStateFlow(5)
     private val _compoundingCustomRate = MutableStateFlow<BigDecimal?>(null)
+    private val _largeRedemptionThreshold = MutableStateFlow(BigDecimal("10000"))
 
     val uiState: StateFlow<OverviewUiState> = combine(
         combine(
             combine(_selectedTab, _selectedPlannerTab) { tab, pTab -> tab to pTab },
             combine(_plannerHorizon, _plannerCurrency) { h, c -> h to c },
-            combine(_compoundingHorizonYears, _compoundingCustomRate) { ch, cr -> ch to cr }
-        ) { (tab, pTab), (horizon, currency), (compHorizon, compRate) ->
-            CombinedPlannerState(tab, pTab, horizon, currency, compHorizon, compRate)
+            combine(_compoundingHorizonYears, _compoundingCustomRate) { ch, cr -> ch to cr },
+            _largeRedemptionThreshold
+        ) { (tab, pTab), (horizon, currency), (compHorizon, compRate), threshold ->
+            CombinedPlannerState(tab, pTab, horizon, currency, compHorizon, compRate, threshold)
         },
         holdingDao.getAllHoldings(),
         holdingDao.getPaymentsForHoldings(),
@@ -147,6 +157,18 @@ class OverviewViewModel(
             inflationRates = inflationRates
         )
 
+        val maturityAlerts = MaturityAlertEngine.evaluateAlerts(
+            payoutRows = payoutRows,
+            currency = selectedCurrency,
+            threshold = plannerState.largeRedemptionThreshold,
+            catalogBonds = catalogData.first
+        )
+
+        val rebalancingSummary = MaturityAlertEngine.buildSummary(
+            alerts = maturityAlerts,
+            currency = selectedCurrency
+        )
+
         OverviewUiState(
             selectedTab = plannerState.tab,
             selectedPlannerTab = plannerState.plannerTab,
@@ -163,7 +185,10 @@ class OverviewViewModel(
             compoundingHorizonYears = plannerState.compoundingHorizonYears,
             compoundingCustomRate = plannerState.compoundingCustomRate,
             compoundingSimulation = compoundingSimulation,
-            purchasingPowerForecast = purchasingPowerForecast
+            purchasingPowerForecast = purchasingPowerForecast,
+            maturityAlerts = maturityAlerts,
+            rebalancingSummary = rebalancingSummary,
+            largeRedemptionThreshold = plannerState.largeRedemptionThreshold
         )
     }.stateIn(
         scope = viewModelScope,
@@ -186,6 +211,10 @@ class OverviewViewModel(
     fun setPlannerCurrency(currency: String) {
         _plannerCurrency.value = currency
         _compoundingCustomRate.value = null
+        _largeRedemptionThreshold.value = when (currency.uppercase()) {
+            "USD", "EUR" -> BigDecimal("1000")
+            else -> BigDecimal("10000")
+        }
     }
 
     fun setCompoundingHorizon(years: Int) {
@@ -194,6 +223,14 @@ class OverviewViewModel(
 
     fun setCompoundingRate(rate: BigDecimal) {
         _compoundingCustomRate.value = rate
+    }
+
+    fun setLargeRedemptionThreshold(amount: BigDecimal) {
+        _largeRedemptionThreshold.value = amount
+    }
+
+    fun triggerDailyMaturityCheck() {
+        // Can be used to trigger one-off background or manual refresh check
     }
 
     fun loadTestPortfolio() {

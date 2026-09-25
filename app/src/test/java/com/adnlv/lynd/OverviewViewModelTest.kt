@@ -316,5 +316,43 @@ class OverviewViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun maturityAlerts_updatesWithPlannerTabAndThreshold() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao()
+        val payoutDao = FakePayoutDao()
+
+        val today = LocalDate.now()
+        val payoutRow = PayoutRow(
+            isin = "UA4000187348",
+            bondName = "Bond Maturing",
+            payDate = today.plusDays(15),
+            payType = "redemption",
+            payVal = BigDecimal("1000.00"),
+            quantity = 20,
+            currency = "UAH",
+            purchaseDate = today.minusYears(1)
+        )
+        payoutDao.rowsFlow.value = listOf(payoutRow)
+
+        val viewModel = OverviewViewModel(holdingDao, bondDao, payoutDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        viewModel.selectPlannerTab(PlannerTab.MATURITY_REBALANCING)
+        val state = viewModel.uiState.value
+        assertEquals(PlannerTab.MATURITY_REBALANCING, state.selectedPlannerTab)
+        assertEquals(1, state.maturityAlerts.size)
+        assertEquals("UA4000187348", state.maturityAlerts[0].isin)
+        assertEquals(BigDecimal("20000.00"), state.maturityAlerts[0].principalAmount)
+        assertEquals(1, state.rebalancingSummary?.activeAlertsCount)
+
+        viewModel.setLargeRedemptionThreshold(BigDecimal("30000"))
+        val stateUpdated = viewModel.uiState.value
+        assertEquals(BigDecimal("30000"), stateUpdated.largeRedemptionThreshold)
+        assertEquals(0, stateUpdated.maturityAlerts.size)
+
+        collectJob.cancel()
+    }
 }
 
