@@ -123,8 +123,11 @@ fun OverviewScreen(
                 }
             }
             OverviewTab.PLANNER -> {
-                Box(
-                    modifier = Modifier.fillMaxSize()
+                PlannerSection(
+                    uiState = uiState,
+                    onHorizonSelected = { viewModel.setPlannerHorizon(it) },
+                    onCurrencySelected = { viewModel.setPlannerCurrency(it) },
+                    onLoadTestPortfolio = { viewModel.loadTestPortfolio() }
                 )
             }
         }
