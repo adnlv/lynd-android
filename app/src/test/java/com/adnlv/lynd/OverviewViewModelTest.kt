@@ -114,4 +114,57 @@ class OverviewViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun setPlannerHorizon_updatesHorizonAndRecalculatesGaps() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao()
+        val payoutDao = FakePayoutDao()
+
+        val viewModel = OverviewViewModel(holdingDao, bondDao, payoutDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals(12, viewModel.uiState.value.plannerHorizonMonths)
+        assertEquals(12, viewModel.uiState.value.incomeGaps.size)
+
+        viewModel.setPlannerHorizon(24)
+        assertEquals(24, viewModel.uiState.value.plannerHorizonMonths)
+        assertEquals(24, viewModel.uiState.value.incomeGaps.size)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun setPlannerCurrency_updatesCurrencyAndFiltersGaps() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao()
+        val payoutDao = FakePayoutDao()
+
+        val today = LocalDate.now()
+        val payoutRow = PayoutRow(
+            isin = "US1234567890",
+            bondName = "USD Bond",
+            payDate = today.plusMonths(1),
+            payType = "coupon",
+            payVal = BigDecimal("10.00"),
+            quantity = 1,
+            currency = "USD",
+            purchaseDate = today.minusMonths(1)
+        )
+        payoutDao.rowsFlow.value = listOf(payoutRow)
+
+        val viewModel = OverviewViewModel(holdingDao, bondDao, payoutDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals("UAH", viewModel.uiState.value.plannerSelectedCurrency)
+        // With only USD payout, UAH has 12 dry months
+        assertEquals(12, viewModel.uiState.value.incomeGaps.size)
+
+        viewModel.setPlannerCurrency("USD")
+        assertEquals("USD", viewModel.uiState.value.plannerSelectedCurrency)
+        // USD has 1 payout month, so 11 dry months
+        assertEquals(11, viewModel.uiState.value.incomeGaps.size)
+
+        collectJob.cancel()
+    }
 }

@@ -13,6 +13,8 @@ import com.adnlv.lynd.domain.MonthlyCashFlow
 import com.adnlv.lynd.domain.PortfolioCalculator
 import com.adnlv.lynd.domain.PortfolioSummary
 import com.adnlv.lynd.domain.YearlyMaturity
+import com.adnlv.lynd.domain.IncomeGap
+import com.adnlv.lynd.domain.IncomeGapDetector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +34,10 @@ data class OverviewUiState(
     val holdings: List<HoldingItem> = emptyList(),
     val cashFlowsByCurrency: Map<String, List<MonthlyCashFlow>> = emptyMap(),
     val yearlyMaturitiesByCurrency: Map<String, List<YearlyMaturity>> = emptyMap(),
-    val currencyAllocations: List<CurrencyAllocation> = emptyList()
+    val currencyAllocations: List<CurrencyAllocation> = emptyList(),
+    val plannerHorizonMonths: Int = 12,
+    val plannerSelectedCurrency: String = "UAH",
+    val incomeGaps: List<IncomeGap> = emptyList()
 )
 
 class OverviewViewModel(
@@ -42,18 +47,27 @@ class OverviewViewModel(
 ) : ViewModel() {
 
     private val _selectedTab = MutableStateFlow(OverviewTab.OVERVIEW)
+    private val _plannerHorizon = MutableStateFlow(12)
+    private val _plannerCurrency = MutableStateFlow("UAH")
 
     val uiState: StateFlow<OverviewUiState> = combine(
-        _selectedTab,
+        combine(_selectedTab, _plannerHorizon, _plannerCurrency) { tab, horizon, currency ->
+            Triple(tab, horizon, currency)
+        },
         holdingDao.getAllHoldings(),
         holdingDao.getPaymentsForHoldings(),
         payoutDao.getAllPayoutRows()
-    ) { selectedTab, holdingsList, paymentsList, payoutRows ->
+    ) { (selectedTab, plannerHorizon, plannerCurrency), holdingsList, paymentsList, payoutRows ->
         val domainHoldings = PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
         val summaries = PortfolioCalculator.calculateSummaries(domainHoldings)
         val cashFlows = PortfolioCalculator.calculateMonthlyCashFlows(payoutRows)
         val maturities = PortfolioCalculator.calculateYearlyMaturitySchedule(payoutRows)
         val allocations = PortfolioCalculator.calculateCurrencyAllocations(summaries)
+        val incomeGaps = IncomeGapDetector.detectGaps(
+            payoutRows = payoutRows,
+            currency = plannerCurrency,
+            monthCount = plannerHorizon
+        )
 
         OverviewUiState(
             selectedTab = selectedTab,
@@ -62,7 +76,10 @@ class OverviewViewModel(
             holdings = domainHoldings,
             cashFlowsByCurrency = cashFlows,
             yearlyMaturitiesByCurrency = maturities,
-            currencyAllocations = allocations
+            currencyAllocations = allocations,
+            plannerHorizonMonths = plannerHorizon,
+            plannerSelectedCurrency = plannerCurrency,
+            incomeGaps = incomeGaps
         )
     }.stateIn(
         scope = viewModelScope,
@@ -72,6 +89,14 @@ class OverviewViewModel(
 
     fun selectTab(tab: OverviewTab) {
         _selectedTab.value = tab
+    }
+
+    fun setPlannerHorizon(months: Int) {
+        _plannerHorizon.value = months
+    }
+
+    fun setPlannerCurrency(currency: String) {
+        _plannerCurrency.value = currency
     }
 
     fun loadTestPortfolio() {
