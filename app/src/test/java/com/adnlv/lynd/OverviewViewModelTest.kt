@@ -229,4 +229,49 @@ class OverviewViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun compoundingSimulation_updatesWithHorizonAndRate() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao()
+        val payoutDao = FakePayoutDao()
+
+        val today = LocalDate.now()
+        val payoutRow = PayoutRow(
+            isin = "UA4000187348",
+            bondName = "Bond 1",
+            payDate = today.plusMonths(1),
+            payType = "coupon",
+            payVal = BigDecimal("100.00"),
+            quantity = 12,
+            currency = "UAH",
+            purchaseDate = today.minusMonths(1)
+        )
+        payoutDao.rowsFlow.value = listOf(payoutRow)
+
+        val viewModel = OverviewViewModel(holdingDao, bondDao, payoutDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        val initialState = viewModel.uiState.value
+        assertEquals(5, initialState.compoundingHorizonYears)
+        org.junit.Assert.assertNotNull(initialState.compoundingSimulation)
+        assertEquals(BigDecimal("15.0"), initialState.compoundingSimulation?.annualRatePercent)
+        assertEquals(5, initialState.compoundingSimulation?.points?.size)
+
+        viewModel.setCompoundingHorizon(10)
+        val state10Y = viewModel.uiState.value
+        assertEquals(10, state10Y.compoundingHorizonYears)
+        assertEquals(10, state10Y.compoundingSimulation?.points?.size)
+
+        viewModel.setCompoundingRate(BigDecimal("18.0"))
+        val stateRate = viewModel.uiState.value
+        assertEquals(BigDecimal("18.0"), stateRate.compoundingCustomRate)
+        assertEquals(BigDecimal("18.0"), stateRate.compoundingSimulation?.annualRatePercent)
+
+        viewModel.selectPlannerTab(PlannerTab.COMPOUNDING)
+        assertEquals(PlannerTab.COMPOUNDING, viewModel.uiState.value.selectedPlannerTab)
+
+        collectJob.cancel()
+    }
 }
+

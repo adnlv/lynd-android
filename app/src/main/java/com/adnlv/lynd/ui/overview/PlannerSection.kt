@@ -73,6 +73,9 @@ fun PlannerSection(
                         onCurrencySelected = onCurrencySelected
                     )
                 }
+                PlannerTab.COMPOUNDING -> {
+                    // CompoundingGroup will be plugged in here
+                }
             }
         }
     }

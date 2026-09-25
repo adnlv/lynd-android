@@ -22,6 +22,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+import com.adnlv.lynd.domain.CompoundingSimulationResult
+import com.adnlv.lynd.domain.CompoundingSimulator
+import java.math.BigDecimal
+
 enum class OverviewTab {
     OVERVIEW,
     PLANNER
@@ -29,14 +33,17 @@ enum class OverviewTab {
 
 enum class PlannerTab(val title: String) {
     INCOME_GAPS("Income Gaps"),
-    LADDER_MATCHER("Ladder Matcher")
+    LADDER_MATCHER("Ladder Matcher"),
+    COMPOUNDING("Compounding")
 }
 
 private data class CombinedPlannerState(
     val tab: OverviewTab,
     val plannerTab: PlannerTab,
     val horizon: Int,
-    val currency: String
+    val currency: String,
+    val compoundingHorizonYears: Int,
+    val compoundingCustomRate: BigDecimal?
 )
 
 data class OverviewUiState(
@@ -51,7 +58,10 @@ data class OverviewUiState(
     val plannerHorizonMonths: Int = 12,
     val plannerSelectedCurrency: String = "UAH",
     val incomeGaps: List<IncomeGap> = emptyList(),
-    val ladderMatches: List<com.adnlv.lynd.domain.GapMatches> = emptyList()
+    val ladderMatches: List<com.adnlv.lynd.domain.GapMatches> = emptyList(),
+    val compoundingHorizonYears: Int = 5,
+    val compoundingCustomRate: BigDecimal? = null,
+    val compoundingSimulation: CompoundingSimulationResult? = null
 )
 
 class OverviewViewModel(
@@ -64,10 +74,16 @@ class OverviewViewModel(
     private val _selectedPlannerTab = MutableStateFlow(PlannerTab.INCOME_GAPS)
     private val _plannerHorizon = MutableStateFlow(12)
     private val _plannerCurrency = MutableStateFlow("UAH")
+    private val _compoundingHorizonYears = MutableStateFlow(5)
+    private val _compoundingCustomRate = MutableStateFlow<BigDecimal?>(null)
 
     val uiState: StateFlow<OverviewUiState> = combine(
-        combine(_selectedTab, _selectedPlannerTab, _plannerHorizon, _plannerCurrency) { tab, plannerTab, horizon, currency ->
-            CombinedPlannerState(tab, plannerTab, horizon, currency)
+        combine(
+            combine(_selectedTab, _selectedPlannerTab) { tab, pTab -> tab to pTab },
+            combine(_plannerHorizon, _plannerCurrency) { h, c -> h to c },
+            combine(_compoundingHorizonYears, _compoundingCustomRate) { ch, cr -> ch to cr }
+        ) { (tab, pTab), (horizon, currency), (compHorizon, compRate) ->
+            CombinedPlannerState(tab, pTab, horizon, currency, compHorizon, compRate)
         },
         holdingDao.getAllHoldings(),
         holdingDao.getPaymentsForHoldings(),
@@ -92,6 +108,33 @@ class OverviewViewModel(
             payments = catalogData.second
         )
 
+        val selectedCurrency = plannerState.currency
+        val currencyCashFlows = cashFlows[selectedCurrency].orEmpty()
+        val currencySummary = summaries.firstOrNull { it.currency.equals(selectedCurrency, ignoreCase = true) }
+        val investedCapital = currencySummary?.investedCapital ?: BigDecimal.ZERO
+        val avgInterestRate = currencySummary?.averageInterestRate ?: BigDecimal.ZERO
+
+        val smoothedMonthlyIncome = CompoundingSimulator.calculateSmoothedMonthlyIncome(
+            currencyCashFlows = currencyCashFlows,
+            investedCapital = investedCapital,
+            averageRate = avgInterestRate
+        )
+
+        val defaultRate = when (selectedCurrency.uppercase()) {
+            "USD" -> BigDecimal("4.0")
+            "EUR" -> BigDecimal("3.2")
+            else -> BigDecimal("15.0")
+        }
+        val annualRate = plannerState.compoundingCustomRate ?: defaultRate
+
+        val compoundingSimulation = CompoundingSimulator.simulate(
+            currency = selectedCurrency,
+            investedCapital = investedCapital,
+            monthlyIncome = smoothedMonthlyIncome,
+            annualRatePercent = annualRate,
+            horizonYears = plannerState.compoundingHorizonYears
+        )
+
         OverviewUiState(
             selectedTab = plannerState.tab,
             selectedPlannerTab = plannerState.plannerTab,
@@ -104,7 +147,10 @@ class OverviewViewModel(
             plannerHorizonMonths = plannerState.horizon,
             plannerSelectedCurrency = plannerState.currency,
             incomeGaps = incomeGaps,
-            ladderMatches = ladderMatches
+            ladderMatches = ladderMatches,
+            compoundingHorizonYears = plannerState.compoundingHorizonYears,
+            compoundingCustomRate = plannerState.compoundingCustomRate,
+            compoundingSimulation = compoundingSimulation
         )
     }.stateIn(
         scope = viewModelScope,
@@ -126,6 +172,15 @@ class OverviewViewModel(
 
     fun setPlannerCurrency(currency: String) {
         _plannerCurrency.value = currency
+        _compoundingCustomRate.value = null
+    }
+
+    fun setCompoundingHorizon(years: Int) {
+        _compoundingHorizonYears.value = years
+    }
+
+    fun setCompoundingRate(rate: BigDecimal) {
+        _compoundingCustomRate.value = rate
     }
 
     fun loadTestPortfolio() {
