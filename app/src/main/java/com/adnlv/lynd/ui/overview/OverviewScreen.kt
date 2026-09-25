@@ -128,6 +128,8 @@ fun OverviewScreen(
                     onPlannerTabSelected = { viewModel.selectPlannerTab(it) },
                     onHorizonSelected = { viewModel.setPlannerHorizon(it) },
                     onCurrencySelected = { viewModel.setPlannerCurrency(it) },
+                    onCompoundingHorizonSelected = { viewModel.setCompoundingHorizon(it) },
+                    onCompoundingRateSelected = { viewModel.setCompoundingRate(it) },
                     onLoadTestPortfolio = { viewModel.loadTestPortfolio() }
                 )
             }

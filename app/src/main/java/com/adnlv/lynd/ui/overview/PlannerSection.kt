@@ -15,12 +15,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+import java.math.BigDecimal
+
 @Composable
 fun PlannerSection(
     uiState: OverviewUiState,
     onPlannerTabSelected: (PlannerTab) -> Unit,
     onHorizonSelected: (Int) -> Unit,
     onCurrencySelected: (String) -> Unit,
+    onCompoundingHorizonSelected: (Int) -> Unit,
+    onCompoundingRateSelected: (BigDecimal) -> Unit,
     onLoadTestPortfolio: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -74,7 +78,12 @@ fun PlannerSection(
                     )
                 }
                 PlannerTab.COMPOUNDING -> {
-                    // CompoundingGroup will be plugged in here
+                    CompoundingGroup(
+                        uiState = uiState,
+                        onHorizonSelected = onCompoundingHorizonSelected,
+                        onCurrencySelected = onCurrencySelected,
+                        onRateSelected = onCompoundingRateSelected
+                    )
                 }
             }
         }

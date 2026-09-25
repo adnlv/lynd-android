@@ -98,7 +98,7 @@ fun CompoundingMetricCard(
 
                 MetricItem(
                     label = "Growth Advantage",
-                    value = "+${Formatters.formatPercent(simulation.percentageGain)}",
+                    value = "+${Formatters.formatPercentage(simulation.percentageGain)}",
                     valueColor = MaterialTheme.colorScheme.primary
                 )
             }
