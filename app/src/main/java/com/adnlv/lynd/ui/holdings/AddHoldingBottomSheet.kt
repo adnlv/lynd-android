@@ -2,55 +2,27 @@ package com.adnlv.lynd.ui.holdings
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,26 +36,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.data.db.HoldingEntity
+import com.adnlv.lynd.domain.HoldingItem
 import com.adnlv.lynd.domain.IsinValidator
+import com.adnlv.lynd.ui.holdings.components.AddHoldingHeader
+import com.adnlv.lynd.ui.holdings.components.IsinSelectionSection
+import com.adnlv.lynd.ui.holdings.components.PriceInputPager
+import com.adnlv.lynd.ui.holdings.components.PurchaseDatePickerField
+import com.adnlv.lynd.ui.holdings.components.QuantitySelector
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-
-import com.adnlv.lynd.domain.HoldingItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +62,6 @@ fun AddHoldingBottomSheet(
     var isSheetExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
-    val focusManager = LocalFocusManager.current
 
     val prefixes by viewModel.isinPrefixes.collectAsState()
     var selectedPrefix by remember {
@@ -107,8 +73,6 @@ fun AddHoldingBottomSheet(
         }
     }
 
-    var hasUserModifiedIsin by remember { mutableStateOf(false) }
-    var prefixDropdownExpanded by remember { mutableStateOf(false) }
     val initialCode = holdingToEdit?.isin?.drop(6) ?: ""
     var codeInput by remember {
         mutableStateOf(TextFieldValue(text = initialCode, selection = TextRange(initialCode.length)))
@@ -117,7 +81,6 @@ fun AddHoldingBottomSheet(
         mutableStateOf(IsinValidator.validateCodeInput(initialCode, selectedPrefix))
     }
     var matchingBonds by remember { mutableStateOf<List<String>>(emptyList()) }
-    var bondSuggestionsExpanded by remember { mutableStateOf(false) }
     var isCodeFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(codeInput.text, selectedPrefix, isCodeFocused) {
@@ -125,7 +88,6 @@ fun AddHoldingBottomSheet(
             val query = "$selectedPrefix${codeInput.text}"
             val results = viewModel.searchBonds(query)
             matchingBonds = results
-            bondSuggestionsExpanded = isCodeFocused && results.isNotEmpty()
             codeError = IsinValidator.validateCodeInput(
                 code = codeInput.text,
                 prefix = selectedPrefix,
@@ -133,7 +95,6 @@ fun AddHoldingBottomSheet(
             )
         } else {
             matchingBonds = emptyList()
-            bondSuggestionsExpanded = false
             codeError = null
         }
     }
@@ -151,7 +112,6 @@ fun AddHoldingBottomSheet(
     var purchaseDate by remember {
         mutableStateOf(holdingToEdit?.purchaseDate ?: LocalDate.now())
     }
-    var showDatePicker by remember { mutableStateOf(false) }
 
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     val animatedSheetRadius by animateDpAsState(
@@ -225,340 +185,87 @@ fun AddHoldingBottomSheet(
                     (totalPriceInput.toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } ?: false) &&
                     (pricePerBondInput.toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } ?: false)
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (holdingToEdit != null) "Edit Holding" else "Add Holding",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    val buttonColors = ButtonDefaults.buttonColors()
-                    val primaryColor = MaterialTheme.colorScheme.primary
-                    val activeBorderColor = primaryColor.copy(
-                        red = primaryColor.red * 0.8f,
-                        green = primaryColor.green * 0.8f,
-                        blue = primaryColor.blue * 0.8f
-                    )
-                    val buttonBorderColor = if (isFormValid) {
-                        activeBorderColor
-                    } else {
-                        buttonColors.disabledContainerColor
-                    }
+                AddHoldingHeader(
+                    isEditing = holdingToEdit != null,
+                    isFormValid = isFormValid,
+                    onSaveClick = {
+                        val perBond = pricePerBondInput.toBigDecimalOrNull()?.setScale(2, RoundingMode.HALF_UP) ?: return@AddHoldingHeader
+                        val totalPaid = totalPriceInput.toBigDecimalOrNull()?.setScale(2, RoundingMode.HALF_UP) ?: return@AddHoldingHeader
 
-                    Button(
-                        onClick = {
-                            val perBond = pricePerBondInput.toBigDecimalOrNull()?.setScale(2, RoundingMode.HALF_UP) ?: return@Button
-                            val totalPaid = totalPriceInput.toBigDecimalOrNull()?.setScale(2, RoundingMode.HALF_UP) ?: return@Button
-
-                            val holding = HoldingEntity(
-                                id = holdingToEdit?.id ?: 0,
-                                isin = fullIsin,
-                                quantity = quantity,
-                                pricePerBond = perBond,
-                                totalPaidAmount = totalPaid,
-                                purchaseDate = purchaseDate
-                            )
-                            if (holdingToEdit != null) {
-                                viewModel.updateHolding(holding) {
-                                    onDismissRequest()
-                                }
-                            } else {
-                                viewModel.saveHolding(holding) {
-                                    onDismissRequest()
-                                }
-                            }
-                        },
-                        enabled = isFormValid,
-                        border = BorderStroke(1.dp, buttonBorderColor)
-                    ) {
-                        Text("Save")
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        ExposedDropdownMenuBox(
-                            expanded = prefixDropdownExpanded,
-                            onExpandedChange = { prefixDropdownExpanded = it },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            OutlinedTextField(
-                                value = selectedPrefix,
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("ISIN Prefix") },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = prefixDropdownExpanded) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                            )
-
-                            ExposedDropdownMenu(
-                                expanded = prefixDropdownExpanded,
-                                onDismissRequest = { prefixDropdownExpanded = false }
-                            ) {
-                                prefixes.forEach { prefix ->
-                                    DropdownMenuItem(
-                                        text = { Text(prefix) },
-                                        onClick = {
-                                            if (selectedPrefix != prefix) {
-                                                hasUserModifiedIsin = true
-                                            }
-                                            selectedPrefix = prefix
-                                            prefixDropdownExpanded = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                        ExposedDropdownMenuBox(
-                            expanded = bondSuggestionsExpanded && matchingBonds.isNotEmpty(),
-                            onExpandedChange = { expanded ->
-                                bondSuggestionsExpanded = expanded && matchingBonds.isNotEmpty()
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            OutlinedTextField(
-                                value = codeInput,
-                                onValueChange = { newValue ->
-                                    if (newValue.text.length <= 6) {
-                                        hasUserModifiedIsin = true
-                                        codeInput = newValue
-                                    }
-                                },
-                                label = { Text("Code") },
-                                placeholder = { Text("238281") },
-                                singleLine = true,
-                                isError = codeError != null,
-                                supportingText = {
-                                    Text(
-                                        text = "${codeInput.text.length}/6",
-                                        modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.End,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(MenuAnchorType.PrimaryEditable)
-                                    .onFocusChanged { isCodeFocused = it.isFocused }
-                            )
-
-                            ExposedDropdownMenu(
-                                expanded = bondSuggestionsExpanded && matchingBonds.isNotEmpty(),
-                                onDismissRequest = { bondSuggestionsExpanded = false }
-                            ) {
-                                matchingBonds.forEach { isin ->
-                                    DropdownMenuItem(
-                                        text = { Text(isin) },
-                                        onClick = {
-                                            hasUserModifiedIsin = true
-                                            val code = if (isin.startsWith(selectedPrefix)) {
-                                                isin.removePrefix(selectedPrefix)
-                                            } else {
-                                                isin.takeLast(6)
-                                            }
-                                            codeInput = TextFieldValue(text = code, selection = TextRange(code.length))
-                                            codeError = IsinValidator.validateCodeInput(code, selectedPrefix)
-                                            bondSuggestionsExpanded = false
-                                            focusManager.clearFocus()
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    if (codeError != null) {
-                        Text(
-                            text = codeError!!,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        val holding = HoldingEntity(
+                            id = holdingToEdit?.id ?: 0,
+                            isin = fullIsin,
+                            quantity = quantity,
+                            pricePerBond = perBond,
+                            totalPaidAmount = totalPaid,
+                            purchaseDate = purchaseDate
                         )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Quantity",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(
-                            onClick = { if (quantity > 1) quantity-- },
-                            enabled = quantity > 1
-                        ) {
-                            Icon(imageVector = Icons.Default.Remove, contentDescription = "Decrease quantity")
-                        }
-
-                        Text(
-                            text = quantity.toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        )
-
-                        IconButton(
-                            onClick = { quantity++ }
-                        ) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "Increase quantity")
-                        }
-                    }
-                }
-
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        contentPadding = PaddingValues(horizontal = 24.dp),
-                        pageSpacing = 12.dp,
-                        modifier = Modifier.fillMaxWidth()
-                    ) { page ->
-                        if (page == 0) {
-                            OutlinedTextField(
-                                value = totalPriceInput,
-                                onValueChange = { input ->
-                                    totalPriceInput = input
-                                    val parsed = input.toBigDecimalOrNull()
-                                    if (parsed != null && parsed >= BigDecimal.ZERO && quantity > 0) {
-                                        val computedPerBond = parsed
-                                            .divide(BigDecimal(quantity), 2, RoundingMode.HALF_UP)
-                                        pricePerBondInput = computedPerBond.toPlainString()
-                                    }
-                                },
-                                label = { Text("Total Paid Price") },
-                                placeholder = { Text("1000.00") },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                        if (holdingToEdit != null) {
+                            viewModel.updateHolding(holding) {
+                                onDismissRequest()
+                            }
                         } else {
-                            OutlinedTextField(
-                                value = pricePerBondInput,
-                                onValueChange = { input ->
-                                    pricePerBondInput = input
-                                    val parsed = input.toBigDecimalOrNull()
-                                    if (parsed != null && parsed >= BigDecimal.ZERO) {
-                                        val computedTotal = parsed
-                                            .multiply(BigDecimal(quantity))
-                                            .setScale(2, RoundingMode.HALF_UP)
-                                        totalPriceInput = computedTotal.toPlainString()
-                                    }
-                                },
-                                label = { Text("Price per Bond") },
-                                placeholder = { Text("1000.00") },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            viewModel.saveHolding(holding) {
+                                onDismissRequest()
+                            }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        repeat(2) { index ->
-                            val isSelected = pagerState.currentPage == index
-                            Box(
-                                modifier = Modifier
-                                    .size(if (isSelected) 8.dp else 6.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (isSelected) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                                        }
-                                    )
-                            )
-                        }
-                    }
-                }
-
-                OutlinedTextField(
-                    value = purchaseDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Purchase Date") },
-                    trailingIcon = {
-                        IconButton(onClick = { showDatePicker = true }) {
-                            Icon(imageVector = Icons.Default.DateRange, contentDescription = "Select purchase date")
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { showDatePicker = true }
                 )
 
-                if (showDatePicker) {
-                    val datePickerState = rememberDatePickerState(
-                        initialSelectedDateMillis = purchaseDate
-                            .atStartOfDay(ZoneId.of("UTC"))
-                            .toInstant()
-                            .toEpochMilli()
-                    )
-
-                    DatePickerDialog(
-                        onDismissRequest = { showDatePicker = false },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    datePickerState.selectedDateMillis?.let { millis ->
-                                        purchaseDate = Instant.ofEpochMilli(millis)
-                                            .atZone(ZoneId.of("UTC"))
-                                            .toLocalDate()
-                                    }
-                                    showDatePicker = false
-                                }
-                            ) {
-                                Text("OK")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showDatePicker = false }) {
-                                Text("Cancel")
-                            }
+                IsinSelectionSection(
+                    selectedPrefix = selectedPrefix,
+                    prefixes = prefixes,
+                    onPrefixSelected = { selectedPrefix = it },
+                    codeInput = codeInput,
+                    onCodeInputChange = { codeInput = it },
+                    matchingBonds = matchingBonds,
+                    onBondSelected = { isin ->
+                        val code = if (isin.startsWith(selectedPrefix)) {
+                            isin.removePrefix(selectedPrefix)
+                        } else {
+                            isin.takeLast(6)
                         }
-                    ) {
-                        DatePicker(state = datePickerState)
+                        codeInput = TextFieldValue(text = code, selection = TextRange(code.length))
+                        codeError = IsinValidator.validateCodeInput(code, selectedPrefix)
+                    },
+                    codeError = codeError,
+                    onFocusChanged = { isCodeFocused = it }
+                )
+
+                QuantitySelector(
+                    quantity = quantity,
+                    onQuantityChange = { quantity = it }
+                )
+
+                PriceInputPager(
+                    pagerState = pagerState,
+                    totalPriceInput = totalPriceInput,
+                    onTotalPriceChange = { input ->
+                        totalPriceInput = input
+                        val parsed = input.toBigDecimalOrNull()
+                        if (parsed != null && parsed >= BigDecimal.ZERO && quantity > 0) {
+                            val computedPerBond = parsed
+                                .divide(BigDecimal(quantity), 2, RoundingMode.HALF_UP)
+                            pricePerBondInput = computedPerBond.toPlainString()
+                        }
+                    },
+                    pricePerBondInput = pricePerBondInput,
+                    onPricePerBondChange = { input ->
+                        pricePerBondInput = input
+                        val parsed = input.toBigDecimalOrNull()
+                        if (parsed != null && parsed >= BigDecimal.ZERO) {
+                            val computedTotal = parsed
+                                .multiply(BigDecimal(quantity))
+                                .setScale(2, RoundingMode.HALF_UP)
+                            totalPriceInput = computedTotal.toPlainString()
+                        }
                     }
-                }
+                )
 
-
+                PurchaseDatePickerField(
+                    purchaseDate = purchaseDate,
+                    onDateChange = { purchaseDate = it }
+                )
             }
         }
     }
