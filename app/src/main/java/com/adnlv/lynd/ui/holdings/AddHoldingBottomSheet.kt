@@ -122,6 +122,11 @@ fun AddHoldingBottomSheet(
             val results = viewModel.searchBonds(query)
             matchingBonds = results
             bondSuggestionsExpanded = isCodeFocused && results.isNotEmpty()
+            codeError = IsinValidator.validateCodeInput(
+                code = codeInput.text,
+                prefix = selectedPrefix,
+                hasMatchingRecord = results.isNotEmpty()
+            )
         } else {
             matchingBonds = emptyList()
             bondSuggestionsExpanded = false
