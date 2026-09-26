@@ -156,7 +156,7 @@ fun IncomeGapGroup(
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
-                                text = "No income gaps detected",
+                                text = "Perfect Cash Flow Ladder",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
