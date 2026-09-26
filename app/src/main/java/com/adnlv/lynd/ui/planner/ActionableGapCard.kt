@@ -1,4 +1,4 @@
-package com.adnlv.lynd.ui.overview
+package com.adnlv.lynd.ui.planner
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

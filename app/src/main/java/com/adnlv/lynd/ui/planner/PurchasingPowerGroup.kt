@@ -1,4 +1,4 @@
-package com.adnlv.lynd.ui.overview
+package com.adnlv.lynd.ui.planner
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +30,7 @@ import java.math.BigDecimal
 
 @Composable
 fun PurchasingPowerGroup(
-    uiState: OverviewUiState,
+    uiState: PlannerUiState,
     onHorizonSelected: (Int) -> Unit,
     onCurrencySelected: (String) -> Unit,
     onRateSelected: (BigDecimal) -> Unit,

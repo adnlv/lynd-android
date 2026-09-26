@@ -1,4 +1,4 @@
-package com.adnlv.lynd.ui.overview
+package com.adnlv.lynd.ui.planner
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,24 +11,19 @@ import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-import java.math.BigDecimal
-
 @Composable
-fun PlannerSection(
-    uiState: OverviewUiState,
-    onPlannerTabSelected: (PlannerTab) -> Unit,
-    onHorizonSelected: (Int) -> Unit,
-    onCurrencySelected: (String) -> Unit,
-    onCompoundingHorizonSelected: (Int) -> Unit,
-    onCompoundingRateSelected: (BigDecimal) -> Unit,
-    onThresholdSelected: (BigDecimal) -> Unit = {},
-    onLoadTestPortfolio: () -> Unit,
+fun PlannerScreen(
+    viewModel: PlannerViewModel,
     modifier: Modifier = Modifier
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     Column(modifier = modifier.fillMaxSize()) {
         SecondaryScrollableTabRow(
             selectedTabIndex = uiState.selectedPlannerTab.ordinal,
@@ -37,7 +32,7 @@ fun PlannerSection(
             PlannerTab.entries.forEach { tab ->
                 Tab(
                     selected = uiState.selectedPlannerTab == tab,
-                    onClick = { onPlannerTabSelected(tab) },
+                    onClick = { viewModel.selectPlannerTab(tab) },
                     text = { Text(tab.title) }
                 )
             }
@@ -58,7 +53,7 @@ fun PlannerSection(
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    OutlinedButton(onClick = onLoadTestPortfolio) {
+                    OutlinedButton(onClick = { viewModel.loadTestPortfolio() }) {
                         Text("Load test portfolio")
                     }
                 }
@@ -68,31 +63,31 @@ fun PlannerSection(
                 PlannerTab.INCOME_GAPS -> {
                     IncomeGapGroup(
                         uiState = uiState,
-                        onHorizonSelected = onHorizonSelected,
-                        onCurrencySelected = onCurrencySelected
+                        onHorizonSelected = { viewModel.setPlannerHorizon(it) },
+                        onCurrencySelected = { viewModel.setPlannerCurrency(it) }
                     )
                 }
                 PlannerTab.COMPOUNDING -> {
                     CompoundingGroup(
                         uiState = uiState,
-                        onHorizonSelected = onCompoundingHorizonSelected,
-                        onCurrencySelected = onCurrencySelected,
-                        onRateSelected = onCompoundingRateSelected
+                        onHorizonSelected = { viewModel.setCompoundingHorizon(it) },
+                        onCurrencySelected = { viewModel.setPlannerCurrency(it) },
+                        onRateSelected = { viewModel.setCompoundingRate(it) }
                     )
                 }
                 PlannerTab.PURCHASING_POWER -> {
                     PurchasingPowerGroup(
                         uiState = uiState,
-                        onHorizonSelected = onCompoundingHorizonSelected,
-                        onCurrencySelected = onCurrencySelected,
-                        onRateSelected = onCompoundingRateSelected
+                        onHorizonSelected = { viewModel.setCompoundingHorizon(it) },
+                        onCurrencySelected = { viewModel.setPlannerCurrency(it) },
+                        onRateSelected = { viewModel.setCompoundingRate(it) }
                     )
                 }
                 PlannerTab.MATURITY_REBALANCING -> {
                     MaturityRebalancingGroup(
                         uiState = uiState,
-                        onCurrencySelected = onCurrencySelected,
-                        onThresholdSelected = onThresholdSelected
+                        onCurrencySelected = { viewModel.setPlannerCurrency(it) },
+                        onThresholdSelected = { viewModel.setLargeRedemptionThreshold(it) }
                     )
                 }
             }

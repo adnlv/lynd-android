@@ -1,4 +1,4 @@
-package com.adnlv.lynd.ui.overview
+package com.adnlv.lynd.ui.planner
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,7 +31,7 @@ import java.math.BigDecimal
 
 @Composable
 fun MaturityRebalancingGroup(
-    uiState: OverviewUiState,
+    uiState: PlannerUiState,
     onCurrencySelected: (String) -> Unit,
     onThresholdSelected: (BigDecimal) -> Unit,
     modifier: Modifier = Modifier

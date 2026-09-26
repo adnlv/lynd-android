@@ -1,4 +1,4 @@
-package com.adnlv.lynd.ui.overview
+package com.adnlv.lynd.ui.planner
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
