@@ -146,4 +146,31 @@ class IncomeGapDetectorTest {
         assertEquals(1, may.consecutiveMonthIndex)
         assertEquals(8, may.totalConsecutiveMonths)
     }
+
+    @Test
+    fun detectGaps_populatesCrossCurrencyCoverageCorrectly() {
+        val uahRow = createPayoutRow(
+            payDate = LocalDate.of(2026, 1, 15),
+            currency = "UAH",
+            payVal = BigDecimal("100.00"),
+            quantity = 1
+        )
+        val usdRow = createPayoutRow(
+            payDate = LocalDate.of(2026, 2, 20),
+            currency = "USD",
+            payVal = BigDecimal("50.00"),
+            quantity = 3
+        )
+
+        val gaps = IncomeGapDetector.detectGaps(
+            payoutRows = listOf(uahRow, usdRow),
+            currency = "UAH",
+            startDate = startDate,
+            monthCount = 12
+        )
+
+        val febGap = gaps.find { it.yearMonth == YearMonth.of(2026, 2) }
+        org.junit.Assert.assertNotNull(febGap)
+        assertEquals(BigDecimal("150.00"), febGap?.crossCurrencyCoverage?.get("USD"))
+    }
 }
