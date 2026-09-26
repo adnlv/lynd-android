@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -30,7 +31,7 @@ import com.adnlv.lynd.util.HapticFeedbackHelper
 fun LyndBottomBar(
     navController: NavController,
     currentRoute: String?,
-    bottomTabs: List<Screen> = listOf(Screen.Overview, Screen.Payouts, Screen.Holdings)
+    bottomTabs: List<Screen> = listOf(Screen.Overview, Screen.Planner, Screen.Payouts, Screen.Holdings)
 ) {
     val view = LocalView.current
     val navBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
@@ -97,6 +98,11 @@ fun LyndBottomBar(
                     when (screen) {
                         Screen.Overview -> Icon(
                             imageVector = Icons.Default.Dashboard,
+                            contentDescription = screen.title,
+                            modifier = iconModifier
+                        )
+                        Screen.Planner -> Icon(
+                            imageVector = Icons.Default.TrendingUp,
                             contentDescription = screen.title,
                             modifier = iconModifier
                         )
