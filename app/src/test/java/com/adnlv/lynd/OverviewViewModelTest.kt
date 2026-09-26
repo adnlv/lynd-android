@@ -127,8 +127,8 @@ class OverviewViewModelTest {
 
         assertEquals(PlannerTab.INCOME_GAPS, viewModel.uiState.value.selectedPlannerTab)
 
-        viewModel.selectPlannerTab(PlannerTab.LADDER_MATCHER)
-        assertEquals(PlannerTab.LADDER_MATCHER, viewModel.uiState.value.selectedPlannerTab)
+        viewModel.selectPlannerTab(PlannerTab.COMPOUNDING)
+        assertEquals(PlannerTab.COMPOUNDING, viewModel.uiState.value.selectedPlannerTab)
 
         viewModel.selectPlannerTab(PlannerTab.INCOME_GAPS)
         assertEquals(PlannerTab.INCOME_GAPS, viewModel.uiState.value.selectedPlannerTab)
@@ -165,9 +165,9 @@ class OverviewViewModelTest {
 
         val state = viewModel.uiState.value
         assertEquals(12, state.incomeGaps.size)
-        assertEquals(12, state.ladderMatches.size)
+        assertEquals(12, state.actionableGaps.size)
 
-        val matchForMonth2 = state.ladderMatches.firstOrNull {
+        val matchForMonth2 = state.actionableGaps.firstOrNull {
             java.time.YearMonth.from(it.gap.yearMonth) == java.time.YearMonth.from(today.plusMonths(2))
         }
         org.junit.Assert.assertNotNull(matchForMonth2)

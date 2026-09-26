@@ -36,7 +36,6 @@ enum class OverviewTab {
 
 enum class PlannerTab(val title: String) {
     INCOME_GAPS("Income Gaps"),
-    LADDER_MATCHER("Ladder Matcher"),
     COMPOUNDING("Compounding"),
     PURCHASING_POWER("Purchasing Power"),
     MATURITY_REBALANCING("Maturity Alerts")
@@ -63,6 +62,8 @@ data class OverviewUiState(
     val currencyAllocations: List<CurrencyAllocation> = emptyList(),
     val plannerHorizonMonths: Int = 12,
     val plannerSelectedCurrency: String = "UAH",
+    val actionableGaps: List<com.adnlv.lynd.domain.ActionableGap> = emptyList(),
+    val isPlannerLoading: Boolean = false,
     val incomeGaps: List<IncomeGap> = emptyList(),
     val ladderMatches: List<com.adnlv.lynd.domain.GapMatches> = emptyList(),
     val compoundingHorizonYears: Int = 5,
@@ -114,11 +115,12 @@ class OverviewViewModel(
             currency = plannerState.currency,
             monthCount = plannerState.horizon
         )
-        val ladderMatches = com.adnlv.lynd.domain.SmartLadderMatcher.matchGaps(
+        val actionableGaps = com.adnlv.lynd.domain.SmartLadderMatcher.generateActionableGaps(
             gaps = incomeGaps,
             bonds = catalogData.first,
             payments = catalogData.second
         )
+        val ladderMatches = actionableGaps
 
         val selectedCurrency = plannerState.currency
         val currencyCashFlows = cashFlows[selectedCurrency].orEmpty()
@@ -180,6 +182,8 @@ class OverviewViewModel(
             currencyAllocations = allocations,
             plannerHorizonMonths = plannerState.horizon,
             plannerSelectedCurrency = plannerState.currency,
+            actionableGaps = actionableGaps,
+            isPlannerLoading = false,
             incomeGaps = incomeGaps,
             ladderMatches = ladderMatches,
             compoundingHorizonYears = plannerState.compoundingHorizonYears,
