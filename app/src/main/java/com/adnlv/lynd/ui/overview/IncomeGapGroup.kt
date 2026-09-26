@@ -94,7 +94,7 @@ fun IncomeGapGroup(
         }
 
         item {
-            val gapCount = uiState.incomeGaps.size
+            val gapCount = uiState.actionableGaps.size
             if (gapCount > 0) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -162,7 +162,7 @@ fun IncomeGapGroup(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
-                                text = "Regular bond payouts scheduled across all ${uiState.plannerHorizonMonths} months for ${uiState.plannerSelectedCurrency}.",
+                                text = "Your cash flow is perfectly laddered for the next ${uiState.plannerHorizonMonths} months! No gaps detected.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -172,8 +172,8 @@ fun IncomeGapGroup(
             }
         }
 
-        items(uiState.incomeGaps) { gap ->
-            IncomeGapCard(gap = gap)
+        items(uiState.actionableGaps) { actionableGap ->
+            ActionableGapCard(actionableGap = actionableGap)
         }
     }
 }
