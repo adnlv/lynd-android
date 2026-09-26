@@ -74,11 +74,17 @@ class SmartLadderMatcherTest {
             couponRate = BigDecimal("12.00"),
             maturityDate = LocalDate.of(2026, 5, 20)
         )
+        val redemptionPayment = BondPaymentEntity(
+            bondIsin = "UA4000187348",
+            payDate = LocalDate.of(2026, 5, 20),
+            payType = "redemption",
+            payVal = BigDecimal("1000.00")
+        )
 
-        val matches = SmartLadderMatcher.matchGaps(
+        val matches = SmartLadderMatcher.generateActionableGaps(
             gaps = listOf(gap),
             bonds = listOf(bond),
-            payments = emptyList(),
+            payments = listOf(redemptionPayment),
             today = baseDate
         )
 
@@ -88,6 +94,87 @@ class SmartLadderMatcherTest {
         assertEquals(LadderPaymentType.REDEMPTION, recommended[0].paymentType)
         assertEquals(LocalDate.of(2026, 5, 20), recommended[0].paymentDate)
         assertEquals(BigDecimal("1000.00"), recommended[0].paymentAmount)
+    }
+
+    @Test
+    fun matchGaps_strictlySumsPayValWithoutInjectingNominal() {
+        val gap = IncomeGap(
+            yearMonth = YearMonth.of(2026, 5),
+            currency = "UAH"
+        )
+        val bond = BondEntity(
+            isin = "UA4000187348",
+            name = "Gov Bond 2026",
+            currency = "UAH",
+            nominalValue = BigDecimal("1000.00"),
+            couponRate = BigDecimal("12.00"),
+            maturityDate = LocalDate.of(2026, 5, 20)
+        )
+        val couponPayment = BondPaymentEntity(
+            bondIsin = "UA4000187348",
+            payDate = LocalDate.of(2026, 5, 20),
+            payType = "coupon",
+            payVal = BigDecimal("60.00")
+        )
+
+        val matches = SmartLadderMatcher.generateActionableGaps(
+            gaps = listOf(gap),
+            bonds = listOf(bond),
+            payments = listOf(couponPayment),
+            today = baseDate
+        )
+
+        val recommended = matches[0].recommendedBonds
+        assertEquals(BigDecimal("60.00"), recommended[0].paymentAmount)
+    }
+
+    @Test
+    fun matchGaps_doesNotDropPaymentsForMultipleBondsInSameMonth() {
+        val gap = IncomeGap(
+            yearMonth = YearMonth.of(2026, 6),
+            currency = "UAH"
+        )
+        val bond1 = BondEntity(
+            isin = "UA_BOND_1",
+            name = "Bond 1",
+            currency = "UAH",
+            nominalValue = BigDecimal("1000.00"),
+            couponRate = BigDecimal("14.00"),
+            maturityDate = LocalDate.of(2027, 6, 1)
+        )
+        val bond2 = BondEntity(
+            isin = "UA_BOND_2",
+            name = "Bond 2",
+            currency = "UAH",
+            nominalValue = BigDecimal("1000.00"),
+            couponRate = BigDecimal("16.00"),
+            maturityDate = LocalDate.of(2027, 6, 10)
+        )
+        val p1 = BondPaymentEntity(
+            bondIsin = "UA_BOND_1",
+            payDate = LocalDate.of(2026, 6, 5),
+            payType = "coupon",
+            payVal = BigDecimal("70.00")
+        )
+        val p2 = BondPaymentEntity(
+            bondIsin = "UA_BOND_2",
+            payDate = LocalDate.of(2026, 6, 15),
+            payType = "coupon",
+            payVal = BigDecimal("80.00")
+        )
+
+        val matches = SmartLadderMatcher.generateActionableGaps(
+            gaps = listOf(gap),
+            bonds = listOf(bond1, bond2),
+            payments = listOf(p1, p2),
+            today = baseDate
+        )
+
+        assertEquals(1, matches.size)
+        assertEquals(2, matches[0].recommendedBonds.size)
+        // Bond 2 has higher couponRate (16.00 vs 14.00), so sorted first
+        assertEquals("UA_BOND_2", matches[0].recommendedBonds[0].bond.isin)
+        assertEquals("UA_BOND_1", matches[0].recommendedBonds[1].bond.isin)
     }
 
     @Test

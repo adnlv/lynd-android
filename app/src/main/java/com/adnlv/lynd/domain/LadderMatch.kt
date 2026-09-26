@@ -18,7 +18,9 @@ data class BondLadderMatch(
     val totalGapsCovered: Int
 )
 
-data class GapMatches(
+data class ActionableGap(
     val gap: IncomeGap,
     val recommendedBonds: List<BondLadderMatch>
 )
+
+typealias GapMatches = ActionableGap

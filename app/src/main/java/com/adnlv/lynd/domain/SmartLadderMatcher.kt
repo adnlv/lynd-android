@@ -7,43 +7,41 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 object SmartLadderMatcher {
-
-    fun matchGaps(
+    fun generateActionableGaps(
         gaps: List<IncomeGap>,
         bonds: List<BondEntity>,
         payments: List<BondPaymentEntity>,
         today: LocalDate = LocalDate.now()
-    ): List<GapMatches> {
+    ): List<ActionableGap> {
         if (gaps.isEmpty() || bonds.isEmpty()) return emptyList()
 
         val activeBonds = bonds.filter { it.maturityDate >= today }
-        val paymentsByIsin = payments.filter { it.payDate >= today }.groupBy { it.bondIsin }
+
+        // O(1) Pre-hashing: ISIN -> YearMonth -> List<Payments>
+        val paymentsByIsinAndMonth: Map<String, Map<YearMonth, List<BondPaymentEntity>>> =
+            payments.filter { it.payDate >= today }
+                .groupBy { it.bondIsin }
+                .mapValues { (_, bondPayments) ->
+                    bondPayments.groupBy { YearMonth.from(it.payDate) }
+                }
 
         val gapMonthsSet = gaps.map { it.yearMonth }.toSet()
 
-        // Count how many dry months each bond covers
+        // Calculate multi-gap coverage efficiency
         val coverageCountByIsin = activeBonds.associate { bond ->
-            val bondPayments = paymentsByIsin[bond.isin].orEmpty()
-            val paymentMonths = bondPayments.map { YearMonth.from(it.payDate) }.toSet()
-            val maturityMonth = YearMonth.from(bond.maturityDate)
-            val allPayoutMonths = paymentMonths + maturityMonth
-            bond.isin to allPayoutMonths.count { it in gapMonthsSet }
+            val isinPayments = paymentsByIsinAndMonth[bond.isin].orEmpty()
+            bond.isin to isinPayments.keys.count { it in gapMonthsSet }
         }
 
         return gaps.map { gap ->
-            val matchesForGap = mutableListOf<BondLadderMatch>()
+            val matches = activeBonds.mapNotNull { bond ->
+                if (!bond.currency.equals(gap.currency, ignoreCase = true)) return@mapNotNull null
 
-            for (bond in activeBonds) {
-                if (!bond.currency.equals(gap.currency, ignoreCase = true)) continue
-
-                val bondPayments = paymentsByIsin[bond.isin].orEmpty()
-                val monthPayments = bondPayments.filter { YearMonth.from(it.payDate) == gap.yearMonth }
-                val maturesInMonth = YearMonth.from(bond.maturityDate) == gap.yearMonth
-
-                if (monthPayments.isEmpty() && !maturesInMonth) continue
+                val monthPayments = paymentsByIsinAndMonth[bond.isin]?.get(gap.yearMonth).orEmpty()
+                if (monthPayments.isEmpty()) return@mapNotNull null
 
                 val hasCoupon = monthPayments.any { it.payType.equals("coupon", ignoreCase = true) }
-                val hasRedemption = maturesInMonth || monthPayments.any { it.payType.equals("redemption", ignoreCase = true) }
+                val hasRedemption = monthPayments.any { it.payType.equals("redemption", ignoreCase = true) }
 
                 val paymentType = when {
                     hasCoupon && hasRedemption -> LadderPaymentType.COUPON_AND_REDEMPTION
@@ -51,29 +49,31 @@ object SmartLadderMatcher {
                     else -> LadderPaymentType.COUPON
                 }
 
-                val payDate = monthPayments.firstOrNull()?.payDate ?: bond.maturityDate
+                // Strictly rely on DB records to prevent double-counting
                 val totalAmount = monthPayments.fold(BigDecimal.ZERO) { acc, p -> acc.add(p.payVal) }
-                    .let { if (it.compareTo(BigDecimal.ZERO) == 0 && maturesInMonth) bond.nominalValue else it }
+                val payDate = monthPayments.minByOrNull { it.payDate }?.payDate ?: bond.maturityDate
 
-                matchesForGap.add(
-                    BondLadderMatch(
-                        bond = bond,
-                        paymentDate = payDate,
-                        paymentType = paymentType,
-                        paymentAmount = totalAmount,
-                        totalGapsCovered = coverageCountByIsin[bond.isin] ?: 1
-                    )
+                BondLadderMatch(
+                    bond = bond,
+                    paymentDate = payDate,
+                    paymentType = paymentType,
+                    paymentAmount = totalAmount,
+                    totalGapsCovered = coverageCountByIsin[bond.isin] ?: 1
                 )
-            }
-
-            val sortedMatches = matchesForGap.sortedWith(
+            }.sortedWith(
                 compareByDescending<BondLadderMatch> { it.totalGapsCovered }
                     .thenByDescending { it.bond.couponRate }
                     .thenBy { it.paymentDate }
-                    .thenBy { it.bond.isin }
             )
 
-            GapMatches(gap = gap, recommendedBonds = sortedMatches)
+            ActionableGap(gap, matches)
         }
     }
+
+    fun matchGaps(
+        gaps: List<IncomeGap>,
+        bonds: List<BondEntity>,
+        payments: List<BondPaymentEntity>,
+        today: LocalDate = LocalDate.now()
+    ): List<GapMatches> = generateActionableGaps(gaps, bonds, payments, today)
 }
