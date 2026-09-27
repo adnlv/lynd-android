@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -31,7 +32,7 @@ class PlannerViewModelTest {
         val viewModel = PlannerViewModel(holdingDao, bondDao, payoutDao)
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
 
-        assertEquals(PlannerTab.INCOME_GAPS, viewModel.uiState.value.selectedPlannerTab)
+        assertNull(viewModel.uiState.value.selectedPlannerTab)
 
         viewModel.selectPlannerTab(PlannerTab.COMPOUNDING)
         assertEquals(PlannerTab.COMPOUNDING, viewModel.uiState.value.selectedPlannerTab)
@@ -44,6 +45,9 @@ class PlannerViewModelTest {
 
         viewModel.selectPlannerTab(PlannerTab.INCOME_GAPS)
         assertEquals(PlannerTab.INCOME_GAPS, viewModel.uiState.value.selectedPlannerTab)
+
+        viewModel.selectPlannerTab(null)
+        assertNull(viewModel.uiState.value.selectedPlannerTab)
 
         collectJob.cancel()
     }

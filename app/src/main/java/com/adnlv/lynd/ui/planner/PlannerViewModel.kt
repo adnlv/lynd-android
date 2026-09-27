@@ -38,7 +38,7 @@ enum class PlannerTab(val title: String) {
 }
 
 private data class PlannerFilterState(
-    val selectedPlannerTab: PlannerTab,
+    val selectedPlannerTab: PlannerTab?,
     val horizon: Int,
     val currency: String,
     val compoundingHorizonYears: Int,
@@ -47,7 +47,7 @@ private data class PlannerFilterState(
 )
 
 data class PlannerUiState(
-    val selectedPlannerTab: PlannerTab = PlannerTab.INCOME_GAPS,
+    val selectedPlannerTab: PlannerTab? = null,
     val summaries: List<PortfolioSummary> = emptyList(),
     val plannerHorizonMonths: Int = 12,
     val plannerSelectedCurrency: String = "UAH",
@@ -70,7 +70,7 @@ class PlannerViewModel(
     private val payoutDao: PayoutDao
 ) : ViewModel() {
 
-    private val _selectedPlannerTab = MutableStateFlow(PlannerTab.INCOME_GAPS)
+    private val _selectedPlannerTab = MutableStateFlow<PlannerTab?>(null)
     private val _plannerHorizon = MutableStateFlow(12)
     private val _plannerCurrency = MutableStateFlow("UAH")
     private val _compoundingHorizonYears = MutableStateFlow(5)
@@ -180,7 +180,7 @@ class PlannerViewModel(
         initialValue = PlannerUiState()
     )
 
-    fun selectPlannerTab(tab: PlannerTab) {
+    fun selectPlannerTab(tab: PlannerTab?) {
         _selectedPlannerTab.value = tab
     }
 
