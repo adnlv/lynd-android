@@ -1,7 +1,6 @@
 package com.adnlv.lynd.ui.overview
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,7 +32,6 @@ fun MaturityBar(
     maxAmount: BigDecimal,
     isSelected: Boolean,
     barColor: Color,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val heightFraction = remember(maturity.amount, maxAmount) {
@@ -46,8 +44,7 @@ fun MaturityBar(
 
     Column(
         modifier = modifier
-            .fillMaxHeight()
-            .clickable(onClick = onClick),
+            .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {

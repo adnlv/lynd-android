@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.adnlv.lynd.ui.components.SnapBarChart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -112,24 +114,18 @@ fun MaturityScheduleChartCard(
                     if (max > BigDecimal.ZERO) max else BigDecimal.ONE
                 }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    maturities.forEachIndexed { index, maturity ->
-                        val isSelected = index == selectedIndex
-                        MaturityBar(
-                            maturity = maturity,
-                            maxAmount = maxYearAmount,
-                            isSelected = isSelected,
-                            barColor = MaterialTheme.colorScheme.tertiary,
-                            onClick = { selectedIndex = index },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                SnapBarChart(
+                    items = maturities,
+                    selectedIndex = selectedIndex,
+                    onSelectedIndexChange = { selectedIndex = it },
+                ) { maturity, index, isSelected ->
+                    MaturityBar(
+                        maturity = maturity,
+                        maxAmount = maxYearAmount,
+                        isSelected = isSelected,
+                        barColor = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
 
                 val selectedMaturity = maturities.getOrNull(selectedIndex)
