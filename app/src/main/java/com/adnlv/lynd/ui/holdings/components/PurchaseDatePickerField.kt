@@ -48,7 +48,6 @@ fun PurchaseDatePickerField(
         },
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null

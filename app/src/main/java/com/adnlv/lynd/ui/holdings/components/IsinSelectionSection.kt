@@ -50,7 +50,6 @@ fun IsinSelectionSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
