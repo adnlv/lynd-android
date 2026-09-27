@@ -1,7 +1,6 @@
 package com.adnlv.lynd.ui.planner
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +36,6 @@ fun CompoundingBar(
     withdrawColor: Color,
     reinvestColor: Color,
     extraColor: Color,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val withdrawHeightFraction = remember(point.withdrawProfit, maxAmount) {
@@ -69,7 +67,6 @@ fun CompoundingBar(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
             .padding(horizontal = 4.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
