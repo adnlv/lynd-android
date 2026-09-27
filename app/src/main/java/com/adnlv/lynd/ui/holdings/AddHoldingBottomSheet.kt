@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -40,11 +39,12 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.data.db.HoldingEntity
+import com.adnlv.lynd.domain.BondPriceCalculator
 import com.adnlv.lynd.domain.HoldingItem
 import com.adnlv.lynd.domain.IsinValidator
 import com.adnlv.lynd.ui.holdings.components.AddHoldingHeader
+import com.adnlv.lynd.ui.holdings.components.BondPriceInputs
 import com.adnlv.lynd.ui.holdings.components.IsinSelectionSection
-import com.adnlv.lynd.ui.holdings.components.PriceInputPager
 import com.adnlv.lynd.ui.holdings.components.PurchaseDatePickerField
 import com.adnlv.lynd.ui.holdings.components.QuantitySelector
 import kotlinx.coroutines.launch
@@ -100,7 +100,6 @@ fun AddHoldingBottomSheet(
     }
 
     var quantity by remember { mutableIntStateOf(holdingToEdit?.quantity ?: 1) }
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
 
     var pricePerBondInput by remember {
         mutableStateOf(holdingToEdit?.pricePerBond?.toPlainString() ?: "")
@@ -234,18 +233,23 @@ fun AddHoldingBottomSheet(
 
                 QuantitySelector(
                     quantity = quantity,
-                    onQuantityChange = { quantity = it }
+                    onQuantityChange = { newQuantity ->
+                        quantity = newQuantity
+                        val parsedPricePerBond = pricePerBondInput.toBigDecimalOrNull()
+                        if (parsedPricePerBond != null && parsedPricePerBond >= BigDecimal.ZERO && newQuantity > 0) {
+                            val computedTotal = BondPriceCalculator.calculateTotalPrice(parsedPricePerBond, newQuantity)
+                            totalPriceInput = computedTotal.toPlainString()
+                        }
+                    }
                 )
 
-                PriceInputPager(
-                    pagerState = pagerState,
+                BondPriceInputs(
                     totalPriceInput = totalPriceInput,
                     onTotalPriceChange = { input ->
                         totalPriceInput = input
                         val parsed = input.toBigDecimalOrNull()
                         if (parsed != null && parsed >= BigDecimal.ZERO && quantity > 0) {
-                            val computedPerBond = parsed
-                                .divide(BigDecimal(quantity), 2, RoundingMode.HALF_UP)
+                            val computedPerBond = BondPriceCalculator.calculatePricePerBond(parsed, quantity)
                             pricePerBondInput = computedPerBond.toPlainString()
                         }
                     },
@@ -253,13 +257,12 @@ fun AddHoldingBottomSheet(
                     onPricePerBondChange = { input ->
                         pricePerBondInput = input
                         val parsed = input.toBigDecimalOrNull()
-                        if (parsed != null && parsed >= BigDecimal.ZERO) {
-                            val computedTotal = parsed
-                                .multiply(BigDecimal(quantity))
-                                .setScale(2, RoundingMode.HALF_UP)
+                        if (parsed != null && parsed >= BigDecimal.ZERO && quantity > 0) {
+                            val computedTotal = BondPriceCalculator.calculateTotalPrice(parsed, quantity)
                             totalPriceInput = computedTotal.toPlainString()
                         }
-                    }
+                    },
+                    quantity = quantity
                 )
 
                 PurchaseDatePickerField(
