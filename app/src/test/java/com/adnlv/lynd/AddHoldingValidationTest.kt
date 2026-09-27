@@ -114,7 +114,7 @@ class AddHoldingValidationTest {
 
         val invalidFullIsin = "${prefix}238282"
         val isInvalidValid = com.adnlv.lynd.domain.IsinValidator.isValid(invalidFullIsin)
-        org.junit.Assert.assertFalse(isInvalidValid)
+        assertFalse(isInvalidValid)
     }
 
     @Test
