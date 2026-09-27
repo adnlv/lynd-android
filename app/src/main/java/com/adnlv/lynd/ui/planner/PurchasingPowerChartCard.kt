@@ -2,17 +2,17 @@ package com.adnlv.lynd.ui.planner
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.adnlv.lynd.ui.components.SnapBarChart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -140,25 +140,27 @@ fun PurchasingPowerChartCard(
             }
 
             // Chart area
-            val scrollState = rememberScrollState()
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(scrollState)
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                forecast.points.forEach { point ->
-                    PurchasingPowerBar(
-                        point = point,
-                        maxAmount = maxAmount,
-                        isSelected = selectedPoint?.year == point.year,
-                        nominalColor = nominalColor,
-                        realColor = realColor,
-                        onClick = { selectedYear = point.year }
-                    )
-                }
+            val selectedIndex = remember(selectedPoint, forecast.points) {
+                val idx = forecast.points.indexOf(selectedPoint)
+                if (idx >= 0) idx else 0
+            }
+            SnapBarChart(
+                items = forecast.points,
+                selectedIndex = selectedIndex,
+                onSelectedIndexChange = { idx ->
+                    selectedYear = forecast.points.getOrNull(idx)?.year
+                },
+                barWidthDp = 52.dp,
+                chartHeight = 160.dp
+            ) { point, index, isSelected ->
+                PurchasingPowerBar(
+                    point = point,
+                    maxAmount = maxAmount,
+                    isSelected = isSelected,
+                    nominalColor = nominalColor,
+                    realColor = realColor,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
 
             // Selected milestone details
