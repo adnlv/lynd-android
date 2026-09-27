@@ -1,10 +1,11 @@
 package com.adnlv.lynd
 
+import com.adnlv.lynd.domain.BondPriceCalculator
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigDecimal
-import java.math.RoundingMode
 
 class AddHoldingValidationTest {
 
@@ -12,7 +13,7 @@ class AddHoldingValidationTest {
     fun totalPrice_computesPricePerBondCorrectly() {
         val totalPrice = BigDecimal("2050.00")
         val quantity = 2
-        val pricePerBond = totalPrice.divide(BigDecimal(quantity), 2, RoundingMode.HALF_UP)
+        val pricePerBond = BondPriceCalculator.calculatePricePerBond(totalPrice, quantity)
         assertEquals(BigDecimal("1025.00"), pricePerBond)
     }
 
@@ -20,8 +21,24 @@ class AddHoldingValidationTest {
     fun pricePerBond_computesTotalPriceCorrectly() {
         val pricePerBond = BigDecimal("1025.50")
         val quantity = 3
-        val totalPrice = pricePerBond.multiply(BigDecimal(quantity))
+        val totalPrice = BondPriceCalculator.calculateTotalPrice(pricePerBond, quantity)
         assertEquals(BigDecimal("3076.50"), totalPrice)
+    }
+
+    @Test
+    fun priceValidation_acceptsPositiveValuesAndRejectsEmptyOrZero() {
+        fun isPriceValid(input: String): Boolean {
+            return input.toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } ?: false
+        }
+
+        assertTrue(isPriceValid("100.00"))
+        assertTrue(isPriceValid("0.01"))
+        assertFalse(isPriceValid(""))
+        assertFalse(isPriceValid("   "))
+        assertFalse(isPriceValid("0"))
+        assertFalse(isPriceValid("0.00"))
+        assertFalse(isPriceValid("-5.00"))
+        assertFalse(isPriceValid("abc"))
     }
 
     @Test
