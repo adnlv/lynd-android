@@ -19,6 +19,12 @@ class ScreenNavigationTest {
     }
 
     @Test
+    fun plannerScreen_hasCorrectRouteAndTitle() {
+        assertEquals("planner", Screen.Planner.route)
+        assertEquals("Planner", Screen.Planner.title)
+    }
+
+    @Test
     fun holdingsScreen_hasCorrectRouteAndTitle() {
         assertEquals("holdings", Screen.Holdings.route)
         assertEquals("Holdings", Screen.Holdings.title)

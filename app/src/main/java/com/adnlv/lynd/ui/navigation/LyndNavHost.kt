@@ -13,6 +13,8 @@ import com.adnlv.lynd.ui.overview.OverviewScreen
 import com.adnlv.lynd.ui.overview.OverviewViewModel
 import com.adnlv.lynd.ui.payouts.PayoutsScreen
 import com.adnlv.lynd.ui.payouts.PayoutsViewModel
+import com.adnlv.lynd.ui.planner.PlannerScreen
+import com.adnlv.lynd.ui.planner.PlannerViewModel
 
 @Composable
 fun LyndNavHost(
@@ -34,6 +36,16 @@ fun LyndNavHost(
                 )
             )
             OverviewScreen(viewModel = overviewViewModel)
+        }
+        composable(Screen.Planner.route) {
+            val plannerViewModel: PlannerViewModel = viewModel(
+                factory = PlannerViewModel.provideFactory(
+                    holdingDao = appContainer.database.holdingDao(),
+                    bondDao = appContainer.database.bondDao(),
+                    payoutDao = appContainer.database.payoutDao()
+                )
+            )
+            PlannerScreen(viewModel = plannerViewModel)
         }
         composable(Screen.Holdings.route) {
             val holdingsViewModel: HoldingsViewModel = viewModel(

@@ -38,7 +38,7 @@ fun MainApp(appContainer: AppContainer) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val bottomTabs = listOf(Screen.Overview, Screen.Payouts, Screen.Holdings)
+    val bottomTabs = listOf(Screen.Overview, Screen.Planner, Screen.Payouts, Screen.Holdings)
     val showBottomBar = currentRoute in bottomTabs.map { it.route }
 
     Scaffold(

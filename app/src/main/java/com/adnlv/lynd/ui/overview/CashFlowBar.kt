@@ -1,7 +1,6 @@
 package com.adnlv.lynd.ui.overview
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +34,6 @@ fun CashFlowBar(
     isSelected: Boolean,
     couponColor: Color,
     principalColor: Color,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val totalHeightFraction = remember(monthFlow.totalAmount, maxAmount) {
@@ -64,8 +62,7 @@ fun CashFlowBar(
 
     Column(
         modifier = modifier
-            .fillMaxHeight()
-            .clickable(onClick = onClick),
+            .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {

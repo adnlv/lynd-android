@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.adnlv.lynd.ui.components.SnapBarChart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -133,33 +135,26 @@ fun CashFlowChartCard(
                     if (max > BigDecimal.ZERO) max else BigDecimal.ONE
                 }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    cashFlows.forEachIndexed { index, monthFlow ->
-                        val isSelected = index == selectedIndex
-                        val monthLabel = remember(monthFlow.yearMonth) {
-                            monthFlow.yearMonth.month
-                                .getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                                .filter { it.isLetter() }
-                                .take(3)
-                        }
-
-                        CashFlowBar(
-                            monthFlow = monthFlow,
-                            monthLabel = monthLabel,
-                            maxAmount = maxMonthlyAmount,
-                            isSelected = isSelected,
-                            couponColor = MaterialTheme.colorScheme.primary,
-                            principalColor = MaterialTheme.colorScheme.tertiary,
-                            onClick = { selectedIndex = index },
-                            modifier = Modifier.weight(1f)
-                        )
+                SnapBarChart(
+                    items = cashFlows,
+                    selectedIndex = selectedIndex,
+                    onSelectedIndexChange = { selectedIndex = it },
+                ) { monthFlow, index, isSelected ->
+                    val monthLabel = remember(monthFlow.yearMonth) {
+                        monthFlow.yearMonth.month
+                            .getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                            .filter { it.isLetter() }
+                            .take(3)
                     }
+                    CashFlowBar(
+                        monthFlow = monthFlow,
+                        monthLabel = monthLabel,
+                        maxAmount = maxMonthlyAmount,
+                        isSelected = isSelected,
+                        couponColor = MaterialTheme.colorScheme.primary,
+                        principalColor = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
 
                 val selectedFlow = cashFlows.getOrNull(selectedIndex)

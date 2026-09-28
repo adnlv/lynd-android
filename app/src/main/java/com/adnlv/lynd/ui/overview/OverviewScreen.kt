@@ -26,78 +26,80 @@ fun OverviewScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    if (uiState.summaries.isEmpty()) {
-        Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(horizontal = 24.dp)
+    Column(modifier = modifier.fillMaxSize()) {
+        if (uiState.summaries.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "No portfolio data yet.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                OutlinedButton(
-                    onClick = { viewModel.loadTestPortfolio() }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 ) {
-                    Text("Load test portfolio")
+                    Text(
+                        text = "No portfolio data yet.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedButton(
+                        onClick = { viewModel.loadTestPortfolio() }
+                    ) {
+                        Text("Load test portfolio")
+                    }
                 }
             }
-        }
-    } else {
-        val pagerState = rememberPagerState(pageCount = { uiState.summaries.size })
-        val activeSummary = uiState.summaries.getOrNull(pagerState.currentPage)
-        val activeCurrency = activeSummary?.currency ?: uiState.summaries.firstOrNull()?.currency ?: "UAH"
-        val activeCashFlows = uiState.cashFlowsByCurrency[activeCurrency].orEmpty()
-        val activeMaturities = uiState.yearlyMaturitiesByCurrency[activeCurrency].orEmpty()
+        } else {
+            val pagerState = rememberPagerState(pageCount = { uiState.summaries.size })
+            val activeSummary = uiState.summaries.getOrNull(pagerState.currentPage)
+            val activeCurrency = activeSummary?.currency ?: uiState.summaries.firstOrNull()?.currency ?: "UAH"
+            val activeCashFlows = uiState.cashFlowsByCurrency[activeCurrency].orEmpty()
+            val activeMaturities = uiState.yearlyMaturitiesByCurrency[activeCurrency].orEmpty()
 
-        LazyColumn(
-            modifier = modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            item {
-                Text(
-                    text = "Overview",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                item {
+                    Text(
+                        text = "Overview",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                }
 
-            item {
-                PortfolioSummaryCarousel(
-                    summaries = uiState.summaries,
-                    pagerState = pagerState
-                )
-            }
+                item {
+                    PortfolioSummaryCarousel(
+                        summaries = uiState.summaries,
+                        pagerState = pagerState
+                    )
+                }
 
-            item {
-                CashFlowChartCard(
-                    cashFlows = activeCashFlows,
-                    currency = activeCurrency,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-            }
+                item {
+                    CashFlowChartCard(
+                        cashFlows = activeCashFlows,
+                        currency = activeCurrency,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                }
 
-            item {
-                MaturityScheduleChartCard(
-                    maturities = activeMaturities,
-                    currency = activeCurrency,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-            }
+                item {
+                    MaturityScheduleChartCard(
+                        maturities = activeMaturities,
+                        currency = activeCurrency,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                }
 
-            item {
-                CurrencyAllocationCard(
-                    allocations = uiState.currencyAllocations,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
+                item {
+                    CurrencyAllocationCard(
+                        allocations = uiState.currencyAllocations,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                }
             }
         }
     }

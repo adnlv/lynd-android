@@ -16,6 +16,7 @@ class LyndApplication : Application() {
         super.onCreate()
         container = AppContainer(this)
         triggerBondSyncIfStale()
+        com.adnlv.lynd.worker.MaturityMonitoringScheduler.scheduleDailyCheck(this)
     }
 
     private fun triggerBondSyncIfStale() {

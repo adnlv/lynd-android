@@ -58,7 +58,7 @@ fun HoldingsScreen(
     var revealedHoldingId by remember { mutableStateOf<Int?>(null) }
     var swipingHoldingId by remember { mutableStateOf<Int?>(null) }
     var peekingHoldingId by remember { mutableStateOf<Int?>(null) }
-    var showAddSheet by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
     var editingHolding by remember { mutableStateOf<HoldingItem?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -111,7 +111,7 @@ fun HoldingsScreen(
                         if (onNavigateToAdd != null) {
                             onNavigateToAdd.invoke()
                         } else {
-                            showAddSheet = true
+                            showAddDialog = true
                         }
                     },
                     modifier = Modifier
@@ -239,11 +239,11 @@ fun HoldingsScreen(
             }
         }
 
-        if (showAddSheet || editingHolding != null) {
-            AddHoldingBottomSheet(
+        if (showAddDialog || editingHolding != null) {
+            AddHoldingDialog(
                 viewModel = viewModel,
                 onDismissRequest = {
-                    showAddSheet = false
+                    showAddDialog = false
                     editingHolding = null
                 },
                 holdingToEdit = editingHolding
