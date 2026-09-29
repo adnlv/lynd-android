@@ -46,12 +46,6 @@ fun PayoutCard(
             MaterialTheme.colorScheme.primaryContainer,
             MaterialTheme.colorScheme.onPrimaryContainer
         )
-        PayoutTab.HISTORICAL -> Quadruple(
-            0.50f,
-            MaterialTheme.colorScheme.onSurfaceVariant,
-            MaterialTheme.colorScheme.surfaceVariant,
-            MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 
     Card(

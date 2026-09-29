@@ -67,16 +67,6 @@ class PayoutsViewModelTest {
                     currency = "UAH",
                     purchaseDate = today.minusDays(30)
                 ),
-                PayoutRow(
-                    isin = "UA4000187348",
-                    bondName = "Historical Bond",
-                    payDate = today.minusDays(60),
-                    payType = "2",
-                    payVal = BigDecimal("1000.00"),
-                    quantity = 2,
-                    currency = "UAH",
-                    purchaseDate = today.minusDays(30)
-                )
             )
         }
         val viewModel = PayoutsViewModel(fakeDao)
@@ -94,13 +84,6 @@ class PayoutsViewModelTest {
         assertEquals(1, viewModel.uiState.value.payouts.size)
         assertEquals("Received Bond", viewModel.uiState.value.payouts[0].bondName)
         assertEquals("Coupon", viewModel.uiState.value.payouts[0].payType)
-
-        // Switch to Historical tab
-        viewModel.selectTab(PayoutTab.HISTORICAL)
-        assertEquals(PayoutTab.HISTORICAL, viewModel.uiState.value.selectedTab)
-        assertEquals(1, viewModel.uiState.value.payouts.size)
-        assertEquals("Historical Bond", viewModel.uiState.value.payouts[0].bondName)
-        assertEquals("Redemption", viewModel.uiState.value.payouts[0].payType)
 
         collectJob.cancel()
     }

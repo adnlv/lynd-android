@@ -16,8 +16,7 @@ import java.time.LocalDate
 
 enum class PayoutTab {
     UPCOMING,
-    RECEIVED,
-    HISTORICAL
+    RECEIVED
 }
 
 data class PayoutsUiState(
@@ -86,15 +85,9 @@ class PayoutsViewModel(
             .sortedByDescending { it.item.payDate }
             .map { it.item }
 
-        val historicalItems = filtered
-            .filter { it.item.payDate.isBefore(it.purchaseDate) }
-            .sortedByDescending { it.item.payDate }
-            .map { it.item }
-
         val activePayouts = when (currentTab) {
             PayoutTab.UPCOMING -> upcomingItems
             PayoutTab.RECEIVED -> receivedItems
-            PayoutTab.HISTORICAL -> historicalItems
         }
 
         PayoutsUiState(
