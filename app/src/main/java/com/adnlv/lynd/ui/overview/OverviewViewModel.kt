@@ -7,7 +7,6 @@ import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.BondDao
 import com.adnlv.lynd.data.db.HoldingDao
 import com.adnlv.lynd.data.db.PayoutDao
-import com.adnlv.lynd.domain.CurrencyAllocation
 import com.adnlv.lynd.domain.HoldingItem
 import com.adnlv.lynd.domain.MonthlyCashFlow
 import com.adnlv.lynd.domain.PortfolioCalculator
@@ -24,8 +23,7 @@ data class OverviewUiState(
     val totalHoldingsCount: Int = 0,
     val holdings: List<HoldingItem> = emptyList(),
     val cashFlowsByCurrency: Map<String, List<MonthlyCashFlow>> = emptyMap(),
-    val yearlyMaturitiesByCurrency: Map<String, List<YearlyMaturity>> = emptyMap(),
-    val currencyAllocations: List<CurrencyAllocation> = emptyList()
+    val yearlyMaturitiesByCurrency: Map<String, List<YearlyMaturity>> = emptyMap()
 )
 
 class OverviewViewModel(
@@ -43,15 +41,13 @@ class OverviewViewModel(
         val summaries = PortfolioCalculator.calculateSummaries(domainHoldings)
         val cashFlows = PortfolioCalculator.calculateMonthlyCashFlows(payoutRows)
         val maturities = PortfolioCalculator.calculateYearlyMaturitySchedule(payoutRows)
-        val allocations = PortfolioCalculator.calculateCurrencyAllocations(summaries)
 
         OverviewUiState(
             summaries = summaries,
             totalHoldingsCount = domainHoldings.size,
             holdings = domainHoldings,
             cashFlowsByCurrency = cashFlows,
-            yearlyMaturitiesByCurrency = maturities,
-            currencyAllocations = allocations
+            yearlyMaturitiesByCurrency = maturities
         )
     }.stateIn(
         scope = viewModelScope,

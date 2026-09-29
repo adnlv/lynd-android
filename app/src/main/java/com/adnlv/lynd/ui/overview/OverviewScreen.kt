@@ -93,13 +93,6 @@ fun OverviewScreen(
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 }
-
-                item {
-                    CurrencyAllocationCard(
-                        allocations = uiState.currencyAllocations,
-                        modifier = Modifier.padding(horizontal = 20.dp)
-                    )
-                }
             }
         }
     }
