@@ -246,7 +246,6 @@ fun AddHoldingDialog(
                                     totalPriceInput = computedTotal.toPlainString()
                                 }
                             },
-                            quantity = quantity,
                             currency = selectedCurrency
                         )
                     }
