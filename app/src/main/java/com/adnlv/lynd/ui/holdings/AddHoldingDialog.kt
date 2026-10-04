@@ -244,8 +244,7 @@ fun AddHoldingDialog(
                                     val computedTotal = BondPriceCalculator.calculateTotalPrice(parsed, quantity)
                                     totalPriceInput = computedTotal.toPlainString()
                                 }
-                            },
-                            currency = selectedCurrency
+                            }
                         )
                     }
                 }
