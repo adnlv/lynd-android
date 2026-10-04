@@ -36,7 +36,7 @@ fun BondPriceInputs(
         OutlinedTextField(
             value = totalPriceInput,
             onValueChange = onTotalPriceChange,
-            label = { Text("Total paid") },
+            label = { Text("Total spent") },
             placeholder = {
                 Text(
                     text = "1000.00",
