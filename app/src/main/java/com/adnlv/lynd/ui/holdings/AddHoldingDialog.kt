@@ -98,6 +98,17 @@ fun AddHoldingDialog(
     }
 
     val fullIsin = "$selectedPrefix${codeInput.text}"
+    var selectedCurrency by remember { mutableStateOf("UAH") }
+
+    LaunchedEffect(fullIsin) {
+        if (fullIsin.length == 12) {
+            val bond = viewModel.getBond(fullIsin)
+            selectedCurrency = bond?.currency?.takeIf { it.isNotBlank() } ?: "UAH"
+        } else {
+            selectedCurrency = "UAH"
+        }
+    }
+
     val isFormValid = fullIsin.length == 12 &&
         codeError == null &&
         IsinValidator.isValid(fullIsin) &&
@@ -234,7 +245,8 @@ fun AddHoldingDialog(
                                     totalPriceInput = computedTotal.toPlainString()
                                 }
                             },
-                            quantity = quantity
+                            quantity = quantity,
+                            currency = selectedCurrency
                         )
                     }
                 }
