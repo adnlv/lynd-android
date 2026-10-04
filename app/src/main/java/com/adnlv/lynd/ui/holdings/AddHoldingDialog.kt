@@ -167,128 +167,107 @@ fun AddHoldingDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Card 1: ISIN Data Fields
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Bond identifier",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     )
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            IsinSelectionSection(
-                                selectedPrefix = selectedPrefix,
-                                prefixes = prefixes,
-                                onPrefixSelected = { selectedPrefix = it },
-                                codeInput = codeInput,
-                                onCodeInputChange = { codeInput = it },
-                                matchingBonds = matchingBonds,
-                                onBondSelected = { isin ->
-                                    val code = if (isin.startsWith(selectedPrefix)) {
-                                        isin.removePrefix(selectedPrefix)
-                                    } else {
-                                        isin.takeLast(6)
-                                    }
-                                    codeInput = TextFieldValue(text = code, selection = TextRange(code.length))
-                                    codeError = IsinValidator.validateCodeInput(code, selectedPrefix)
-                                },
-                                codeError = codeError,
-                                onFocusChanged = { isCodeFocused = it }
-                            )
-                        }
+                        IsinSelectionSection(
+                            selectedPrefix = selectedPrefix,
+                            prefixes = prefixes,
+                            onPrefixSelected = { selectedPrefix = it },
+                            codeInput = codeInput,
+                            onCodeInputChange = { codeInput = it },
+                            matchingBonds = matchingBonds,
+                            onBondSelected = { isin ->
+                                val code = if (isin.startsWith(selectedPrefix)) {
+                                    isin.removePrefix(selectedPrefix)
+                                } else {
+                                    isin.takeLast(6)
+                                }
+                                codeInput = TextFieldValue(text = code, selection = TextRange(code.length))
+                                codeError = IsinValidator.validateCodeInput(code, selectedPrefix)
+                            },
+                            codeError = codeError,
+                            onFocusChanged = { isCodeFocused = it }
+                        )
                     }
                 }
 
                 // Card 2: Quantity & Price Data Fields
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Investment details",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     )
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            QuantitySelector(
-                                quantity = quantity,
-                                onQuantityChange = { newQuantity ->
-                                    quantity = newQuantity
-                                    val parsedPricePerBond = pricePerBondInput.toBigDecimalOrNull()
-                                    if (parsedPricePerBond != null && parsedPricePerBond >= BigDecimal.ZERO && newQuantity > 0) {
-                                        val computedTotal = BondPriceCalculator.calculateTotalPrice(parsedPricePerBond, newQuantity)
-                                        totalPriceInput = computedTotal.toPlainString()
-                                    }
+                        QuantitySelector(
+                            quantity = quantity,
+                            onQuantityChange = { newQuantity ->
+                                quantity = newQuantity
+                                val parsedPricePerBond = pricePerBondInput.toBigDecimalOrNull()
+                                if (parsedPricePerBond != null && parsedPricePerBond >= BigDecimal.ZERO && newQuantity > 0) {
+                                    val computedTotal = BondPriceCalculator.calculateTotalPrice(parsedPricePerBond, newQuantity)
+                                    totalPriceInput = computedTotal.toPlainString()
                                 }
-                            )
+                            }
+                        )
 
-                            HorizontalDivider()
+                        HorizontalDivider()
 
-                            BondPriceInputs(
-                                totalPriceInput = totalPriceInput,
-                                onTotalPriceChange = { input ->
-                                    totalPriceInput = input
-                                    val parsed = input.toBigDecimalOrNull()
-                                    if (parsed != null && parsed >= BigDecimal.ZERO && quantity > 0) {
-                                        val computedPerBond = BondPriceCalculator.calculatePricePerBond(parsed, quantity)
-                                        pricePerBondInput = computedPerBond.toPlainString()
-                                    }
-                                },
-                                pricePerBondInput = pricePerBondInput,
-                                onPricePerBondChange = { input ->
-                                    pricePerBondInput = input
-                                    val parsed = input.toBigDecimalOrNull()
-                                    if (parsed != null && parsed >= BigDecimal.ZERO && quantity > 0) {
-                                        val computedTotal = BondPriceCalculator.calculateTotalPrice(parsed, quantity)
-                                        totalPriceInput = computedTotal.toPlainString()
-                                    }
-                                },
-                                quantity = quantity,
-                                currency = selectedCurrency
-                            )
-                        }
+                        BondPriceInputs(
+                            totalPriceInput = totalPriceInput,
+                            onTotalPriceChange = { input ->
+                                totalPriceInput = input
+                                val parsed = input.toBigDecimalOrNull()
+                                if (parsed != null && parsed >= BigDecimal.ZERO && quantity > 0) {
+                                    val computedPerBond = BondPriceCalculator.calculatePricePerBond(parsed, quantity)
+                                    pricePerBondInput = computedPerBond.toPlainString()
+                                }
+                            },
+                            pricePerBondInput = pricePerBondInput,
+                            onPricePerBondChange = { input ->
+                                pricePerBondInput = input
+                                val parsed = input.toBigDecimalOrNull()
+                                if (parsed != null && parsed >= BigDecimal.ZERO && quantity > 0) {
+                                    val computedTotal = BondPriceCalculator.calculateTotalPrice(parsed, quantity)
+                                    totalPriceInput = computedTotal.toPlainString()
+                                }
+                            },
+                            quantity = quantity,
+                            currency = selectedCurrency
+                        )
                     }
                 }
 
                 // Card 3: Date Data Field
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Settlement date",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     )
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            PurchaseDatePickerField(
-                                purchaseDate = purchaseDate,
-                                onDateChange = { purchaseDate = it }
-                            )
-                        }
+                        PurchaseDatePickerField(
+                            purchaseDate = purchaseDate,
+                            onDateChange = { purchaseDate = it }
+                        )
                     }
                 }
             }
