@@ -71,8 +71,7 @@ fun AddHoldingDialog(
 
     LaunchedEffect(codeInput.text, selectedPrefix, isCodeFocused) {
         if (isCodeFocused || codeInput.text.isNotEmpty()) {
-            val query = "$selectedPrefix${codeInput.text}"
-            val results = viewModel.searchBonds(query)
+            val results = viewModel.searchBonds(selectedPrefix, codeInput.text)
             matchingBonds = results
             codeError = IsinValidator.validateCodeInput(
                 code = codeInput.text,

@@ -131,8 +131,30 @@ fun IsinSelectionSection(
                     onDismissRequest = { bondSuggestionsExpanded = false }
                 ) {
                     matchingBonds.forEach { isin ->
+                        val displayCode = if (isin.startsWith(selectedPrefix, ignoreCase = true)) {
+                            isin.removePrefix(selectedPrefix)
+                        } else {
+                            isin.takeLast(6)
+                        }
+                        val matchResult = com.adnlv.lynd.domain.ApproximateStringMatcher.match(
+                            query = codeInput.text,
+                            target = displayCode
+                        )
+                        val annotatedText = androidx.compose.ui.text.buildAnnotatedString {
+                            displayCode.forEachIndexed { index, char ->
+                                if (index in matchResult.matchedIndices) {
+                                    pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.primary))
+                                    append(char)
+                                    pop()
+                                } else {
+                                    pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = MaterialTheme.colorScheme.onSurfaceVariant))
+                                    append(char)
+                                    pop()
+                                }
+                            }
+                        }
                         DropdownMenuItem(
-                            text = { Text(isin) },
+                            text = { Text(annotatedText) },
                             onClick = {
                                 onBondSelected(isin)
                                 bondSuggestionsExpanded = false
