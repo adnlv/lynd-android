@@ -25,6 +25,7 @@ fun BondPriceInputs(
     pricePerBondInput: String,
     onPricePerBondChange: (String) -> Unit,
     quantity: Int,
+    currency: String = "UAH",
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -35,8 +36,20 @@ fun BondPriceInputs(
         OutlinedTextField(
             value = totalPriceInput,
             onValueChange = onTotalPriceChange,
-            label = { Text("Total Price") },
-            placeholder = { Text("1000.00") },
+            label = { Text("Total paid") },
+            placeholder = {
+                Text(
+                    text = "1000.00",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            },
+            prefix = {
+                Text(
+                    text = "$currency ",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth()
@@ -62,8 +75,27 @@ fun BondPriceInputs(
         OutlinedTextField(
             value = pricePerBondInput,
             onValueChange = onPricePerBondChange,
-            label = { Text("Price per Bond") },
-            placeholder = { Text("1000.00") },
+            label = { Text("Paid per Bond") },
+            placeholder = {
+                Text(
+                    text = "1000.00",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            },
+            prefix = {
+                Text(
+                    text = "$currency ",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
+            supportingText = {
+                Text(
+                    text = "Adjusting either field updates the other",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth()
