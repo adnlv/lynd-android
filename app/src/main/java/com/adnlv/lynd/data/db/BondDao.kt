@@ -28,6 +28,9 @@ interface BondDao {
     @Query("SELECT isin FROM bonds WHERE isin LIKE '%' || :query || '%' ORDER BY isin LIMIT 50")
     suspend fun searchBondsByIsin(query: String): List<String>
 
+    @Query("SELECT isin FROM bonds WHERE isin LIKE :prefix || '%' ORDER BY isin")
+    suspend fun getBondsByPrefix(prefix: String): List<String>
+
     @Query("SELECT DISTINCT SUBSTR(isin, 1, 6) FROM bonds WHERE LENGTH(isin) = 12 ORDER BY 1")
     suspend fun getDistinctIsinPrefixes(): List<String>
 

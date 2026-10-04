@@ -64,6 +64,10 @@ class FakeBondDao : BondDao {
         return bonds.keys.filter { it.contains(query, ignoreCase = true) }.sorted()
     }
 
+    override suspend fun getBondsByPrefix(prefix: String): List<String> {
+        return bonds.keys.filter { it.startsWith(prefix, ignoreCase = true) }.sorted()
+    }
+
     override suspend fun getDistinctIsinPrefixes(): List<String> {
         return prefixesToReturn
     }

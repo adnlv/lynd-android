@@ -142,6 +142,24 @@ class HoldingsViewModelTest {
     }
 
     @Test
+    fun searchBonds_withPrefixAndCodeQuery_filtersAndSorts() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao().apply {
+            upsertBond(BondEntity("UA4000187348", "Bond 1", "UAH", BigDecimal("1000"), BigDecimal.ZERO, LocalDate.now()))
+            upsertBond(BondEntity("UA4000187000", "Bond 2", "UAH", BigDecimal("1000"), BigDecimal.ZERO, LocalDate.now()))
+            upsertBond(BondEntity("UA4000999999", "Bond 3", "UAH", BigDecimal("1000"), BigDecimal.ZERO, LocalDate.now()))
+            upsertBond(BondEntity("UA5000187348", "Bond 4", "UAH", BigDecimal("1000"), BigDecimal.ZERO, LocalDate.now()))
+        }
+        val repository = NbuRepository(FakeNbuApiService(), bondDao, FakeSyncMetadataDao().apply {
+            lastSync = System.currentTimeMillis()
+        })
+        val viewModel = HoldingsViewModel(holdingDao, repository, bondDao)
+
+        val result = viewModel.searchBonds("UA4000", "187")
+        assertEquals(listOf("UA4000187000", "UA4000187348"), result)
+    }
+
+    @Test
     fun getBond_delegatesToBondDao() = runTest {
         val holdingDao = FakeHoldingDao()
         val bondDao = FakeBondDao().apply {

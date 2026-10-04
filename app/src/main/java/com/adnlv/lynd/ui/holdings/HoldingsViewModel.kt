@@ -63,6 +63,11 @@ class HoldingsViewModel(
         return bondDao.searchBondsByIsin(query)
     }
 
+    suspend fun searchBonds(prefix: String, codeQuery: String): List<String> {
+        val candidates = bondDao.getBondsByPrefix(prefix)
+        return com.adnlv.lynd.domain.ApproximateStringMatcher.filterAndSort(candidates, prefix, codeQuery)
+    }
+
     suspend fun getBond(isin: String): com.adnlv.lynd.data.db.BondEntity? {
         return bondDao.getBond(isin)
     }
