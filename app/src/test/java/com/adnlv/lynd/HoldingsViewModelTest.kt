@@ -140,4 +140,19 @@ class HoldingsViewModelTest {
         val result = viewModel.searchBonds("187348")
         assertEquals(listOf("UA4000187348"), result)
     }
+
+    @Test
+    fun getBond_delegatesToBondDao() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao().apply {
+            upsertBond(BondEntity("UA4000187348", "Bond 1", "USD", BigDecimal("1000"), BigDecimal.ZERO, LocalDate.now()))
+        }
+        val repository = NbuRepository(FakeNbuApiService(), bondDao, FakeSyncMetadataDao().apply {
+            lastSync = System.currentTimeMillis()
+        })
+        val viewModel = HoldingsViewModel(holdingDao, repository, bondDao)
+
+        val bond = viewModel.getBond("UA4000187348")
+        assertEquals("USD", bond?.currency)
+    }
 }

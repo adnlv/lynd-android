@@ -63,6 +63,10 @@ class HoldingsViewModel(
         return bondDao.searchBondsByIsin(query)
     }
 
+    suspend fun getBond(isin: String): com.adnlv.lynd.data.db.BondEntity? {
+        return bondDao.getBond(isin)
+    }
+
     fun saveHolding(holding: HoldingEntity, onComplete: (() -> Unit)? = null) {
         viewModelScope.launch {
             holdingDao.insertHolding(holding)
