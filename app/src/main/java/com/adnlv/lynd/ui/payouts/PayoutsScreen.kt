@@ -115,7 +115,7 @@ fun PayoutsScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 groupedPayouts.forEach { (date, payoutsForDate) ->
                     item(key = "header_$date") {
@@ -126,7 +126,7 @@ fun PayoutsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 8.dp, bottom = 2.dp)
+                                .padding(top = 10.dp, bottom = 2.dp)
                         )
                     }
                     items(
