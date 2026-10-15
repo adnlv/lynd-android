@@ -63,10 +63,10 @@ import com.adnlv.lynd.util.HapticFeedbackHelper
 private val FloatingBarHeight = 64.dp
 private val BlurRadius = 20.dp
 private val IconSize = 20.dp
-private val ItemSpacing = 0.dp
+private val ItemSpacing = 4.dp
 private val ContainerHorizontalMargin = 16.dp
-private val ContainerBottomMargin = 12.dp
-private val ContainerInnerPaddingHorizontal = 8.dp
+private val ContainerBottomMargin = 4.dp
+private val ContainerInnerPaddingHorizontal = 4.dp
 private val ContainerInnerPaddingVertical = 4.dp
 private val PillPaddingHorizontal = 2.dp
 private val PillPaddingVertical = 0.dp
