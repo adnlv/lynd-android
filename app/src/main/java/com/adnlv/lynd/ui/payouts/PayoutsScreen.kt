@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.adnlv.lynd.util.Formatters
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -87,7 +88,7 @@ fun PayoutsScreen(
                     FilterChip(
                         selected = currency.equals(uiState.selectedCurrency, ignoreCase = true),
                         onClick = { viewModel.selectCurrency(currency) },
-                        label = { Text(currency) }
+                        label = { Text(Formatters.getCurrencySymbol(currency)) }
                     )
                 }
             }

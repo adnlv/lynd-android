@@ -31,4 +31,19 @@ object Formatters {
     fun formatDate(date: LocalDate, locale: Locale = Locale.getDefault()): String {
         return date.format(DateTimeFormatter.ofPattern("d MMM yyyy", locale))
     }
+
+    fun getCurrencySymbol(currency: String): String = when (currency.uppercase()) {
+        "UAH" -> "₴"
+        "USD" -> "$"
+        "EUR" -> "€"
+        "GBP" -> "£"
+        "PLN" -> "zł"
+        else -> {
+            try {
+                java.util.Currency.getInstance(currency.uppercase()).symbol
+            } catch (_: Exception) {
+                currency
+            }
+        }
+    }
 }

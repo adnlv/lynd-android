@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.PayoutItem
+import com.adnlv.lynd.util.Formatters
 import java.math.RoundingMode
 
 @Composable
@@ -53,7 +54,7 @@ fun PayoutCard(
                 payout.payoutAmount.setScale(2, RoundingMode.HALF_UP).toPlainString()
             }
             Text(
-                text = "$formattedAmount ${payout.currency}",
+                text = "$formattedAmount ${Formatters.getCurrencySymbol(payout.currency)}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = accentColor
