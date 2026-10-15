@@ -50,7 +50,7 @@ fun PayoutCard(
                 fontWeight = FontWeight.SemiBold
             )
             val formattedAmount = remember(payout.payoutAmount) {
-                Formatters.formatPayoutAmount(payout.payoutAmount)
+                Formatters.formatAmount(payout.payoutAmount)
             }
             Text(
                 text = "$formattedAmount ${Formatters.getCurrencySymbol(payout.currency)}",
