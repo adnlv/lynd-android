@@ -39,9 +39,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
@@ -61,7 +62,6 @@ import com.adnlv.lynd.ui.theme.LyndTheme
 import com.adnlv.lynd.util.HapticFeedbackHelper
 
 private val FloatingBarHeight = 64.dp
-private val BlurRadius = 20.dp
 private val IconSize = 20.dp
 private val ItemSpacing = 4.dp
 private val ContainerHorizontalMargin = 16.dp
@@ -80,11 +80,21 @@ fun LyndBottomBar(
 ) {
     val view = LocalView.current
     val navBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-    val backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+    val scrimColor = MaterialTheme.colorScheme.surface
+    val barBackgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh
 
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        scrimColor.copy(alpha = 0.7f),
+                        scrimColor
+                    )
+                )
+            )
             .navigationBarsPadding()
             .padding(
                 start = ContainerHorizontalMargin,
@@ -103,19 +113,13 @@ fun LyndBottomBar(
                     ambientColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                 )
                 .clip(CircleShape)
+                .background(barBackgroundColor)
                 .border(
                     width = 0.5.dp,
                     color = navBorderColor,
                     shape = CircleShape
                 )
         ) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .blur(BlurRadius)
-                    .background(backgroundColor)
-            )
-
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
