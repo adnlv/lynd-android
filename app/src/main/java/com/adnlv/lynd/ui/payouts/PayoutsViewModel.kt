@@ -21,24 +21,26 @@ enum class PayoutTab {
 
 data class PayoutsUiState(
     val availableCurrencies: List<String> = emptyList(),
-    val selectedCurrency: String = "UAH",
+    val selectedCurrencies: Set<String> = setOf("UAH"),
     val selectedTab: PayoutTab = PayoutTab.UPCOMING,
     val payouts: List<PayoutItem> = emptyList()
-)
+) {
+    val selectedCurrency: String get() = selectedCurrencies.firstOrNull() ?: ""
+}
 
 class PayoutsViewModel(
     payoutDao: PayoutDao
 ) : ViewModel() {
 
-    private val _selectedCurrency = MutableStateFlow("UAH")
-    val selectedCurrency: StateFlow<String> = _selectedCurrency.asStateFlow()
+    private val _selectedCurrencies = MutableStateFlow<Set<String>>(setOf("UAH"))
+    val selectedCurrencies: StateFlow<Set<String>> = _selectedCurrencies.asStateFlow()
 
     private val _selectedTab = MutableStateFlow(PayoutTab.UPCOMING)
     val selectedTab: StateFlow<PayoutTab> = _selectedTab.asStateFlow()
 
     private val allPayouts = payoutDao.getAllPayoutRows()
 
-    val uiState: StateFlow<PayoutsUiState> = combine(allPayouts, _selectedCurrency, _selectedTab) { rows, selectedCurr, currentTab ->
+    val uiState: StateFlow<PayoutsUiState> = combine(allPayouts, _selectedCurrencies, _selectedTab) { rows, selectedCurrs, currentTab ->
         data class PayoutWithPurchase(val item: PayoutItem, val purchaseDate: LocalDate)
 
         val itemsWithPurchase = rows.map { row ->
@@ -67,16 +69,24 @@ class PayoutsViewModel(
         } else {
             currencies
         }
-        val effectiveCurrency = when {
-            selectedCurr in orderedCurrencies -> selectedCurr
-            "UAH" in orderedCurrencies -> "UAH"
-            else -> orderedCurrencies.firstOrNull() ?: ""
+
+        val validCurrencies = selectedCurrs.filter { curr ->
+            orderedCurrencies.any { it.equals(curr, ignoreCase = true) }
+        }.toSet()
+
+        val effectiveCurrencies = when {
+            validCurrencies.isNotEmpty() -> validCurrencies
+            "UAH" in orderedCurrencies -> setOf("UAH")
+            orderedCurrencies.isNotEmpty() -> setOf(orderedCurrencies.first())
+            else -> emptySet()
         }
 
-        val filtered = if (effectiveCurrency.isBlank()) {
+        val filtered = if (effectiveCurrencies.isEmpty()) {
             itemsWithPurchase
         } else {
-            itemsWithPurchase.filter { it.item.currency.equals(effectiveCurrency, ignoreCase = true) }
+            itemsWithPurchase.filter { item ->
+                effectiveCurrencies.any { it.equals(item.item.currency, ignoreCase = true) }
+            }
         }
 
         val today = LocalDate.now()
@@ -97,7 +107,7 @@ class PayoutsViewModel(
 
         PayoutsUiState(
             availableCurrencies = orderedCurrencies,
-            selectedCurrency = effectiveCurrency,
+            selectedCurrencies = effectiveCurrencies,
             selectedTab = currentTab,
             payouts = activePayouts
         )
@@ -108,7 +118,24 @@ class PayoutsViewModel(
     )
 
     fun selectCurrency(currency: String) {
-        _selectedCurrency.value = currency
+        _selectedCurrencies.value = setOf(currency)
+    }
+
+    fun toggleCurrency(currency: String) {
+        val current = _selectedCurrencies.value
+        if (current.contains(currency)) {
+            if (current.size > 1) {
+                _selectedCurrencies.value = current - currency
+            }
+        } else {
+            _selectedCurrencies.value = current + currency
+        }
+    }
+
+    fun selectAllCurrencies(currencies: Collection<String>) {
+        if (currencies.isNotEmpty()) {
+            _selectedCurrencies.value = currencies.toSet()
+        }
     }
 
     fun selectTab(tab: PayoutTab) {

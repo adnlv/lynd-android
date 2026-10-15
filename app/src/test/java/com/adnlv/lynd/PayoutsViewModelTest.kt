@@ -178,4 +178,103 @@ class PayoutsViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun toggleCurrency_supportsMultipleCurrenciesAndFilters() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "UAH Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "US1",
+                    bondName = "USD Bond",
+                    payDate = today.plusDays(6),
+                    payType = "coupon",
+                    payVal = BigDecimal("200.00"),
+                    quantity = 1,
+                    currency = "USD",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "EU1",
+                    bondName = "EUR Bond",
+                    payDate = today.plusDays(7),
+                    payType = "coupon",
+                    payVal = BigDecimal("300.00"),
+                    quantity = 1,
+                    currency = "EUR",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals(setOf("UAH"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+
+        // Toggle USD on
+        viewModel.toggleCurrency("USD")
+        assertEquals(setOf("UAH", "USD"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(2, viewModel.uiState.value.payouts.size)
+
+        // Toggle UAH off -> USD remains
+        viewModel.toggleCurrency("UAH")
+        assertEquals(setOf("USD"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+        assertEquals("USD Bond", viewModel.uiState.value.payouts[0].bondName)
+
+        // Cannot deselect last remaining currency
+        viewModel.toggleCurrency("USD")
+        assertEquals(setOf("USD"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun selectAllCurrencies_selectsAllProvidedCurrencies() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "UAH Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "US1",
+                    bondName = "USD Bond",
+                    payDate = today.plusDays(6),
+                    payType = "coupon",
+                    payVal = BigDecimal("200.00"),
+                    quantity = 1,
+                    currency = "USD",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        viewModel.selectAllCurrencies(listOf("UAH", "USD"))
+        assertEquals(setOf("UAH", "USD"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(2, viewModel.uiState.value.payouts.size)
+
+        collectJob.cancel()
+    }
 }
