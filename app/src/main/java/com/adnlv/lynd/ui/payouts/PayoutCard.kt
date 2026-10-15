@@ -56,8 +56,8 @@ fun PayoutCard(
             Text(
                 text = payout.payType,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.outline
             )
             val formattedAmount = remember(payout.payoutAmount) {
                 Formatters.formatAmount(payout.payoutAmount)
