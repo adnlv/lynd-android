@@ -33,11 +33,6 @@ fun PayoutCard(
 
     val isDark = isSystemInDarkTheme()
     val isCoupon = payout.payType.equals("Coupon", ignoreCase = true)
-    val labelColor = if (isCoupon) {
-        PayoutColors.couponLabel(isDark)
-    } else {
-        PayoutColors.redemptionLabel(isDark)
-    }
     val amountColor = if (isCoupon) {
         PayoutColors.couponAmount(isDark)
     } else {
@@ -62,7 +57,7 @@ fun PayoutCard(
                 text = payout.payType,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = labelColor
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             val formattedAmount = remember(payout.payoutAmount) {
                 Formatters.formatAmount(payout.payoutAmount)

@@ -12,9 +12,7 @@ object PayoutColors {
     val TotalAmountLight = Color(0xFF0D47A1)
     val TotalAmountDark = Color(0xFF90CAF9)
 
-    fun couponLabel(isDark: Boolean): Color = if (isDark) CouponDark else CouponLight
     fun couponAmount(isDark: Boolean): Color = if (isDark) CouponDark else CouponLight
-    fun redemptionLabel(isDark: Boolean): Color = if (isDark) RedemptionDark else RedemptionLight
     fun redemptionAmount(isDark: Boolean): Color = if (isDark) RedemptionDark else RedemptionLight
     fun totalAmount(isDark: Boolean): Color = if (isDark) TotalAmountDark else TotalAmountLight
 }

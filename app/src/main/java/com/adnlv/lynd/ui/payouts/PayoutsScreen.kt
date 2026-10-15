@@ -115,9 +115,6 @@ fun PayoutsScreen(
             val groupedPayouts = remember(uiState.payouts) {
                 uiState.payouts.groupBy { it.payDate }
             }
-            val totalAmount = remember(uiState.payouts) {
-                uiState.payouts.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.payoutAmount) }
-            }
             val currencySymbol = remember(uiState.selectedCurrency, uiState.payouts) {
                 val currency = uiState.selectedCurrency.ifBlank {
                     uiState.payouts.firstOrNull()?.currency.orEmpty()
@@ -179,39 +176,17 @@ fun PayoutsScreen(
                         ) {
                             Text(
                                 text = "Total",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = "${Formatters.formatAmount(dateTotal)} $currencySymbol",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = PayoutColors.totalAmount(isDark)
                             )
                         }
-                    }
-                }
-                item(key = "summary_total") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp, bottom = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Total",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "${Formatters.formatAmount(totalAmount)} $currencySymbol",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = PayoutColors.totalAmount(isDark)
-                        )
                     }
                 }
             }
