@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,8 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -122,33 +119,15 @@ fun PayoutsScreen(
             ) {
                 groupedPayouts.forEach { (date, payoutsForDate) ->
                     item(key = "header_$date") {
-                        val totalSum = remember(payoutsForDate) {
-                            payoutsForDate.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.payoutAmount) }
-                                .setScale(2, RoundingMode.HALF_UP)
-                                .toPlainString()
-                        }
-                        val currency = payoutsForDate.firstOrNull()?.currency.orEmpty()
-
-                        Row(
+                        Text(
+                            text = date.format(dateFormatter),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 8.dp, bottom = 2.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = date.format(dateFormatter),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = "$totalSum $currency",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                                .padding(top = 8.dp, bottom = 2.dp)
+                        )
                     }
                     items(
                         items = payoutsForDate,
