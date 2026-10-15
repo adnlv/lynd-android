@@ -45,19 +45,25 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.rememberNavController
+import com.adnlv.lynd.ui.theme.LyndTheme
 import com.adnlv.lynd.util.HapticFeedbackHelper
 
 private val FloatingBarHeight = 64.dp
 private val BlurRadius = 20.dp
 private val IconSize = 20.dp
-private val ItemSpacing = 1.dp
+private val ItemSpacing = 0.dp
 private val ContainerHorizontalMargin = 16.dp
 private val ContainerBottomMargin = 12.dp
 private val ContainerInnerPaddingHorizontal = 8.dp
@@ -229,8 +235,18 @@ fun LyndBottomBar(
                             Text(
                                 text = screen.title,
                                 color = itemColor,
-                                fontSize = 10.sp,
-                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                style = TextStyle(
+                                    fontSize = 10.sp,
+                                    lineHeight = 10.sp,
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                    platformStyle = PlatformTextStyle(
+                                        includeFontPadding = false
+                                    ),
+                                    lineHeightStyle = LineHeightStyle(
+                                        alignment = LineHeightStyle.Alignment.Center,
+                                        trim = LineHeightStyle.Trim.Both
+                                    )
+                                ),
                                 maxLines = 1,
                                 softWrap = false,
                                 overflow = TextOverflow.Ellipsis
@@ -242,3 +258,21 @@ fun LyndBottomBar(
         }
     }
 }
+
+@Preview(name = "Light Mode", showBackground = true)
+@Composable
+private fun LyndBottomBarPreview() {
+    LyndTheme {
+        Box(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp)
+        ) {
+            LyndBottomBar(
+                navController = rememberNavController(),
+                currentRoute = Screen.Overview.route
+            )
+        }
+    }
+}
+
