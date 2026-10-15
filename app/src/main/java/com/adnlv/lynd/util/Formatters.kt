@@ -46,4 +46,10 @@ object Formatters {
             }
         }
     }
+
+    fun formatPayoutAmount(amount: BigDecimal): String {
+        return amount.setScale(2, java.math.RoundingMode.HALF_UP)
+            .stripTrailingZeros()
+            .toPlainString()
+    }
 }

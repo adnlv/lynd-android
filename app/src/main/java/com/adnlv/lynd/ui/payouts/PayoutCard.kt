@@ -18,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.PayoutItem
 import com.adnlv.lynd.util.Formatters
-import java.math.RoundingMode
 
 @Composable
 fun PayoutCard(
@@ -51,7 +50,7 @@ fun PayoutCard(
                 fontWeight = FontWeight.SemiBold
             )
             val formattedAmount = remember(payout.payoutAmount) {
-                payout.payoutAmount.setScale(2, RoundingMode.HALF_UP).toPlainString()
+                Formatters.formatPayoutAmount(payout.payoutAmount)
             }
             Text(
                 text = "$formattedAmount ${Formatters.getCurrencySymbol(payout.currency)}",

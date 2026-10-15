@@ -54,4 +54,15 @@ class FormattersTest {
     fun getCurrencySymbol_fallsBackForUnknownCurrency() {
         assertEquals("XYZ", Formatters.getCurrencySymbol("XYZ"))
     }
+
+    @Test
+    fun formatPayoutAmount_formatsAndRemovesTrailingZeros() {
+        assertEquals("100", Formatters.formatPayoutAmount(BigDecimal("100.00")))
+        assertEquals("100.5", Formatters.formatPayoutAmount(BigDecimal("100.50")))
+        assertEquals("100.25", Formatters.formatPayoutAmount(BigDecimal("100.25")))
+        assertEquals("100", Formatters.formatPayoutAmount(BigDecimal("100")))
+        assertEquals("100.56", Formatters.formatPayoutAmount(BigDecimal("100.556")))
+        assertEquals("100.55", Formatters.formatPayoutAmount(BigDecimal("100.554")))
+        assertEquals("0", Formatters.formatPayoutAmount(BigDecimal("0.00")))
+    }
 }
