@@ -21,7 +21,7 @@ enum class PayoutTab {
 
 data class PayoutsUiState(
     val availableCurrencies: List<String> = emptyList(),
-    val selectedCurrency: String = "",
+    val selectedCurrency: String = "UAH",
     val selectedTab: PayoutTab = PayoutTab.UPCOMING,
     val payouts: List<PayoutItem> = emptyList()
 )
@@ -30,7 +30,7 @@ class PayoutsViewModel(
     payoutDao: PayoutDao
 ) : ViewModel() {
 
-    private val _selectedCurrency = MutableStateFlow("")
+    private val _selectedCurrency = MutableStateFlow("UAH")
     val selectedCurrency: StateFlow<String> = _selectedCurrency.asStateFlow()
 
     private val _selectedTab = MutableStateFlow(PayoutTab.UPCOMING)
@@ -62,10 +62,15 @@ class PayoutsViewModel(
         }
 
         val currencies = itemsWithPurchase.map { it.item.currency }.distinct()
-        val effectiveCurrency = if (selectedCurr in currencies) {
-            selectedCurr
+        val orderedCurrencies = if ("UAH" in currencies) {
+            listOf("UAH") + (currencies - "UAH")
         } else {
-            currencies.firstOrNull() ?: ""
+            currencies
+        }
+        val effectiveCurrency = when {
+            selectedCurr in orderedCurrencies -> selectedCurr
+            "UAH" in orderedCurrencies -> "UAH"
+            else -> orderedCurrencies.firstOrNull() ?: ""
         }
 
         val filtered = if (effectiveCurrency.isBlank()) {
@@ -91,7 +96,7 @@ class PayoutsViewModel(
         }
 
         PayoutsUiState(
-            availableCurrencies = currencies,
+            availableCurrencies = orderedCurrencies,
             selectedCurrency = effectiveCurrency,
             selectedTab = currentTab,
             payouts = activePayouts

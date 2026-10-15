@@ -130,4 +130,52 @@ class PayoutsViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun availableCurrencies_prioritizesUahFirst() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "EUR1",
+                    bondName = "EUR Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "EUR",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "USD1",
+                    bondName = "USD Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "USD",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "UAH1",
+                    bondName = "UAH Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals(listOf("UAH", "EUR", "USD"), viewModel.uiState.value.availableCurrencies)
+        assertEquals("UAH", viewModel.uiState.value.selectedCurrency)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+        assertEquals("UAH Bond", viewModel.uiState.value.payouts[0].bondName)
+
+        collectJob.cancel()
+    }
 }
