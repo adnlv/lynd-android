@@ -1,8 +1,13 @@
 package com.adnlv.lynd.ui.navigation
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Dashboard
@@ -10,17 +15,13 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -31,96 +32,78 @@ import com.adnlv.lynd.util.HapticFeedbackHelper
 fun LyndBottomBar(
     navController: NavController,
     currentRoute: String?,
+    modifier: Modifier = Modifier,
     bottomTabs: List<Screen> = listOf(Screen.Overview, Screen.Planner, Screen.Payouts, Screen.Holdings)
 ) {
     val view = LocalView.current
     val navBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
 
-    NavigationBar(
-        modifier = Modifier.drawWithContent {
-            drawContent()
-            val strokeWidth = 1.dp.toPx()
-            drawLine(
-                color = navBorderColor,
-                start = Offset(0f, strokeWidth / 2),
-                end = Offset(size.width, strokeWidth / 2),
-                strokeWidth = strokeWidth
-            )
-        }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .drawWithContent {
+                drawContent()
+                val strokeWidth = 1.dp.toPx()
+                drawLine(
+                    color = navBorderColor,
+                    start = Offset(0f, strokeWidth / 2),
+                    end = Offset(size.width, strokeWidth / 2),
+                    strokeWidth = strokeWidth
+                )
+            }
     ) {
-        bottomTabs.forEach { screen ->
-            val selected = currentRoute == screen.route
-            val pillBorderProgress by animateFloatAsState(
-                targetValue = if (selected) 1f else 0f,
-                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-                label = "pillBorderProgress"
-            )
-            val pillBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-            NavigationBarItem(
-                selected = selected,
-                onClick = {
-                    if (!selected) {
-                        HapticFeedbackHelper.vibratePageSwitch(view)
-                        navController.navigate(screen.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding(),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            bottomTabs.forEach { screen ->
+                val selected = currentRoute == screen.route
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                if (!selected) {
+                                    HapticFeedbackHelper.vibratePageSwitch(view)
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
                             }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                },
-                icon = {
-                    val iconModifier = Modifier.drawWithContent {
-                        drawContent()
-                        if (pillBorderProgress > 0f) {
-                            val strokeWidth = 1.dp.toPx()
-                            val pillWidth = 56.dp.toPx() * pillBorderProgress
-                            val pillHeight = 32.dp.toPx()
-                            val left = (size.width - pillWidth) / 2f
-                            val top = (size.height - pillHeight) / 2f
-                            if (pillWidth >= strokeWidth && pillHeight >= strokeWidth) {
-                                val insetLeft = left + strokeWidth / 2f
-                                val insetTop = top + strokeWidth / 2f
-                                val insetWidth = pillWidth - strokeWidth
-                                val insetHeight = pillHeight - strokeWidth
-                                val radius = insetHeight / 2f
-                                drawRoundRect(
-                                    color = pillBorderColor.copy(alpha = pillBorderColor.alpha * pillBorderProgress),
-                                    topLeft = Offset(insetLeft, insetTop),
-                                    size = Size(insetWidth, insetHeight),
-                                    cornerRadius = CornerRadius(radius, radius),
-                                    style = Stroke(width = strokeWidth)
-                                )
-                            }
-                        }
-                    }
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     when (screen) {
                         Screen.Overview -> Icon(
                             imageVector = Icons.Default.Dashboard,
-                            contentDescription = screen.title,
-                            modifier = iconModifier
+                            contentDescription = screen.title
                         )
                         Screen.Planner -> Icon(
                             imageVector = Icons.Default.TrendingUp,
-                            contentDescription = screen.title,
-                            modifier = iconModifier
+                            contentDescription = screen.title
                         )
                         Screen.Payouts -> Icon(
                             imageVector = Icons.Default.DateRange,
-                            contentDescription = screen.title,
-                            modifier = iconModifier
+                            contentDescription = screen.title
                         )
                         Screen.Holdings -> Icon(
                             imageVector = Icons.AutoMirrored.Filled.List,
-                            contentDescription = screen.title,
-                            modifier = iconModifier
+                            contentDescription = screen.title
                         )
-                        else -> {}
                     }
-                },
-                label = { Text(screen.title) }
-            )
+                    Text(screen.title)
+                }
+            }
         }
     }
 }
