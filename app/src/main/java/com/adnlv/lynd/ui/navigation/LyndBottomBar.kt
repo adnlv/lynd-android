@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -243,9 +242,6 @@ fun LyndBottomBar(
                                     fontSize = 10.sp,
                                     lineHeight = 10.sp,
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                                    platformStyle = PlatformTextStyle(
-                                        includeFontPadding = false
-                                    ),
                                     lineHeightStyle = LineHeightStyle(
                                         alignment = LineHeightStyle.Alignment.Center,
                                         trim = LineHeightStyle.Trim.Both
