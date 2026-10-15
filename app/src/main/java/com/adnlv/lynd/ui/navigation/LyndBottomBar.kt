@@ -81,7 +81,7 @@ fun LyndBottomBar(
     val view = LocalView.current
     val navBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
     val scrimColor = MaterialTheme.colorScheme.surface
-    val barBackgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
+    val barBackgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.90f)
 
     Box(
         modifier = modifier
