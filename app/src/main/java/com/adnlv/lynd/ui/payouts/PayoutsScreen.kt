@@ -192,8 +192,6 @@ fun PayoutsScreen(
                 uiState.payouts.groupBy { it.payDate }
             }
 
-            val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
@@ -260,7 +258,7 @@ fun PayoutsScreen(
                                     text = "${Formatters.formatAmount(totalAmount)} $symbol",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
-                                    color = PayoutColors.totalAmount(isDark)
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
