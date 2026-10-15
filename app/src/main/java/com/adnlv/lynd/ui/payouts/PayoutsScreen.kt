@@ -234,13 +234,11 @@ fun PayoutsScreen(
                         )
                     }
 
-                    val dateTotalsByCurrency = remember(payoutsForDate) {
-                        payoutsForDate
-                            .groupBy { it.currency }
-                            .mapValues { (_, items) ->
-                                items.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.payoutAmount) }
-                            }
-                    }
+                    val dateTotalsByCurrency = payoutsForDate
+                        .groupBy { it.currency }
+                        .mapValues { (_, items) ->
+                            items.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.payoutAmount) }
+                        }
 
                     dateTotalsByCurrency.forEach { (currency, totalAmount) ->
                         item(key = "total_${date}_$currency") {
