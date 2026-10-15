@@ -1,6 +1,5 @@
 package com.adnlv.lynd.ui.payouts
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,9 +19,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,40 +46,13 @@ fun PayoutsScreen(
     Column(
         modifier = modifier.fillMaxSize()
     ) {
-        SingleChoiceSegmentedButtonRow(
+        PayoutCategorySelector(
+            selectedTab = uiState.selectedTab,
+            onTabSelected = viewModel::selectTab,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            val navBarContainerColor = MaterialTheme.colorScheme.surfaceContainer
-            PayoutTab.entries.forEachIndexed { index, tab ->
-                val isSelected = tab == uiState.selectedTab
-                val label = when (tab) {
-                    PayoutTab.UPCOMING -> "Upcoming"
-                    PayoutTab.RECEIVED -> "Received"
-                }
-                SegmentedButton(
-                    selected = isSelected,
-                    onClick = { viewModel.selectTab(tab) },
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = PayoutTab.entries.size
-                    ),
-                    border = BorderStroke(0.dp, Color.Transparent),
-                    colors = SegmentedButtonDefaults.colors(
-                        inactiveContainerColor = navBarContainerColor
-                    ),
-                    icon = {},
-                    label = {
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                        )
-                    }
-                )
-            }
-        }
+        )
 
         if (uiState.availableCurrencies.size > 1) {
             Box(
