@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,14 +56,14 @@ import com.adnlv.lynd.util.HapticFeedbackHelper
 
 private val FloatingBarHeight = 64.dp
 private val BlurRadius = 20.dp
-private val IconSize = 22.dp
-private val ItemSpacing = 2.dp
-private val ContainerHorizontalMargin = 20.dp
+private val IconSize = 20.dp
+private val ItemSpacing = 1.dp
+private val ContainerHorizontalMargin = 16.dp
 private val ContainerBottomMargin = 12.dp
 private val ContainerInnerPaddingHorizontal = 8.dp
-private val ContainerInnerPaddingVertical = 6.dp
-private val PillPaddingHorizontal = 4.dp
-private val PillPaddingVertical = 2.dp
+private val ContainerInnerPaddingVertical = 4.dp
+private val PillPaddingHorizontal = 2.dp
+private val PillPaddingVertical = 0.dp
 
 @Composable
 fun LyndBottomBar(
@@ -230,7 +231,9 @@ fun LyndBottomBar(
                                 color = itemColor,
                                 fontSize = 10.sp,
                                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                                maxLines = 1
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
