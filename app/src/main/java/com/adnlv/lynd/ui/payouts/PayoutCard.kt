@@ -1,6 +1,5 @@
 package com.adnlv.lynd.ui.payouts
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,14 +30,6 @@ fun PayoutCard(
         PayoutTab.RECEIVED -> 0.75f
     }
 
-    val isDark = isSystemInDarkTheme()
-    val isCoupon = payout.payType.equals("Coupon", ignoreCase = true)
-    val amountColor = if (isCoupon) {
-        PayoutColors.couponAmount(isDark)
-    } else {
-        PayoutColors.redemptionAmount(isDark)
-    }
-
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -65,8 +56,8 @@ fun PayoutCard(
             Text(
                 text = "$formattedAmount ${Formatters.getCurrencySymbol(payout.currency)}",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = amountColor
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.outline
             )
         }
     }
