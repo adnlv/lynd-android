@@ -1,5 +1,6 @@
 package com.adnlv.lynd.ui.payouts
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,9 +26,22 @@ fun PayoutCard(
     tab: PayoutTab,
     modifier: Modifier = Modifier
 ) {
-    val (cardAlpha, accentColor) = when (tab) {
-        PayoutTab.UPCOMING -> 1.0f to MaterialTheme.colorScheme.primary
-        PayoutTab.RECEIVED -> 0.75f to MaterialTheme.colorScheme.primary
+    val cardAlpha = when (tab) {
+        PayoutTab.UPCOMING -> 1.0f
+        PayoutTab.RECEIVED -> 0.75f
+    }
+
+    val isDark = isSystemInDarkTheme()
+    val isCoupon = payout.payType.equals("Coupon", ignoreCase = true)
+    val labelColor = if (isCoupon) {
+        PayoutColors.couponLabel(isDark)
+    } else {
+        PayoutColors.redemptionLabel(isDark)
+    }
+    val amountColor = if (isCoupon) {
+        PayoutColors.couponAmount(isDark)
+    } else {
+        PayoutColors.redemptionAmount(isDark)
     }
 
     Card(
@@ -48,7 +62,7 @@ fun PayoutCard(
                 text = payout.payType,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = labelColor
             )
             val formattedAmount = remember(payout.payoutAmount) {
                 Formatters.formatAmount(payout.payoutAmount)
@@ -57,7 +71,7 @@ fun PayoutCard(
                 text = "$formattedAmount ${Formatters.getCurrencySymbol(payout.currency)}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = accentColor
+                color = amountColor
             )
         }
     }
