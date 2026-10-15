@@ -3,6 +3,8 @@ package com.adnlv.lynd.ui.payouts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.adnlv.lynd.data.db.PayoutDao
 import com.adnlv.lynd.domain.PayoutItem
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -143,12 +145,10 @@ class PayoutsViewModel(
     }
 
     companion object {
-        fun provideFactory(payoutDao: PayoutDao): ViewModelProvider.Factory =
-            object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return PayoutsViewModel(payoutDao) as T
-                }
+        fun provideFactory(payoutDao: PayoutDao): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                PayoutsViewModel(payoutDao)
             }
+        }
     }
 }

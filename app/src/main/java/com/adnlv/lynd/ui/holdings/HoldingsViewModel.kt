@@ -3,6 +3,8 @@ package com.adnlv.lynd.ui.holdings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.BondDao
 import com.adnlv.lynd.data.db.HoldingDao
@@ -179,12 +181,10 @@ class HoldingsViewModel(
             holdingDao: HoldingDao,
             nbuRepository: NbuRepository,
             bondDao: BondDao
-        ): ViewModelProvider.Factory =
-            object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return HoldingsViewModel(holdingDao, nbuRepository, bondDao) as T
-                }
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                HoldingsViewModel(holdingDao, nbuRepository, bondDao)
             }
+        }
     }
 }

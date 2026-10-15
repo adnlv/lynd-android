@@ -3,6 +3,8 @@ package com.adnlv.lynd.ui.overview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.BondDao
 import com.adnlv.lynd.data.db.HoldingDao
@@ -66,12 +68,10 @@ class OverviewViewModel(
             holdingDao: HoldingDao,
             bondDao: BondDao,
             payoutDao: PayoutDao
-        ): ViewModelProvider.Factory =
-            object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return OverviewViewModel(holdingDao, bondDao, payoutDao) as T
-                }
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                OverviewViewModel(holdingDao, bondDao, payoutDao)
             }
+        }
     }
 }
