@@ -10,10 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -22,11 +27,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.util.Formatters
 import java.math.BigDecimal
@@ -79,18 +87,86 @@ fun PayoutsScreen(
         }
 
         if (uiState.availableCurrencies.size > 1) {
-            LazyRow(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
             ) {
-                items(uiState.availableCurrencies) { currency ->
-                    FilterChip(
-                        selected = currency.equals(uiState.selectedCurrency, ignoreCase = true),
-                        onClick = { viewModel.selectCurrency(currency) },
-                        label = { Text(Formatters.getCurrencySymbol(currency)) }
+                var menuExpanded by remember { mutableStateOf(false) }
+                val isAllSelected = remember(uiState.selectedCurrencies, uiState.availableCurrencies) {
+                    uiState.availableCurrencies.isNotEmpty() &&
+                        uiState.availableCurrencies.all { it in uiState.selectedCurrencies }
+                }
+
+                val filterLabel = remember(uiState.selectedCurrencies, uiState.availableCurrencies) {
+                    val count = uiState.selectedCurrencies.size
+                    val total = uiState.availableCurrencies.size
+                    val symbols = uiState.selectedCurrencies.joinToString(", ") { Formatters.getCurrencySymbol(it) }
+                    when {
+                        count == 1 -> {
+                            val single = uiState.selectedCurrencies.first()
+                            "Currency: ${Formatters.getCurrencySymbol(single)} ($single)"
+                        }
+                        isAllSelected || (total > 0 && count == total) -> "All currencies ($symbols)"
+                        else -> "Currencies: $symbols"
+                    }
+                }
+
+                FilterChip(
+                    selected = true,
+                    onClick = { menuExpanded = true },
+                    label = {
+                        Text(
+                            text = filterLabel,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Expand currency filter"
+                        )
+                    }
+                )
+
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Select all") },
+                        leadingIcon = {
+                            Checkbox(
+                                checked = isAllSelected,
+                                onCheckedChange = null
+                            )
+                        },
+                        onClick = {
+                            if (isAllSelected) {
+                                val primary = uiState.availableCurrencies.firstOrNull { it == "UAH" }
+                                    ?: uiState.availableCurrencies.firstOrNull()
+                                if (primary != null) viewModel.selectCurrency(primary)
+                            } else {
+                                viewModel.selectAllCurrencies(uiState.availableCurrencies)
+                            }
+                        }
                     )
+                    HorizontalDivider()
+                    uiState.availableCurrencies.forEach { currency ->
+                        val isSelected = currency in uiState.selectedCurrencies
+                        val symbol = Formatters.getCurrencySymbol(currency)
+                        DropdownMenuItem(
+                            text = { Text("$symbol  $currency") },
+                            leadingIcon = {
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = null
+                                )
+                            },
+                            onClick = { viewModel.toggleCurrency(currency) }
+                        )
+                    }
                 }
             }
         }
@@ -114,12 +190,6 @@ fun PayoutsScreen(
             val dateFormatter = remember { DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()) }
             val groupedPayouts = remember(uiState.payouts) {
                 uiState.payouts.groupBy { it.payDate }
-            }
-            val currencySymbol = remember(uiState.selectedCurrency, uiState.payouts) {
-                val currency = uiState.selectedCurrency.ifBlank {
-                    uiState.payouts.firstOrNull()?.currency.orEmpty()
-                }
-                Formatters.getCurrencySymbol(currency)
             }
 
             val isDark = androidx.compose.foundation.isSystemInDarkTheme()
@@ -163,29 +233,38 @@ fun PayoutsScreen(
                             tab = uiState.selectedTab
                         )
                     }
-                    item(key = "total_$date") {
-                        val dateTotal = remember(payoutsForDate) {
-                            payoutsForDate.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.payoutAmount) }
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Total",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = "${Formatters.formatAmount(dateTotal)} $currencySymbol",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = PayoutColors.totalAmount(isDark)
-                            )
+
+                    val dateTotalsByCurrency = remember(payoutsForDate) {
+                        payoutsForDate
+                            .groupBy { it.currency }
+                            .mapValues { (_, items) ->
+                                items.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.payoutAmount) }
+                            }
+                    }
+
+                    dateTotalsByCurrency.forEach { (currency, totalAmount) ->
+                        item(key = "total_${date}_$currency") {
+                            val symbol = Formatters.getCurrencySymbol(currency)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (dateTotalsByCurrency.size > 1) "Total ($currency)" else "Total",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "${Formatters.formatAmount(totalAmount)} $symbol",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PayoutColors.totalAmount(isDark)
+                                )
+                            }
                         }
                     }
                 }
