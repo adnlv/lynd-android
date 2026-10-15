@@ -28,9 +28,9 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -79,7 +80,8 @@ fun LyndBottomBar(
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(
-                horizontal = ContainerHorizontalMargin,
+                start = ContainerHorizontalMargin,
+                end = ContainerHorizontalMargin,
                 bottom = ContainerBottomMargin
             )
     ) {
@@ -139,7 +141,7 @@ fun LyndBottomBar(
                     if (pillAlpha > 0f) {
                         Box(
                             modifier = Modifier
-                                .offset(x = pillOffset)
+                                .offset { IntOffset(x = pillOffset.roundToPx(), y = 0) }
                                 .width(tabWidth)
                                 .fillMaxHeight()
                                 .padding(
@@ -204,7 +206,7 @@ fun LyndBottomBar(
                                     modifier = Modifier.size(IconSize)
                                 )
                                 Screen.Planner -> Icon(
-                                    imageVector = Icons.Default.TrendingUp,
+                                    imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                                     contentDescription = screen.title,
                                     tint = itemColor,
                                     modifier = Modifier.size(IconSize)
