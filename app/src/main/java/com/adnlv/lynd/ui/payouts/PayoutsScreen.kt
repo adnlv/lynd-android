@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.util.Formatters
+import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -114,6 +115,15 @@ fun PayoutsScreen(
             val groupedPayouts = remember(uiState.payouts) {
                 uiState.payouts.groupBy { it.payDate }
             }
+            val totalAmount = remember(uiState.payouts) {
+                uiState.payouts.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.payoutAmount) }
+            }
+            val currencySymbol = remember(uiState.selectedCurrency, uiState.payouts) {
+                val currency = uiState.selectedCurrency.ifBlank {
+                    uiState.payouts.firstOrNull()?.currency.orEmpty()
+                }
+                Formatters.getCurrencySymbol(currency)
+            }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -152,6 +162,32 @@ fun PayoutsScreen(
                         PayoutCard(
                             payout = payout,
                             tab = uiState.selectedTab
+                        )
+                    }
+                }
+                item(key = "summary_total") {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Total",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "${Formatters.formatAmount(totalAmount)} $currencySymbol",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
