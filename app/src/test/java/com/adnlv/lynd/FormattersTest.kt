@@ -39,4 +39,20 @@ class FormattersTest {
         val formatted = Formatters.formatDate(date, Locale.forLanguageTag("uk-UA"))
         assertEquals("15 вер. 2026", formatted)
     }
+
+    @Test
+    fun getCurrencySymbol_returnsKnownSymbols() {
+        assertEquals("₴", Formatters.getCurrencySymbol("UAH"))
+        assertEquals("₴", Formatters.getCurrencySymbol("uah"))
+        assertEquals("$", Formatters.getCurrencySymbol("USD"))
+        assertEquals("€", Formatters.getCurrencySymbol("EUR"))
+        assertEquals("£", Formatters.getCurrencySymbol("GBP"))
+        assertEquals("zł", Formatters.getCurrencySymbol("PLN"))
+    }
+
+    @Test
+    fun getCurrencySymbol_fallsBackForUnknownCurrency() {
+        assertEquals("XYZ", Formatters.getCurrencySymbol("XYZ"))
+    }
 }
+

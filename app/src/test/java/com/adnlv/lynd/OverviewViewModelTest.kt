@@ -73,10 +73,8 @@ class OverviewViewModelTest {
         // Payout = 75.00 * 5 = 375.00
         assertEquals(BigDecimal("375.00"), state.summaries[0].expectedPayout)
 
-        // Cashflows and allocations
+        // Cashflows
         assertTrue(state.cashFlowsByCurrency.containsKey("UAH"))
-        assertEquals(1, state.currencyAllocations.size)
-        assertEquals("UAH", state.currencyAllocations[0].currency)
 
         collectJob.cancel()
     }

@@ -3,6 +3,8 @@ package com.adnlv.lynd.ui.holdings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.BondDao
 import com.adnlv.lynd.data.db.HoldingDao
@@ -61,6 +63,15 @@ class HoldingsViewModel(
 
     suspend fun searchBonds(query: String): List<String> {
         return bondDao.searchBondsByIsin(query)
+    }
+
+    suspend fun searchBonds(prefix: String, codeQuery: String): List<String> {
+        val candidates = bondDao.getBondsByPrefix(prefix)
+        return com.adnlv.lynd.domain.ApproximateStringMatcher.filterAndSort(candidates, prefix, codeQuery)
+    }
+
+    suspend fun getBond(isin: String): com.adnlv.lynd.data.db.BondEntity? {
+        return bondDao.getBond(isin)
     }
 
     fun saveHolding(holding: HoldingEntity, onComplete: (() -> Unit)? = null) {
@@ -170,12 +181,10 @@ class HoldingsViewModel(
             holdingDao: HoldingDao,
             nbuRepository: NbuRepository,
             bondDao: BondDao
-        ): ViewModelProvider.Factory =
-            object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return HoldingsViewModel(holdingDao, nbuRepository, bondDao) as T
-                }
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                HoldingsViewModel(holdingDao, nbuRepository, bondDao)
             }
+        }
     }
 }

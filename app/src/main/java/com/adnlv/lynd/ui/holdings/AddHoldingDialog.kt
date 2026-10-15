@@ -15,6 +15,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -70,8 +71,7 @@ fun AddHoldingDialog(
 
     LaunchedEffect(codeInput.text, selectedPrefix, isCodeFocused) {
         if (isCodeFocused || codeInput.text.isNotEmpty()) {
-            val query = "$selectedPrefix${codeInput.text}"
-            val results = viewModel.searchBonds(query)
+            val results = viewModel.searchBonds(selectedPrefix, codeInput.text)
             matchingBonds = results
             codeError = IsinValidator.validateCodeInput(
                 code = codeInput.text,
@@ -98,6 +98,17 @@ fun AddHoldingDialog(
     }
 
     val fullIsin = "$selectedPrefix${codeInput.text}"
+    var selectedCurrency by remember { mutableStateOf("UAH") }
+
+    LaunchedEffect(fullIsin) {
+        if (fullIsin.length == 12) {
+            val bond = viewModel.getBond(fullIsin)
+            selectedCurrency = bond?.currency?.takeIf { it.isNotBlank() } ?: "UAH"
+        } else {
+            selectedCurrency = "UAH"
+        }
+    }
+
     val isFormValid = fullIsin.length == 12 &&
         codeError == null &&
         IsinValidator.isValid(fullIsin) &&
@@ -233,8 +244,7 @@ fun AddHoldingDialog(
                                     val computedTotal = BondPriceCalculator.calculateTotalPrice(parsed, quantity)
                                     totalPriceInput = computedTotal.toPlainString()
                                 }
-                            },
-                            quantity = quantity
+                            }
                         )
                     }
                 }

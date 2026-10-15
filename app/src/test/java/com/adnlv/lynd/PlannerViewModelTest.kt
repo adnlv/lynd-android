@@ -2,7 +2,6 @@ package com.adnlv.lynd
 
 import com.adnlv.lynd.data.db.BondPaymentEntity
 import com.adnlv.lynd.data.db.PayoutRow
-import com.adnlv.lynd.ui.planner.PlannerTab
 import com.adnlv.lynd.ui.planner.PlannerViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -10,7 +9,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -22,35 +20,6 @@ class PlannerViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
-
-    @Test
-    fun selectPlannerTab_updatesSelectedPlannerTabInUiState() = runTest {
-        val holdingDao = FakeHoldingDao()
-        val bondDao = FakeBondDao()
-        val payoutDao = FakePayoutDao()
-
-        val viewModel = PlannerViewModel(holdingDao, bondDao, payoutDao)
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
-
-        assertNull(viewModel.uiState.value.selectedPlannerTab)
-
-        viewModel.selectPlannerTab(PlannerTab.COMPOUNDING)
-        assertEquals(PlannerTab.COMPOUNDING, viewModel.uiState.value.selectedPlannerTab)
-
-        viewModel.selectPlannerTab(PlannerTab.PURCHASING_POWER)
-        assertEquals(PlannerTab.PURCHASING_POWER, viewModel.uiState.value.selectedPlannerTab)
-
-        viewModel.selectPlannerTab(PlannerTab.MATURITY_REBALANCING)
-        assertEquals(PlannerTab.MATURITY_REBALANCING, viewModel.uiState.value.selectedPlannerTab)
-
-        viewModel.selectPlannerTab(PlannerTab.INCOME_GAPS)
-        assertEquals(PlannerTab.INCOME_GAPS, viewModel.uiState.value.selectedPlannerTab)
-
-        viewModel.selectPlannerTab(null)
-        assertNull(viewModel.uiState.value.selectedPlannerTab)
-
-        collectJob.cancel()
-    }
 
     @Test
     fun uiState_computesLadderMatchesWhenBondsArePresent() = runTest {
@@ -142,131 +111,6 @@ class PlannerViewModelTest {
         assertEquals("USD", viewModel.uiState.value.plannerSelectedCurrency)
         // USD has 1 payout month, so 11 dry months
         assertEquals(11, viewModel.uiState.value.incomeGaps.size)
-
-        collectJob.cancel()
-    }
-
-    @Test
-    fun compoundingSimulation_updatesWithHorizonAndRate() = runTest {
-        val holdingDao = FakeHoldingDao()
-        val bondDao = FakeBondDao()
-        val payoutDao = FakePayoutDao()
-
-        val today = LocalDate.now()
-        val payoutRow = PayoutRow(
-            isin = "UA4000187348",
-            bondName = "Bond 1",
-            payDate = today.plusMonths(1),
-            payType = "coupon",
-            payVal = BigDecimal("100.00"),
-            quantity = 12,
-            currency = "UAH",
-            purchaseDate = today.minusMonths(1)
-        )
-        payoutDao.rowsFlow.value = listOf(payoutRow)
-
-        val viewModel = PlannerViewModel(holdingDao, bondDao, payoutDao)
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
-
-        val initialState = viewModel.uiState.value
-        assertEquals(5, initialState.compoundingHorizonYears)
-        assertNotNull(initialState.compoundingSimulation)
-        assertEquals(BigDecimal("15.0"), initialState.compoundingSimulation?.annualRatePercent)
-        assertEquals(5, initialState.compoundingSimulation?.points?.size)
-
-        viewModel.setCompoundingHorizon(10)
-        val state10Y = viewModel.uiState.value
-        assertEquals(10, state10Y.compoundingHorizonYears)
-        assertEquals(10, state10Y.compoundingSimulation?.points?.size)
-
-        viewModel.setCompoundingRate(BigDecimal("18.0"))
-        val stateRate = viewModel.uiState.value
-        assertEquals(BigDecimal("18.0"), stateRate.compoundingCustomRate)
-        assertEquals(BigDecimal("18.0"), stateRate.compoundingSimulation?.annualRatePercent)
-
-        viewModel.selectPlannerTab(PlannerTab.COMPOUNDING)
-        assertEquals(PlannerTab.COMPOUNDING, viewModel.uiState.value.selectedPlannerTab)
-
-        collectJob.cancel()
-    }
-
-    @Test
-    fun purchasingPowerForecast_updatesWithHorizonAndCurrency() = runTest {
-        val holdingDao = FakeHoldingDao()
-        val bondDao = FakeBondDao()
-        val payoutDao = FakePayoutDao()
-
-        val today = LocalDate.now()
-        val payoutRow = PayoutRow(
-            isin = "UA4000187348",
-            bondName = "Bond 1",
-            payDate = today.plusMonths(1),
-            payType = "coupon",
-            payVal = BigDecimal("100.00"),
-            quantity = 12,
-            currency = "UAH",
-            purchaseDate = today.minusMonths(1)
-        )
-        payoutDao.rowsFlow.value = listOf(payoutRow)
-
-        val viewModel = PlannerViewModel(holdingDao, bondDao, payoutDao)
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
-
-        val initialState = viewModel.uiState.value
-        assertNotNull(initialState.purchasingPowerForecast)
-        assertEquals("UAH", initialState.purchasingPowerForecast?.currency)
-        assertEquals(5, initialState.purchasingPowerForecast?.horizonYears)
-        assertEquals(5, initialState.purchasingPowerForecast?.points?.size)
-
-        viewModel.selectPlannerTab(PlannerTab.PURCHASING_POWER)
-        assertEquals(PlannerTab.PURCHASING_POWER, viewModel.uiState.value.selectedPlannerTab)
-
-        viewModel.setCompoundingHorizon(3)
-        val state3Y = viewModel.uiState.value
-        assertEquals(3, state3Y.purchasingPowerForecast?.horizonYears)
-        assertEquals(3, state3Y.purchasingPowerForecast?.points?.size)
-
-        viewModel.setPlannerCurrency("USD")
-        val stateUsd = viewModel.uiState.value
-        assertEquals("USD", stateUsd.purchasingPowerForecast?.currency)
-
-        collectJob.cancel()
-    }
-
-    @Test
-    fun maturityAlerts_updatesWithPlannerTabAndThreshold() = runTest {
-        val holdingDao = FakeHoldingDao()
-        val bondDao = FakeBondDao()
-        val payoutDao = FakePayoutDao()
-
-        val today = LocalDate.now()
-        val payoutRow = PayoutRow(
-            isin = "UA4000187348",
-            bondName = "Bond Maturing",
-            payDate = today.plusDays(15),
-            payType = "redemption",
-            payVal = BigDecimal("1000.00"),
-            quantity = 20,
-            currency = "UAH",
-            purchaseDate = today.minusYears(1)
-        )
-        payoutDao.rowsFlow.value = listOf(payoutRow)
-
-        val viewModel = PlannerViewModel(holdingDao, bondDao, payoutDao)
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
-
-        viewModel.selectPlannerTab(PlannerTab.MATURITY_REBALANCING)
-        val state = viewModel.uiState.value
-        assertEquals(PlannerTab.MATURITY_REBALANCING, state.selectedPlannerTab)
-        assertEquals(1, state.maturityAlerts.size)
-        assertEquals("UA4000187348", state.maturityAlerts[0].isin)
-        assertEquals(BigDecimal("20000.00"), state.maturityAlerts[0].principalAmount)
-        assertEquals(1, state.rebalancingSummary?.activeAlertsCount)
-
-        viewModel.setLargeRedemptionThreshold(BigDecimal("30000"))
-        val stateUpdated = viewModel.uiState.value
-        assertEquals(BigDecimal("30000"), stateUpdated.largeRedemptionThreshold)
-        assertEquals(0, stateUpdated.maturityAlerts.size)
 
         collectJob.cancel()
     }

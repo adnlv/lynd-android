@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -102,7 +103,8 @@ fun HoldingsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 32.dp, end = 0.dp),
+                    .navigationBarsPadding()
+                    .padding(start = 32.dp, end = 0.dp, bottom = 80.dp),
                 horizontalAlignment = Alignment.End
             ) {
                 FloatingActionButton(
@@ -170,7 +172,7 @@ fun HoldingsScreen(
                         start = 16.dp,
                         top = 16.dp,
                         end = 16.dp,
-                        bottom = 88.dp
+                        bottom = 100.dp
                     ),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {

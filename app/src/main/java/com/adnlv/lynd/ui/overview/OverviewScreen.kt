@@ -58,7 +58,7 @@ fun OverviewScreen(
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 20.dp),
+                contentPadding = PaddingValues(top = 20.dp, bottom = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 item {
@@ -90,13 +90,6 @@ fun OverviewScreen(
                     MaturityScheduleChartCard(
                         maturities = activeMaturities,
                         currency = activeCurrency,
-                        modifier = Modifier.padding(horizontal = 20.dp)
-                    )
-                }
-
-                item {
-                    CurrencyAllocationCard(
-                        allocations = uiState.currencyAllocations,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 }

@@ -1,21 +1,25 @@
 package com.adnlv.lynd.ui.holdings.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -24,7 +28,6 @@ fun BondPriceInputs(
     onTotalPriceChange: (String) -> Unit,
     pricePerBondInput: String,
     onPricePerBondChange: (String) -> Unit,
-    quantity: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -35,37 +38,57 @@ fun BondPriceInputs(
         OutlinedTextField(
             value = totalPriceInput,
             onValueChange = onTotalPriceChange,
-            label = { Text("Total Price") },
-            placeholder = { Text("1000.00") },
+            label = { Text("Total spent") },
+            placeholder = {
+                Text(
+                    text = "1000.00",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Row(
+        Box(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Link,
-                contentDescription = "Linked price",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = "x $quantity",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SwapVert,
+                    contentDescription = "Linked price fields",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .size(18.dp)
+                )
+            }
         }
 
         OutlinedTextField(
             value = pricePerBondInput,
             onValueChange = onPricePerBondChange,
-            label = { Text("Price per Bond") },
-            placeholder = { Text("1000.00") },
+            label = { Text("Paid per Bond") },
+            placeholder = {
+                Text(
+                    text = "1000.00",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Text(
+            text = "Adjusting either field updates the other",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
     }

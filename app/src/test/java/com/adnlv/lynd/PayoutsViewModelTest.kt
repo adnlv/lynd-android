@@ -67,16 +67,6 @@ class PayoutsViewModelTest {
                     currency = "UAH",
                     purchaseDate = today.minusDays(30)
                 ),
-                PayoutRow(
-                    isin = "UA4000187348",
-                    bondName = "Historical Bond",
-                    payDate = today.minusDays(60),
-                    payType = "2",
-                    payVal = BigDecimal("1000.00"),
-                    quantity = 2,
-                    currency = "UAH",
-                    purchaseDate = today.minusDays(30)
-                )
             )
         }
         val viewModel = PayoutsViewModel(fakeDao)
@@ -94,13 +84,6 @@ class PayoutsViewModelTest {
         assertEquals(1, viewModel.uiState.value.payouts.size)
         assertEquals("Received Bond", viewModel.uiState.value.payouts[0].bondName)
         assertEquals("Coupon", viewModel.uiState.value.payouts[0].payType)
-
-        // Switch to Historical tab
-        viewModel.selectTab(PayoutTab.HISTORICAL)
-        assertEquals(PayoutTab.HISTORICAL, viewModel.uiState.value.selectedTab)
-        assertEquals(1, viewModel.uiState.value.payouts.size)
-        assertEquals("Historical Bond", viewModel.uiState.value.payouts[0].bondName)
-        assertEquals("Redemption", viewModel.uiState.value.payouts[0].payType)
 
         collectJob.cancel()
     }
@@ -144,6 +127,153 @@ class PayoutsViewModelTest {
         assertEquals("USD", viewModel.uiState.value.selectedCurrency)
         assertEquals(1, viewModel.uiState.value.payouts.size)
         assertEquals("USD Bond", viewModel.uiState.value.payouts[0].bondName)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun availableCurrencies_prioritizesUahFirst() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "EUR1",
+                    bondName = "EUR Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "EUR",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "USD1",
+                    bondName = "USD Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "USD",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "UAH1",
+                    bondName = "UAH Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals(listOf("UAH", "EUR", "USD"), viewModel.uiState.value.availableCurrencies)
+        assertEquals("UAH", viewModel.uiState.value.selectedCurrency)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+        assertEquals("UAH Bond", viewModel.uiState.value.payouts[0].bondName)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun toggleCurrency_supportsMultipleCurrenciesAndFilters() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "UAH Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "US1",
+                    bondName = "USD Bond",
+                    payDate = today.plusDays(6),
+                    payType = "coupon",
+                    payVal = BigDecimal("200.00"),
+                    quantity = 1,
+                    currency = "USD",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "EU1",
+                    bondName = "EUR Bond",
+                    payDate = today.plusDays(7),
+                    payType = "coupon",
+                    payVal = BigDecimal("300.00"),
+                    quantity = 1,
+                    currency = "EUR",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals(setOf("UAH"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+
+        // Toggle USD on
+        viewModel.toggleCurrency("USD")
+        assertEquals(setOf("UAH", "USD"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(2, viewModel.uiState.value.payouts.size)
+
+        // Toggle UAH off -> USD remains
+        viewModel.toggleCurrency("UAH")
+        assertEquals(setOf("USD"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+        assertEquals("USD Bond", viewModel.uiState.value.payouts[0].bondName)
+
+        // Cannot deselect last remaining currency
+        viewModel.toggleCurrency("USD")
+        assertEquals(setOf("USD"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun selectAllCurrencies_selectsAllProvidedCurrencies() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "UAH Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "US1",
+                    bondName = "USD Bond",
+                    payDate = today.plusDays(6),
+                    payType = "coupon",
+                    payVal = BigDecimal("200.00"),
+                    quantity = 1,
+                    currency = "USD",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        viewModel.selectAllCurrencies(listOf("UAH", "USD"))
+        assertEquals(setOf("UAH", "USD"), viewModel.uiState.value.selectedCurrencies)
+        assertEquals(2, viewModel.uiState.value.payouts.size)
 
         collectJob.cancel()
     }

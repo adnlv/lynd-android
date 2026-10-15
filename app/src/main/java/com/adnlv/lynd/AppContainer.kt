@@ -8,7 +8,6 @@ import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.AppDatabase
 import com.adnlv.lynd.data.network.NbuApiService
 import com.adnlv.lynd.data.network.NbuRepository
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,6 +16,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 
 class AppContainer(context: Context) {
@@ -25,7 +25,7 @@ class AppContainer(context: Context) {
         AppDatabase::class.java,
         "lynd_database"
     )
-        .fallbackToDestructiveMigration()
+        .fallbackToDestructiveMigration(dropAllTables = true)
         .addCallback(object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
