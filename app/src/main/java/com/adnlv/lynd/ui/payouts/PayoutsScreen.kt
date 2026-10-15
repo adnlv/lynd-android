@@ -125,6 +125,8 @@ fun PayoutsScreen(
                 Formatters.getCurrencySymbol(currency)
             }
 
+            val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
@@ -164,16 +166,37 @@ fun PayoutsScreen(
                             tab = uiState.selectedTab
                         )
                     }
+                    item(key = "total_$date") {
+                        val dateTotal = remember(payoutsForDate) {
+                            payoutsForDate.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.payoutAmount) }
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Total",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${Formatters.formatAmount(dateTotal)} $currencySymbol",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = PayoutColors.totalAmount(isDark)
+                            )
+                        }
+                    }
                 }
                 item(key = "summary_total") {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                    )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp),
+                            .padding(top = 16.dp, bottom = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -187,7 +210,7 @@ fun PayoutsScreen(
                             text = "${Formatters.formatAmount(totalAmount)} $currencySymbol",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = PayoutColors.totalAmount(isDark)
                         )
                     }
                 }
