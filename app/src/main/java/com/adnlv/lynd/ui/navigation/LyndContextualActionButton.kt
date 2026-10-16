@@ -1,8 +1,6 @@
 package com.adnlv.lynd.ui.navigation
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -28,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -42,13 +39,6 @@ private val ActionIconSize = 20.dp
 private val ActionItemSpacing = 4.dp
 private const val ActionTransitionDurationMillis = 220
 
-private data class ContextualButtonVisualState(
-    val baseAction: BottomBarAction,
-    val displayIcon: ImageVector,
-    val displayContentDescription: String,
-    val isContextualActive: Boolean
-)
-
 @Composable
 fun LyndContextualActionButton(
     action: BottomBarAction,
@@ -59,14 +49,6 @@ fun LyndContextualActionButton(
         mutableStateOf(false)
     }
     val contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val isContextualActive = action.isContextualActive(menuExpanded)
-
-    val currentVisualState = ContextualButtonVisualState(
-        baseAction = action,
-        displayIcon = action.resolveIcon(menuExpanded),
-        displayContentDescription = action.resolveContentDescription(menuExpanded),
-        isContextualActive = isContextualActive
-    )
 
     Box(modifier = modifier) {
         LyndBottomBarCircleButton(
@@ -90,51 +72,45 @@ fun LyndContextualActionButton(
             }
         ) {
             AnimatedContent(
-                targetState = currentVisualState,
+                targetState = action,
                 modifier = Modifier.fillMaxSize(),
                 transitionSpec = {
-                    val isTogglingActiveState = initialState.isContextualActive != targetState.isContextualActive
-
-                    if (isTogglingActiveState) {
-                        EnterTransition.None.togetherWith(ExitTransition.None)
-                            .using(SizeTransform(clip = false))
-                    } else {
-                        (slideInVertically(
+                    (slideInVertically(
+                        animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+                        initialOffsetY = { fullHeight -> fullHeight }
+                    ) + fadeIn(
+                        animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
+                    )).togetherWith(
+                        slideOutVertically(
                             animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
-                            initialOffsetY = { fullHeight -> fullHeight }
-                        ) + fadeIn(
+                            targetOffsetY = { fullHeight -> fullHeight }
+                        ) + fadeOut(
                             animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
-                        )).togetherWith(
-                            slideOutVertically(
-                                animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
-                                targetOffsetY = { fullHeight -> fullHeight }
-                            ) + fadeOut(
-                                animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
-                            )
-                        ).using(SizeTransform(clip = false))
-                    }
+                        )
+                    ).using(SizeTransform(clip = false))
                 },
                 contentAlignment = Alignment.Center,
-                contentKey = { targetState ->
-                    targetState.baseAction.icon to targetState.isContextualActive
-                },
+                contentKey = { targetAction -> targetAction.icon },
                 label = "contextual_action_transition"
-            ) { targetState ->
+            ) { targetAction ->
+                val displayIcon = targetAction.resolveIcon(menuExpanded)
+                val displayContentDescription = targetAction.resolveContentDescription(menuExpanded)
+
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = targetState.displayIcon,
-                        contentDescription = targetState.displayContentDescription,
+                        imageVector = displayIcon,
+                        contentDescription = displayContentDescription,
                         tint = contentColor,
                         modifier = Modifier.size(ActionIconSize)
                     )
-                    if (!targetState.baseAction.label.isNullOrEmpty()) {
+                    if (!targetAction.label.isNullOrEmpty()) {
                         Spacer(modifier = Modifier.height(ActionItemSpacing))
                         Text(
-                            text = targetState.baseAction.label,
+                            text = targetAction.label,
                             color = contentColor,
                             style = TextStyle(
                                 fontSize = 10.sp,
