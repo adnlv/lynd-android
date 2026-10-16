@@ -2,12 +2,14 @@ package com.adnlv.lynd
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Tune
+import com.adnlv.lynd.ui.icons.Add
+import com.adnlv.lynd.ui.icons.Close
+import com.adnlv.lynd.ui.icons.Event
+import com.adnlv.lynd.ui.icons.FilterList
+import com.adnlv.lynd.ui.icons.Home
+import com.adnlv.lynd.ui.icons.MaterialSymbols
+import com.adnlv.lynd.ui.icons.PlannerReview
+import com.adnlv.lynd.ui.icons.Settings
 import com.adnlv.lynd.ui.navigation.BottomBarAction
 import com.adnlv.lynd.ui.navigation.BottomBarActionState
 import com.adnlv.lynd.ui.navigation.Screen
@@ -45,36 +47,37 @@ class ScreenNavigationTest {
 
     @Test
     fun screenIcons_matchExpectedVectors() {
-        assertEquals(Icons.Default.Dashboard, Screen.Overview.icon())
-        assertEquals(Icons.AutoMirrored.Filled.TrendingUp, Screen.Planner.icon())
-        assertEquals(Icons.Default.DateRange, Screen.Payouts.icon())
+        assertEquals(MaterialSymbols.Home, Screen.Overview.icon())
+        assertEquals(MaterialSymbols.PlannerReview, Screen.Planner.icon())
+        assertEquals(MaterialSymbols.Event, Screen.Payouts.icon())
         assertEquals(Icons.AutoMirrored.Filled.List, Screen.Holdings.icon())
+        assertEquals("close", MaterialSymbols.Close.name)
     }
 
     @Test
     fun bottomBarAction_defaultForRoute_returnsDistinctActionForEachScreen() {
         val overviewAction = BottomBarAction.defaultForRoute(Screen.Overview.route)
-        assertEquals(Icons.Default.Tune, overviewAction.icon)
+        assertEquals(MaterialSymbols.Settings, overviewAction.icon)
         assertNull(overviewAction.label)
         assertEquals("Overview actions", overviewAction.contentDescription)
 
         val plannerAction = BottomBarAction.defaultForRoute(Screen.Planner.route)
-        assertEquals(Icons.Default.FilterList, plannerAction.icon)
+        assertEquals(MaterialSymbols.FilterList, plannerAction.icon)
         assertNull(plannerAction.label)
         assertEquals("Planner actions", plannerAction.contentDescription)
 
         val payoutsAction = BottomBarAction.defaultForRoute(Screen.Payouts.route)
-        assertEquals(Icons.Default.FilterList, payoutsAction.icon)
+        assertEquals(MaterialSymbols.FilterList, payoutsAction.icon)
         assertNull(payoutsAction.label)
         assertEquals("Open filter menu", payoutsAction.contentDescription)
 
         val holdingsAction = BottomBarAction.defaultForRoute(Screen.Holdings.route)
-        assertEquals(Icons.Default.Add, holdingsAction.icon)
+        assertEquals(MaterialSymbols.Add, holdingsAction.icon)
         assertNull(holdingsAction.label)
         assertEquals("Holdings actions", holdingsAction.contentDescription)
 
         val nullAction = BottomBarAction.defaultForRoute(null)
-        assertEquals(Icons.Default.Tune, nullAction.icon)
+        assertEquals(MaterialSymbols.Settings, nullAction.icon)
         assertNull(nullAction.label)
     }
 
@@ -87,7 +90,7 @@ class ScreenNavigationTest {
         assertNull(defaultPayouts.menuContent)
 
         val customAction = BottomBarAction(
-            icon = Icons.Default.FilterList,
+            icon = MaterialSymbols.FilterList,
             label = "Filter",
             contentDescription = "Custom payouts filter",
             menuContent = {}
@@ -102,5 +105,24 @@ class ScreenNavigationTest {
         val cleared = state.actionForRoute(Screen.Payouts.route)
         assertNull(cleared.label)
         assertEquals("Open filter menu", cleared.contentDescription)
+    }
+
+    @Test
+    fun bottomBarAction_resolvesCloseIconWhenContextualStateIsActive() {
+        val action = BottomBarAction(
+            icon = MaterialSymbols.FilterList,
+            contentDescription = "Open filter menu",
+            activeContentDescription = "Close filter menu"
+        )
+
+        assertEquals(MaterialSymbols.FilterList, action.resolveIcon(isMenuExpanded = false))
+        assertEquals("Open filter menu", action.resolveContentDescription(isMenuExpanded = false))
+
+        assertEquals(MaterialSymbols.Close, action.resolveIcon(isMenuExpanded = true))
+        assertEquals("Close filter menu", action.resolveContentDescription(isMenuExpanded = true))
+
+        val activeAction = action.copy(isActive = true)
+        assertEquals(MaterialSymbols.Close, activeAction.resolveIcon(isMenuExpanded = false))
+        assertEquals("Close filter menu", activeAction.resolveContentDescription(isMenuExpanded = false))
     }
 }

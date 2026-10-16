@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.adnlv.lynd.ui.icons.FilterList
+import com.adnlv.lynd.ui.icons.MaterialSymbols
 import com.adnlv.lynd.ui.navigation.BottomBarAction
 import com.adnlv.lynd.util.Formatters
 import java.math.BigDecimal
@@ -40,8 +40,9 @@ fun PayoutsScreen(
     SideEffect {
         onActionChange?.invoke(
             BottomBarAction(
-                icon = Icons.Default.FilterList,
+                icon = MaterialSymbols.FilterList,
                 contentDescription = "Open filter menu",
+                activeContentDescription = "Close filter menu",
                 menuContent = {
                     PayoutFilterMenuContent(
                         selectedTab = uiState.selectedTab,

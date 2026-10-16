@@ -1,5 +1,7 @@
 package com.adnlv.lynd.ui.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -26,7 +28,11 @@ fun LyndNavHost(
     NavHost(
         navController = navController,
         startDestination = Screen.Overview.route,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None }
     ) {
         composable(Screen.Overview.route) {
             val overviewViewModel: OverviewViewModel = viewModel(

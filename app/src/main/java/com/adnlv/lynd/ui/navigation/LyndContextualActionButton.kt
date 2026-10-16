@@ -54,10 +54,20 @@ fun LyndContextualActionButton(
         LyndBottomBarCircleButton(
             onClick = {
                 HapticFeedbackHelper.vibratePageSwitch(view)
-                if (action.menuContent != null) {
-                    menuExpanded = true
-                } else {
-                    action.onClick()
+                when {
+                    menuExpanded -> {
+                        menuExpanded = false
+                        action.onCancel?.invoke()
+                    }
+                    action.isActive -> {
+                        action.onCancel?.invoke() ?: action.onClick()
+                    }
+                    action.menuContent != null -> {
+                        menuExpanded = true
+                    }
+                    else -> {
+                        action.onClick()
+                    }
                 }
             }
         ) {
@@ -83,14 +93,17 @@ fun LyndContextualActionButton(
                 contentKey = { targetAction -> targetAction.icon },
                 label = "contextual_action_transition"
             ) { targetAction ->
+                val displayIcon = targetAction.resolveIcon(menuExpanded)
+                val displayContentDescription = targetAction.resolveContentDescription(menuExpanded)
+
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = targetAction.icon,
-                        contentDescription = targetAction.contentDescription,
+                        imageVector = displayIcon,
+                        contentDescription = displayContentDescription,
                         tint = contentColor,
                         modifier = Modifier.size(ActionIconSize)
                     )

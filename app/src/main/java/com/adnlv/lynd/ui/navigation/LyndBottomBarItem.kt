@@ -12,9 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,14 +28,18 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.adnlv.lynd.ui.icons.Event
+import com.adnlv.lynd.ui.icons.Home
+import com.adnlv.lynd.ui.icons.MaterialSymbols
+import com.adnlv.lynd.ui.icons.PlannerReview
 
 private val IconSize = 20.dp
 private val ItemSpacing = 4.dp
 
 fun Screen.icon(): ImageVector = when (this) {
-    Screen.Overview -> Icons.Default.Dashboard
-    Screen.Planner -> Icons.AutoMirrored.Filled.TrendingUp
-    Screen.Payouts -> Icons.Default.DateRange
+    Screen.Overview -> MaterialSymbols.Home
+    Screen.Planner -> MaterialSymbols.PlannerReview
+    Screen.Payouts -> MaterialSymbols.Event
     Screen.Holdings -> Icons.AutoMirrored.Filled.List
 }
 

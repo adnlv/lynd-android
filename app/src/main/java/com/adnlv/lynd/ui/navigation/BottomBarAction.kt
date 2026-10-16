@@ -1,43 +1,61 @@
 package com.adnlv.lynd.ui.navigation
 
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.adnlv.lynd.ui.icons.Add
+import com.adnlv.lynd.ui.icons.Close
+import com.adnlv.lynd.ui.icons.FilterList
+import com.adnlv.lynd.ui.icons.MaterialSymbols
+import com.adnlv.lynd.ui.icons.Settings
 
 data class BottomBarAction(
     val icon: ImageVector,
     val contentDescription: String,
     val label: String? = null,
+    val isActive: Boolean = false,
+    val activeContentDescription: String = "Cancel action",
     val onClick: () -> Unit = {},
+    val onCancel: (() -> Unit)? = null,
     val menuContent: (@Composable ColumnScope.(onDismissRequest: () -> Unit) -> Unit)? = null
 ) {
+    fun isContextualActive(isMenuExpanded: Boolean = false): Boolean {
+        return isActive || isMenuExpanded
+    }
+
+    fun resolveIcon(isMenuExpanded: Boolean = false): ImageVector {
+        return if (isContextualActive(isMenuExpanded)) MaterialSymbols.Close else icon
+    }
+
+    fun resolveContentDescription(isMenuExpanded: Boolean = false): String {
+        return if (isContextualActive(isMenuExpanded)) activeContentDescription else contentDescription
+    }
+
     companion object {
         fun defaultForRoute(route: String?): BottomBarAction = when (route) {
             Screen.Overview.route -> BottomBarAction(
-                icon = Icons.Default.Tune,
+                icon = MaterialSymbols.Settings,
                 contentDescription = "Overview actions"
             )
             Screen.Planner.route -> BottomBarAction(
-                icon = Icons.Default.FilterList,
+                icon = MaterialSymbols.FilterList,
                 contentDescription = "Planner actions"
             )
             Screen.Payouts.route -> BottomBarAction(
-                icon = Icons.Default.FilterList,
-                contentDescription = "Open filter menu"
+                icon = MaterialSymbols.FilterList,
+                contentDescription = "Open filter menu",
+                activeContentDescription = "Close filter menu"
             )
             Screen.Holdings.route -> BottomBarAction(
-                icon = Icons.Default.Add,
-                contentDescription = "Holdings actions"
+                icon = MaterialSymbols.Add,
+                contentDescription = "Holdings actions",
+                activeContentDescription = "Cancel holding action"
             )
             else -> BottomBarAction(
-                icon = Icons.Default.Tune,
+                icon = MaterialSymbols.Settings,
                 contentDescription = "Contextual actions"
             )
         }

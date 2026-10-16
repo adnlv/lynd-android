@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -22,17 +21,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.adnlv.lynd.ui.components.LyndGlassSurface
 
 private val ContainerInnerPaddingHorizontal = 4.dp
 private val ContainerInnerPaddingVertical = 4.dp
 private val PillPaddingHorizontal = 2.dp
-private val PillPaddingVertical = 0.dp
+private val PillPaddingVertical = 1.dp
 
 @Composable
 fun LyndBottomBarPill(
@@ -41,25 +39,9 @@ fun LyndBottomBarPill(
     onTabSelected: (Screen) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val navBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-    val barBackgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.90f)
-
-    Box(
-        modifier = modifier
-            .height(FloatingBarHeight)
-            .shadow(
-                elevation = 8.dp,
-                shape = CircleShape,
-                spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.20f),
-                ambientColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-            )
-            .clip(CircleShape)
-            .background(barBackgroundColor)
-            .border(
-                width = 0.5.dp,
-                color = navBorderColor,
-                shape = CircleShape
-            )
+    LyndGlassSurface(
+        shape = CircleShape,
+        modifier = modifier.height(FloatingBarHeight)
     ) {
         BoxWithConstraints(
             modifier = Modifier
