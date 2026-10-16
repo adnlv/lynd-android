@@ -66,6 +66,9 @@ fun LyndNavHost(
                 viewModel = holdingsViewModel,
                 onActionChange = { action ->
                     bottomBarActionState?.setAction(Screen.Holdings.route, action)
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -77,6 +80,11 @@ fun LyndNavHost(
                 viewModel = payoutsViewModel,
                 onActionChange = { action ->
                     bottomBarActionState?.setAction(Screen.Payouts.route, action)
+                },
+                onNavigateToHoldings = {
+                    navController.navigate(Screen.Holdings.route) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
