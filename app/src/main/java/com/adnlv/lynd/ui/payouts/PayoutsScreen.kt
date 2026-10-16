@@ -2,6 +2,7 @@ package com.adnlv.lynd.ui.payouts
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,7 +34,8 @@ import java.util.Locale
 fun PayoutsScreen(
     viewModel: PayoutsViewModel,
     modifier: Modifier = Modifier,
-    onActionChange: ((BottomBarAction) -> Unit)? = null
+    onActionChange: ((BottomBarAction) -> Unit)? = null,
+    onNavigateToHoldings: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -58,9 +60,19 @@ fun PayoutsScreen(
         )
     }
 
-    Box(
+    Column(
         modifier = modifier.fillMaxSize()
     ) {
+        HoldingsSuggestionCard(
+            onClick = onNavigateToHoldings,
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
         if (uiState.payouts.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -156,5 +168,7 @@ fun PayoutsScreen(
                 }
             }
         }
+        }
     }
 }
+
