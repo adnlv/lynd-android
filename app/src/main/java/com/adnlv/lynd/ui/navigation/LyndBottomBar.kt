@@ -8,6 +8,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,7 +61,7 @@ import androidx.navigation.compose.rememberNavController
 import com.adnlv.lynd.ui.theme.LyndTheme
 import com.adnlv.lynd.util.HapticFeedbackHelper
 
-private val FloatingBarHeight = 64.dp
+val FloatingBarHeight = 64.dp
 private val IconSize = 20.dp
 private val ItemSpacing = 4.dp
 private val ContainerHorizontalMargin = 16.dp
@@ -69,6 +70,42 @@ private val ContainerInnerPaddingHorizontal = 4.dp
 private val ContainerInnerPaddingVertical = 4.dp
 private val PillPaddingHorizontal = 2.dp
 private val PillPaddingVertical = 0.dp
+private val ActionButtonSpacing = 8.dp
+
+@Composable
+fun LyndBottomBarCircleButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val navBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+    val barBackgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.90f)
+
+    Box(
+        modifier = modifier
+            .size(FloatingBarHeight)
+            .shadow(
+                elevation = 8.dp,
+                shape = CircleShape,
+                spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.20f),
+                ambientColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+            )
+            .clip(CircleShape)
+            .background(barBackgroundColor)
+            .border(
+                width = 0.5.dp,
+                color = navBorderColor,
+                shape = CircleShape
+            )
+            .clickable(
+                role = Role.Button,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        content()
+    }
+}
 
 @Composable
 fun LyndBottomBar(
@@ -81,23 +118,35 @@ fun LyndBottomBar(
     val navBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
     val scrimColor = MaterialTheme.colorScheme.surface
     val barBackgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.90f)
+    val isPayoutsRoute = currentRoute == Screen.Payouts.route
+    val endMargin = if (isPayoutsRoute) {
+        ContainerHorizontalMargin + FloatingBarHeight + ActionButtonSpacing
+    } else {
+        ContainerHorizontalMargin
+    }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        scrimColor.copy(alpha = 0.5f),
-                        scrimColor
+            .then(
+                if (!isPayoutsRoute) {
+                    Modifier.background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                scrimColor.copy(alpha = 0.5f),
+                                scrimColor
+                            )
+                        )
                     )
-                )
+                } else {
+                    Modifier
+                }
             )
             .navigationBarsPadding()
             .padding(
                 start = ContainerHorizontalMargin,
-                end = ContainerHorizontalMargin,
+                end = endMargin,
                 bottom = ContainerBottomMargin
             )
     ) {
