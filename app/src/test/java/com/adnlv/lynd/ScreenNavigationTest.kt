@@ -8,6 +8,10 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Tune
+import com.adnlv.lynd.ui.icons.Event
+import com.adnlv.lynd.ui.icons.Home
+import com.adnlv.lynd.ui.icons.MaterialSymbols
+import com.adnlv.lynd.ui.icons.PlannerReview
 import com.adnlv.lynd.ui.navigation.BottomBarAction
 import com.adnlv.lynd.ui.navigation.BottomBarActionState
 import com.adnlv.lynd.ui.navigation.Screen
@@ -45,9 +49,9 @@ class ScreenNavigationTest {
 
     @Test
     fun screenIcons_matchExpectedVectors() {
-        assertEquals(Icons.Default.Dashboard, Screen.Overview.icon())
-        assertEquals(Icons.AutoMirrored.Filled.TrendingUp, Screen.Planner.icon())
-        assertEquals(Icons.Default.DateRange, Screen.Payouts.icon())
+        assertEquals(MaterialSymbols.Home, Screen.Overview.icon())
+        assertEquals(MaterialSymbols.PlannerReview, Screen.Planner.icon())
+        assertEquals(MaterialSymbols.Event, Screen.Payouts.icon())
         assertEquals(Icons.AutoMirrored.Filled.List, Screen.Holdings.icon())
     }
 
