@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -58,6 +58,15 @@ fun PayoutsScreen(
         )
     }
 
+    val headingText = when (uiState.selectedTab) {
+        PayoutTab.UPCOMING -> "Upcoming Payouts"
+        PayoutTab.RECEIVED -> "Received Payouts"
+    }
+    val descriptionText = when (uiState.selectedTab) {
+        PayoutTab.UPCOMING -> "Track scheduled coupon payments and bond redemptions."
+        PayoutTab.RECEIVED -> "Review completed coupon payments and bond redemptions."
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -69,6 +78,20 @@ fun PayoutsScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
+                Column(modifier = Modifier.padding(bottom = 12.dp)) {
+                    Text(
+                        text = headingText,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = descriptionText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 HoldingsSuggestionCard(
                     onClick = onNavigateToHoldings
                 )
@@ -96,20 +119,27 @@ fun PayoutsScreen(
                 contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                item(key = "payouts_header") {
+                    Column(modifier = Modifier.padding(bottom = 4.dp)) {
+                        Text(
+                            text = headingText,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = descriptionText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
                 item(key = "holdings_suggestion") {
                     HoldingsSuggestionCard(
                         onClick = onNavigateToHoldings,
                         modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                }
-
-                item(key = "payouts_section_title") {
-                    Text(
-                        text = "Payouts",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
                     )
                 }
 
@@ -126,4 +156,3 @@ fun PayoutsScreen(
         }
     }
 }
-
