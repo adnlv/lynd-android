@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.adnlv.lynd.domain.PayoutBondDetail
 import com.adnlv.lynd.domain.PayoutDateGroup
 import com.adnlv.lynd.domain.PayoutItem
@@ -70,10 +71,6 @@ fun PayoutCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
@@ -89,9 +86,9 @@ fun PayoutCard(
             ) {
                 Text(
                     text = Formatters.formatDate(group.date),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -125,26 +122,8 @@ fun PayoutCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Bottom Area: Case A or Case B
             if (group.isSingleBond) {
                 val bond = group.singleBond!!
-                val symbol = Formatters.getCurrencySymbol(bond.currency)
-                val hasRedemption = bond.payoutTypes.contains(PayoutType.REDEMPTION)
-                val hasCoupon = bond.payoutTypes.contains(PayoutType.COUPON)
-
-                val breakdown = when {
-                    hasRedemption && hasCoupon -> " • Principal: ${Formatters.formatAmount(bond.principalAmount)} $symbol, Coupon: ${Formatters.formatAmount(bond.couponAmount)} $symbol"
-                    hasRedemption -> " • Principal: ${Formatters.formatAmount(bond.principalAmount)} $symbol"
-                    else -> ""
-                }
-
-                Text(
-                    text = "${bond.isin} • ${bond.totalQuantity} bonds$breakdown",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
 
                 AnimatedVisibility(
                     visible = isExpandedSingle,
@@ -255,7 +234,7 @@ private fun LotBreakdownList(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f))
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
