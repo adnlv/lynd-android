@@ -48,8 +48,8 @@ fun MainApp(appContainer: AppContainer) {
     val bottomBarActionState = rememberBottomBarActionState()
     val hazeState = rememberHazeState()
 
-    val bottomTabs = listOf(Screen.Overview, Screen.Planner, Screen.Payouts, Screen.Holdings)
-    val showBottomBar = currentRoute in bottomTabs.map { it.route }
+    val bottomTabs = Screen.defaultBottomTabs
+    val showBottomBar = Screen.shouldShowBottomBar(currentRoute, bottomTabs)
 
     CompositionLocalProvider(LocalLyndHazeState provides hazeState) {
         Scaffold(

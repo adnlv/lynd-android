@@ -29,7 +29,7 @@ fun LyndBottomBar(
     navController: NavController,
     currentRoute: String?,
     modifier: Modifier = Modifier,
-    bottomTabs: List<Screen> = listOf(Screen.Overview, Screen.Planner, Screen.Payouts, Screen.Holdings),
+    bottomTabs: List<Screen> = Screen.defaultBottomTabs,
     action: BottomBarAction = BottomBarAction.defaultForRoute(currentRoute)
 ) {
     val view = LocalView.current
@@ -51,12 +51,17 @@ fun LyndBottomBar(
             currentRoute = currentRoute,
             onTabSelected = { screen ->
                 HapticFeedbackHelper.vibratePageSwitch(view)
-                navController.navigate(screen.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+                val activeTabRoute = Screen.resolveBottomTabRoute(currentRoute, bottomTabs)
+                if (activeTabRoute == screen.route && currentRoute != screen.route) {
+                    navController.popBackStack(screen.route, inclusive = false)
+                } else {
+                    navController.navigate(screen.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
                 }
             },
             modifier = Modifier.weight(1f)

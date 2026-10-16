@@ -51,10 +51,11 @@ fun LyndBottomBarPill(
                     vertical = ContainerInnerPaddingVertical
                 )
         ) {
+            val activeTabRoute = Screen.resolveBottomTabRoute(currentRoute, bottomTabs)
             val tabCount = bottomTabs.size
             if (tabCount > 0) {
                 val tabWidth = maxWidth / tabCount
-                val selectedIndex = bottomTabs.indexOfFirst { it.route == currentRoute }
+                val selectedIndex = bottomTabs.indexOfFirst { it.route == activeTabRoute }
                 LyndBottomBarIndicator(
                     tabWidth = tabWidth,
                     selectedIndex = selectedIndex
@@ -66,12 +67,12 @@ fun LyndBottomBarPill(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 bottomTabs.forEach { screen ->
-                    val selected = currentRoute == screen.route
+                    val selected = activeTabRoute == screen.route
                     LyndBottomBarItem(
                         screen = screen,
                         selected = selected,
                         onClick = {
-                            if (!selected) {
+                            if (currentRoute != screen.route) {
                                 onTabSelected(screen)
                             }
                         },
