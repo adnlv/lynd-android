@@ -30,7 +30,8 @@ fun LyndBottomBar(
     currentRoute: String?,
     modifier: Modifier = Modifier,
     bottomTabs: List<Screen> = Screen.defaultBottomTabs,
-    action: BottomBarAction = BottomBarAction.defaultForRoute(currentRoute)
+    action: BottomBarAction = BottomBarAction.defaultForRoute(currentRoute),
+    onTabReselected: (Screen) -> Unit = {}
 ) {
     val view = LocalView.current
 
@@ -63,6 +64,10 @@ fun LyndBottomBar(
                         restoreState = true
                     }
                 }
+            },
+            onTabReselected = { screen ->
+                HapticFeedbackHelper.vibratePageSwitch(view)
+                onTabReselected(screen)
             },
             modifier = Modifier.weight(1f)
         )

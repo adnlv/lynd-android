@@ -151,4 +151,27 @@ class ScreenNavigationTest {
         assertEquals(MaterialSymbols.Close, activeAction.resolveIcon(isMenuExpanded = false))
         assertEquals("Close filter menu", activeAction.resolveContentDescription(isMenuExpanded = false))
     }
+
+    @Test
+    fun bottomBarActionState_registersInvokesAndClearsReselectHandlers() {
+        val state = BottomBarActionState()
+        var reselectedCount = 0
+
+        state.setReselectHandler(Screen.Overview.route) {
+            reselectedCount++
+        }
+
+        state.onReselect(Screen.Overview.route)
+        assertEquals(1, reselectedCount)
+
+        state.onReselect(Screen.Planner.route)
+        assertEquals(1, reselectedCount)
+
+        state.onReselect(null)
+        assertEquals(1, reselectedCount)
+
+        state.clearReselectHandler(Screen.Overview.route)
+        state.onReselect(Screen.Overview.route)
+        assertEquals(1, reselectedCount)
+    }
 }

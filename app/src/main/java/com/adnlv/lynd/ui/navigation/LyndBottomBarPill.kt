@@ -37,7 +37,8 @@ fun LyndBottomBarPill(
     bottomTabs: List<Screen>,
     currentRoute: String?,
     onTabSelected: (Screen) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onTabReselected: (Screen) -> Unit = {}
 ) {
     LyndGlassSurface(
         shape = CircleShape,
@@ -72,7 +73,9 @@ fun LyndBottomBarPill(
                         screen = screen,
                         selected = selected,
                         onClick = {
-                            if (currentRoute != screen.route) {
+                            if (currentRoute == screen.route) {
+                                onTabReselected(screen)
+                            } else {
                                 onTabSelected(screen)
                             }
                         },

@@ -78,6 +78,21 @@ class BottomBarActionState {
         if (route == null) return BottomBarAction.defaultForRoute(null)
         return actionsByRoute[route] ?: BottomBarAction.defaultForRoute(route)
     }
+
+    private val reselectHandlersByRoute = mutableStateMapOf<String, () -> Unit>()
+
+    fun setReselectHandler(route: String, handler: () -> Unit) {
+        reselectHandlersByRoute[route] = handler
+    }
+
+    fun clearReselectHandler(route: String) {
+        reselectHandlersByRoute.remove(route)
+    }
+
+    fun onReselect(route: String?) {
+        if (route == null) return
+        reselectHandlersByRoute[route]?.invoke()
+    }
 }
 
 @Composable
