@@ -101,7 +101,18 @@ fun PayoutsScreen(
         } else {
             val dateFormatter = remember { DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()) }
             val groupedPayouts = remember(uiState.payouts) {
-                uiState.payouts.groupBy { it.payDate }
+                uiState.payouts
+                    .groupBy { it.payDate }
+                    .mapValues { (_, payoutsForDate) ->
+                        payoutsForDate
+                            .groupBy { it.isin }
+                            .map { (_, items) ->
+                                val totalAmount = items.fold(BigDecimal.ZERO) { acc, item ->
+                                    acc.add(item.payoutAmount)
+                                }
+                                items.first().copy(payoutAmount = totalAmount)
+                            }
+                    }
             }
 
             LazyColumn(
@@ -154,7 +165,7 @@ fun PayoutsScreen(
                     }
                     items(
                         items = payoutsForDate,
-                        key = { "${it.isin}_${it.payDate}_${it.payType}_${it.payoutAmount}" }
+                        key = { "${it.isin}_${it.payDate}" }
                     ) { payout ->
                         PayoutCard(
                             payout = payout
