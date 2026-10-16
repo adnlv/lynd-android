@@ -1,5 +1,6 @@
 package com.adnlv.lynd.ui.payouts
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,7 +65,9 @@ fun PayoutsScreen(
     }
 
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         HoldingsSuggestionCard(
             onClick = onNavigateToHoldings,
