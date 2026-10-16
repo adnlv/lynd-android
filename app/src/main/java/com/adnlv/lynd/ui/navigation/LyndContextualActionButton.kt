@@ -2,11 +2,10 @@ package com.adnlv.lynd.ui.navigation
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +39,14 @@ import com.adnlv.lynd.util.HapticFeedbackHelper
 private val ActionIconSize = 20.dp
 private val ActionItemSpacing = 4.dp
 private const val ActionTransitionDurationMillis = 220
+private const val ActionRotationDegrees = 90f
+
+private data class ContextualButtonVisualState(
+    val icon: ImageVector,
+    val label: String?,
+    val contentDescription: String,
+    val isContextualActive: Boolean
+)
 
 @Composable
 fun LyndContextualActionButton(
@@ -49,55 +58,76 @@ fun LyndContextualActionButton(
         mutableStateOf(false)
     }
     val contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val isContextualActive = action.isContextualActive(menuExpanded)
+
+    val currentVisualState = ContextualButtonVisualState(
+        icon = action.resolveIcon(menuExpanded),
+        label = action.label,
+        contentDescription = action.resolveContentDescription(menuExpanded),
+        isContextualActive = isContextualActive
+    )
+
+    val rotationTarget = if (isContextualActive) ActionRotationDegrees else 0f
+    val rotation by animateFloatAsState(
+        targetValue = rotationTarget,
+        animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+        label = "contextual_action_rotation"
+    )
 
     Box(modifier = modifier) {
         LyndBottomBarCircleButton(
             onClick = {
                 HapticFeedbackHelper.vibratePageSwitch(view)
-                if (action.menuContent != null) {
-                    menuExpanded = true
-                } else {
-                    action.onClick()
+                when {
+                    menuExpanded -> {
+                        menuExpanded = false
+                        action.onCancel?.invoke()
+                    }
+                    action.isActive -> {
+                        action.onCancel?.invoke() ?: action.onClick()
+                    }
+                    action.menuContent != null -> {
+                        menuExpanded = true
+                    }
+                    else -> {
+                        action.onClick()
+                    }
                 }
             }
         ) {
             AnimatedContent(
-                targetState = action,
-                modifier = Modifier.fillMaxSize(),
+                targetState = currentVisualState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { rotationZ = rotation },
                 transitionSpec = {
-                    (slideInVertically(
-                        animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
-                        initialOffsetY = { fullHeight -> fullHeight }
-                    ) + fadeIn(
+                    (fadeIn(
                         animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
                     )).togetherWith(
-                        slideOutVertically(
-                            animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
-                            targetOffsetY = { fullHeight -> fullHeight }
-                        ) + fadeOut(
+                        fadeOut(
                             animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
                         )
                     ).using(SizeTransform(clip = false))
                 },
                 contentAlignment = Alignment.Center,
-                contentKey = { targetAction -> targetAction.icon },
+                contentKey = { targetState -> targetState.icon to targetState.isContextualActive },
                 label = "contextual_action_transition"
-            ) { targetAction ->
+            ) { targetState ->
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = targetAction.icon,
-                        contentDescription = targetAction.contentDescription,
+                        imageVector = targetState.icon,
+                        contentDescription = targetState.contentDescription,
                         tint = contentColor,
                         modifier = Modifier.size(ActionIconSize)
                     )
-                    if (!targetAction.label.isNullOrEmpty()) {
+                    if (!targetState.label.isNullOrEmpty()) {
                         Spacer(modifier = Modifier.height(ActionItemSpacing))
                         Text(
-                            text = targetAction.label,
+                            text = targetState.label,
                             color = contentColor,
                             style = TextStyle(
                                 fontSize = 10.sp,
