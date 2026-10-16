@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.adnlv.lynd.ui.icons.Add
+import com.adnlv.lynd.ui.icons.Close
 import com.adnlv.lynd.ui.icons.FilterList
 import com.adnlv.lynd.ui.icons.MaterialSymbols
 import com.adnlv.lynd.ui.icons.Settings
@@ -15,9 +16,24 @@ data class BottomBarAction(
     val icon: ImageVector,
     val contentDescription: String,
     val label: String? = null,
+    val isActive: Boolean = false,
+    val activeContentDescription: String = "Cancel action",
     val onClick: () -> Unit = {},
+    val onCancel: (() -> Unit)? = null,
     val menuContent: (@Composable ColumnScope.(onDismissRequest: () -> Unit) -> Unit)? = null
 ) {
+    fun isContextualActive(isMenuExpanded: Boolean = false): Boolean {
+        return isActive || isMenuExpanded
+    }
+
+    fun resolveIcon(isMenuExpanded: Boolean = false): ImageVector {
+        return if (isContextualActive(isMenuExpanded)) MaterialSymbols.Close else icon
+    }
+
+    fun resolveContentDescription(isMenuExpanded: Boolean = false): String {
+        return if (isContextualActive(isMenuExpanded)) activeContentDescription else contentDescription
+    }
+
     companion object {
         fun defaultForRoute(route: String?): BottomBarAction = when (route) {
             Screen.Overview.route -> BottomBarAction(
@@ -30,11 +46,13 @@ data class BottomBarAction(
             )
             Screen.Payouts.route -> BottomBarAction(
                 icon = MaterialSymbols.FilterList,
-                contentDescription = "Open filter menu"
+                contentDescription = "Open filter menu",
+                activeContentDescription = "Close filter menu"
             )
             Screen.Holdings.route -> BottomBarAction(
                 icon = MaterialSymbols.Add,
-                contentDescription = "Holdings actions"
+                contentDescription = "Holdings actions",
+                activeContentDescription = "Cancel holding action"
             )
             else -> BottomBarAction(
                 icon = MaterialSymbols.Settings,

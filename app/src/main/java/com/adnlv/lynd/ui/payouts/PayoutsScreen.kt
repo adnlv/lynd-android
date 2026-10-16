@@ -42,6 +42,7 @@ fun PayoutsScreen(
             BottomBarAction(
                 icon = MaterialSymbols.FilterList,
                 contentDescription = "Open filter menu",
+                activeContentDescription = "Close filter menu",
                 menuContent = {
                     PayoutFilterMenuContent(
                         selectedTab = uiState.selectedTab,

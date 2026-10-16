@@ -106,4 +106,23 @@ class ScreenNavigationTest {
         assertNull(cleared.label)
         assertEquals("Open filter menu", cleared.contentDescription)
     }
+
+    @Test
+    fun bottomBarAction_resolvesCloseIconWhenContextualStateIsActive() {
+        val action = BottomBarAction(
+            icon = MaterialSymbols.FilterList,
+            contentDescription = "Open filter menu",
+            activeContentDescription = "Close filter menu"
+        )
+
+        assertEquals(MaterialSymbols.FilterList, action.resolveIcon(isMenuExpanded = false))
+        assertEquals("Open filter menu", action.resolveContentDescription(isMenuExpanded = false))
+
+        assertEquals(MaterialSymbols.Close, action.resolveIcon(isMenuExpanded = true))
+        assertEquals("Close filter menu", action.resolveContentDescription(isMenuExpanded = true))
+
+        val activeAction = action.copy(isActive = true)
+        assertEquals(MaterialSymbols.Close, activeAction.resolveIcon(isMenuExpanded = false))
+        assertEquals("Close filter menu", activeAction.resolveContentDescription(isMenuExpanded = false))
+    }
 }

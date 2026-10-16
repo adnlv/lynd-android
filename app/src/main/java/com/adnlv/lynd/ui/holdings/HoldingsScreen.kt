@@ -71,10 +71,13 @@ fun HoldingsScreen(
     }
 
     SideEffect {
+        val isHoldingContextualActive = showAddDialog || editingHolding != null || revealedHoldingId != null
         onActionChange?.invoke(
             BottomBarAction(
                 icon = MaterialSymbols.Add,
                 contentDescription = "Add Holding",
+                isActive = isHoldingContextualActive,
+                activeContentDescription = "Cancel holding action",
                 onClick = {
                     revealedHoldingId = null
                     if (onNavigateToAdd != null) {
@@ -82,6 +85,11 @@ fun HoldingsScreen(
                     } else {
                         showAddDialog = true
                     }
+                },
+                onCancel = {
+                    showAddDialog = false
+                    editingHolding = null
+                    revealedHoldingId = null
                 }
             )
         )
