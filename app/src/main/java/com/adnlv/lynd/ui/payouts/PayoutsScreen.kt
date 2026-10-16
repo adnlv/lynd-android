@@ -1,24 +1,26 @@
 package com.adnlv.lynd.ui.payouts
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,10 +30,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.adnlv.lynd.ui.navigation.LyndBottomBarCircleButton
 import com.adnlv.lynd.util.Formatters
+import com.adnlv.lynd.util.HapticFeedbackHelper
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -42,103 +48,17 @@ fun PayoutsScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val view = LocalView.current
+    val scrimColor = MaterialTheme.colorScheme.surface
+    var menuExpanded by remember { mutableStateOf(false) }
+    val isAllSelected = remember(uiState.selectedCurrencies, uiState.availableCurrencies) {
+        uiState.availableCurrencies.isNotEmpty() &&
+            uiState.availableCurrencies.all { it in uiState.selectedCurrencies }
+    }
 
-    Column(
+    Box(
         modifier = modifier.fillMaxSize()
     ) {
-        PayoutCategorySelector(
-            selectedTab = uiState.selectedTab,
-            onTabSelected = viewModel::selectTab,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-
-        if (uiState.availableCurrencies.size > 1) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            ) {
-                var menuExpanded by remember { mutableStateOf(false) }
-                val isAllSelected = remember(uiState.selectedCurrencies, uiState.availableCurrencies) {
-                    uiState.availableCurrencies.isNotEmpty() &&
-                        uiState.availableCurrencies.all { it in uiState.selectedCurrencies }
-                }
-
-                val filterLabel = remember(uiState.selectedCurrencies, uiState.availableCurrencies) {
-                    val count = uiState.selectedCurrencies.size
-                    val total = uiState.availableCurrencies.size
-                    val symbols = uiState.selectedCurrencies.joinToString(", ") { Formatters.getCurrencySymbol(it) }
-                    when {
-                        count == 1 -> {
-                            val single = uiState.selectedCurrencies.first()
-                            "Currency: ${Formatters.getCurrencySymbol(single)} ($single)"
-                        }
-                        isAllSelected || (total > 0 && count == total) -> "All currencies ($symbols)"
-                        else -> "Currencies: $symbols"
-                    }
-                }
-
-                FilterChip(
-                    selected = true,
-                    onClick = { menuExpanded = true },
-                    label = {
-                        Text(
-                            text = filterLabel,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Expand currency filter"
-                        )
-                    }
-                )
-
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Select all") },
-                        leadingIcon = {
-                            Checkbox(
-                                checked = isAllSelected,
-                                onCheckedChange = null
-                            )
-                        },
-                        onClick = {
-                            if (isAllSelected) {
-                                val primary = uiState.availableCurrencies.firstOrNull { it == "UAH" }
-                                    ?: uiState.availableCurrencies.firstOrNull()
-                                if (primary != null) viewModel.selectCurrency(primary)
-                            } else {
-                                viewModel.selectAllCurrencies(uiState.availableCurrencies)
-                            }
-                        }
-                    )
-                    HorizontalDivider()
-                    uiState.availableCurrencies.forEach { currency ->
-                        val isSelected = currency in uiState.selectedCurrencies
-                        val symbol = Formatters.getCurrencySymbol(currency)
-                        DropdownMenuItem(
-                            text = { Text("$symbol  $currency") },
-                            leadingIcon = {
-                                Checkbox(
-                                    checked = isSelected,
-                                    onCheckedChange = null
-                                )
-                            },
-                            onClick = { viewModel.toggleCurrency(currency) }
-                        )
-                    }
-                }
-            }
-        }
-
         if (uiState.payouts.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -211,8 +131,8 @@ fun PayoutsScreen(
                             val symbol = Formatters.getCurrencySymbol(currency)
                             Row(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp, bottom = 4.dp),
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, bottom = 4.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -229,6 +149,102 @@ fun PayoutsScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            scrimColor.copy(alpha = 0.5f),
+                            scrimColor
+                        )
+                    )
+                )
+                .navigationBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, bottom = 4.dp)
+        ) {
+            Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                LyndBottomBarCircleButton(
+                    onClick = {
+                        HapticFeedbackHelper.vibratePageSwitch(view)
+                        menuExpanded = true
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Open filter menu",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    PayoutTab.entries.forEach { tab ->
+                        val isSelected = uiState.selectedTab == tab
+                        val label = when (tab) {
+                            PayoutTab.UPCOMING -> "Upcoming"
+                            PayoutTab.RECEIVED -> "Received"
+                        }
+                        DropdownMenuItem(
+                            text = { Text(label) },
+                            leadingIcon = {
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = null
+                                )
+                            },
+                            onClick = {
+                                viewModel.selectTab(tab)
+                            }
+                        )
+                    }
+
+                    if (uiState.availableCurrencies.isNotEmpty()) {
+                        HorizontalDivider()
+                        if (uiState.availableCurrencies.size > 1) {
+                            DropdownMenuItem(
+                                text = { Text("Select all") },
+                                leadingIcon = {
+                                    Checkbox(
+                                        checked = isAllSelected,
+                                        onCheckedChange = null
+                                    )
+                                },
+                                onClick = {
+                                    if (isAllSelected) {
+                                        val primary = uiState.availableCurrencies.firstOrNull { it == "UAH" }
+                                            ?: uiState.availableCurrencies.firstOrNull()
+                                        if (primary != null) viewModel.selectCurrency(primary)
+                                    } else {
+                                        viewModel.selectAllCurrencies(uiState.availableCurrencies)
+                                    }
+                                }
+                            )
+                        }
+                        uiState.availableCurrencies.forEach { currency ->
+                            val isSelected = currency in uiState.selectedCurrencies
+                            val symbol = Formatters.getCurrencySymbol(currency)
+                            DropdownMenuItem(
+                                text = { Text("$symbol  $currency") },
+                                leadingIcon = {
+                                    Checkbox(
+                                        checked = isSelected,
+                                        onCheckedChange = null
+                                    )
+                                },
+                                onClick = { viewModel.toggleCurrency(currency) }
+                            )
                         }
                     }
                 }
