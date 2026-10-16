@@ -54,11 +54,13 @@ fun LyndBottomBarItem(
     screen: Screen,
     selected: Boolean,
     onPressStart: () -> Unit,
-    onPressEnd: () -> Unit,
+    onRelease: () -> Unit,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val currentOnPressStart by rememberUpdatedState(onPressStart)
-    val currentOnPressEnd by rememberUpdatedState(onPressEnd)
+    val currentOnRelease by rememberUpdatedState(onRelease)
+    val currentOnCancel by rememberUpdatedState(onCancel)
 
     val itemColor by animateColorAsState(
         targetValue = if (selected) {
@@ -77,8 +79,7 @@ fun LyndBottomBarItem(
                 this.selected = selected
                 this.role = Role.Tab
                 onClick {
-                    currentOnPressStart()
-                    currentOnPressEnd()
+                    currentOnRelease()
                     true
                 }
             }
@@ -86,10 +87,14 @@ fun LyndBottomBarItem(
                 awaitEachGesture {
                     awaitFirstDown(requireUnconsumed = false)
                     currentOnPressStart()
-                    try {
-                        waitForUpOrCancellation()
-                    } finally {
-                        currentOnPressEnd()
+                    val up = waitForUpOrCancellation()
+                    if (up != null &&
+                        up.position.x in 0f..size.width.toFloat() &&
+                        up.position.y in 0f..size.height.toFloat()
+                    ) {
+                        currentOnRelease()
+                    } else {
+                        currentOnCancel()
                     }
                 }
             },

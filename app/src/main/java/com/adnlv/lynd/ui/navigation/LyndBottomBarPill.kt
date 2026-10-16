@@ -57,11 +57,13 @@ fun LyndBottomBarPill(
                     vertical = ContainerInnerPaddingVertical
                 )
         ) {
+            var pressedRoute by remember { mutableStateOf<String?>(null) }
             val activeTabRoute = Screen.resolveBottomTabRoute(currentRoute, bottomTabs)
+            val displayedTabRoute = pressedRoute ?: activeTabRoute
             val tabCount = bottomTabs.size
             if (tabCount > 0) {
                 val tabWidth = maxWidth / tabCount
-                val selectedIndex = bottomTabs.indexOfFirst { it.route == activeTabRoute }
+                val selectedIndex = bottomTabs.indexOfFirst { it.route == displayedTabRoute }
                 LyndBottomBarIndicator(
                     tabWidth = tabWidth,
                     selectedIndex = selectedIndex,
@@ -74,19 +76,25 @@ fun LyndBottomBarPill(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 bottomTabs.forEach { screen ->
-                    val selected = activeTabRoute == screen.route
+                    val selected = displayedTabRoute == screen.route
                     LyndBottomBarItem(
                         screen = screen,
                         selected = selected,
                         onPressStart = {
+                            pressedRoute = screen.route
                             isIndicatorPressed = true
+                        },
+                        onRelease = {
+                            pressedRoute = null
+                            isIndicatorPressed = false
                             if (currentRoute == screen.route) {
                                 onTabReselected(screen)
                             } else {
                                 onTabSelected(screen)
                             }
                         },
-                        onPressEnd = {
+                        onCancel = {
+                            pressedRoute = null
                             isIndicatorPressed = false
                         },
                         modifier = Modifier.weight(1f)
@@ -145,7 +153,7 @@ private fun LyndBottomBarIndicator(
                     alpha = pillAlpha
                 }
                 .background(
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
                     shape = CircleShape
                 )
         )
