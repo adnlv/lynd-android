@@ -1,5 +1,15 @@
 package com.adnlv.lynd.ui.navigation
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +40,14 @@ import com.adnlv.lynd.util.HapticFeedbackHelper
 
 private val ActionIconSize = 20.dp
 private val ActionItemSpacing = 4.dp
+private const val ActionTransitionDurationMillis = 220
+
+private data class ContextualButtonVisualState(
+    val baseAction: BottomBarAction,
+    val displayIcon: ImageVector,
+    val displayContentDescription: String,
+    val isContextualActive: Boolean
+)
 
 @Composable
 fun LyndContextualActionButton(
@@ -40,8 +59,14 @@ fun LyndContextualActionButton(
         mutableStateOf(false)
     }
     val contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val displayIcon = action.resolveIcon(menuExpanded)
-    val displayContentDescription = action.resolveContentDescription(menuExpanded)
+    val isContextualActive = action.isContextualActive(menuExpanded)
+
+    val currentVisualState = ContextualButtonVisualState(
+        baseAction = action,
+        displayIcon = action.resolveIcon(menuExpanded),
+        displayContentDescription = action.resolveContentDescription(menuExpanded),
+        isContextualActive = isContextualActive
+    )
 
     Box(modifier = modifier) {
         LyndBottomBarCircleButton(
@@ -64,35 +89,67 @@ fun LyndContextualActionButton(
                 }
             }
         ) {
-            Column(
+            AnimatedContent(
+                targetState = currentVisualState,
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = displayIcon,
-                    contentDescription = displayContentDescription,
-                    tint = contentColor,
-                    modifier = Modifier.size(ActionIconSize)
-                )
-                if (!action.label.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.height(ActionItemSpacing))
-                    Text(
-                        text = action.label,
-                        color = contentColor,
-                        style = TextStyle(
-                            fontSize = 10.sp,
-                            lineHeight = 10.sp,
-                            fontWeight = FontWeight.Normal,
-                            lineHeightStyle = LineHeightStyle(
-                                alignment = LineHeightStyle.Alignment.Center,
-                                trim = LineHeightStyle.Trim.Both
+                transitionSpec = {
+                    val isTogglingActiveState = initialState.isContextualActive != targetState.isContextualActive
+
+                    if (isTogglingActiveState) {
+                        EnterTransition.None.togetherWith(ExitTransition.None)
+                            .using(SizeTransform(clip = false))
+                    } else {
+                        (slideInVertically(
+                            animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+                            initialOffsetY = { fullHeight -> fullHeight }
+                        ) + fadeIn(
+                            animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
+                        )).togetherWith(
+                            slideOutVertically(
+                                animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+                                targetOffsetY = { fullHeight -> fullHeight }
+                            ) + fadeOut(
+                                animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
                             )
-                        ),
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
+                        ).using(SizeTransform(clip = false))
+                    }
+                },
+                contentAlignment = Alignment.Center,
+                contentKey = { targetState ->
+                    targetState.baseAction.icon to targetState.isContextualActive
+                },
+                label = "contextual_action_transition"
+            ) { targetState ->
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = targetState.displayIcon,
+                        contentDescription = targetState.displayContentDescription,
+                        tint = contentColor,
+                        modifier = Modifier.size(ActionIconSize)
                     )
+                    if (!targetState.baseAction.label.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.height(ActionItemSpacing))
+                        Text(
+                            text = targetState.baseAction.label,
+                            color = contentColor,
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                lineHeight = 10.sp,
+                                fontWeight = FontWeight.Normal,
+                                lineHeightStyle = LineHeightStyle(
+                                    alignment = LineHeightStyle.Alignment.Center,
+                                    trim = LineHeightStyle.Trim.Both
+                                )
+                            ),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
