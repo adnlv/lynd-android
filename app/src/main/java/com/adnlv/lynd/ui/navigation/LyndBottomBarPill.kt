@@ -78,12 +78,16 @@ fun LyndBottomBarPill(
                     LyndBottomBarItem(
                         screen = screen,
                         selected = selected,
-                        onClick = {
+                        onPressStart = {
+                            isIndicatorPressed = true
                             if (currentRoute == screen.route) {
                                 onTabReselected(screen)
                             } else {
                                 onTabSelected(screen)
                             }
+                        },
+                        onPressEnd = {
+                            isIndicatorPressed = false
                         },
                         modifier = Modifier.weight(1f)
                     )
