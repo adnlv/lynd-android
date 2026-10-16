@@ -1,10 +1,17 @@
 package com.adnlv.lynd.ui.navigation
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -30,6 +37,7 @@ import com.adnlv.lynd.util.HapticFeedbackHelper
 
 private val ActionIconSize = 20.dp
 private val ActionItemSpacing = 4.dp
+private const val ActionTransitionDurationMillis = 220
 
 @Composable
 fun LyndContextualActionButton(
@@ -53,35 +61,58 @@ fun LyndContextualActionButton(
                 }
             }
         ) {
-            Column(
+            AnimatedContent(
+                targetState = action,
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = action.icon,
-                    contentDescription = action.contentDescription,
-                    tint = contentColor,
-                    modifier = Modifier.size(ActionIconSize)
-                )
-                if (!action.label.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.height(ActionItemSpacing))
-                    Text(
-                        text = action.label,
-                        color = contentColor,
-                        style = TextStyle(
-                            fontSize = 10.sp,
-                            lineHeight = 10.sp,
-                            fontWeight = FontWeight.Normal,
-                            lineHeightStyle = LineHeightStyle(
-                                alignment = LineHeightStyle.Alignment.Center,
-                                trim = LineHeightStyle.Trim.Both
-                            )
-                        ),
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
+                transitionSpec = {
+                    (slideInVertically(
+                        animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+                        initialOffsetY = { fullHeight -> fullHeight }
+                    ) + fadeIn(
+                        animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
+                    )).togetherWith(
+                        slideOutVertically(
+                            animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+                            targetOffsetY = { fullHeight -> fullHeight }
+                        ) + fadeOut(
+                            animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
+                        )
+                    ).using(SizeTransform(clip = false))
+                },
+                contentAlignment = Alignment.Center,
+                contentKey = { targetAction -> targetAction.icon },
+                label = "contextual_action_transition"
+            ) { targetAction ->
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = targetAction.icon,
+                        contentDescription = targetAction.contentDescription,
+                        tint = contentColor,
+                        modifier = Modifier.size(ActionIconSize)
                     )
+                    if (!targetAction.label.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.height(ActionItemSpacing))
+                        Text(
+                            text = targetAction.label,
+                            color = contentColor,
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                lineHeight = 10.sp,
+                                fontWeight = FontWeight.Normal,
+                                lineHeightStyle = LineHeightStyle(
+                                    alignment = LineHeightStyle.Alignment.Center,
+                                    trim = LineHeightStyle.Trim.Both
+                                )
+                            ),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
