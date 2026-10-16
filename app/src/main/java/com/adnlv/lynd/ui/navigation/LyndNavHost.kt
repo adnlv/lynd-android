@@ -56,7 +56,12 @@ fun LyndNavHost(
                     bondDao = appContainer.database.bondDao()
                 )
             )
-            HoldingsScreen(viewModel = holdingsViewModel)
+            HoldingsScreen(
+                viewModel = holdingsViewModel,
+                onActionChange = { action ->
+                    bottomBarActionState?.setAction(Screen.Holdings.route, action)
+                }
+            )
         }
         composable(Screen.Payouts.route) {
             val payoutsViewModel: PayoutsViewModel = viewModel(
