@@ -1,8 +1,10 @@
 package com.adnlv.lynd.ui.navigation
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -50,6 +52,7 @@ private data class ContextualButtonVisualState(
     val isContextualActive: Boolean
 )
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun LyndContextualActionButton(
     action: BottomBarAction,
@@ -124,16 +127,33 @@ fun LyndContextualActionButton(
                 contentKey = { targetState -> targetState.icon to targetState.isContextualActive },
                 label = "contextual_action_transition"
             ) { targetState ->
-                val rotation by animateFloatAsState(
-                    targetValue = if (targetState.isContextualActive) ActionRotationDegrees else 0f,
-                    animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+                val rotation by transition.animateFloat(
+                    transitionSpec = { tween(durationMillis = ActionTransitionDurationMillis) },
                     label = "contextual_action_rotation"
-                )
+                ) { state ->
+                    if (targetState.isContextualActive) {
+                        when (state) {
+                            EnterExitState.PreEnter -> -ActionRotationDegrees
+                            EnterExitState.Visible -> 0f
+                            EnterExitState.PostExit -> ActionRotationDegrees
+                        }
+                    } else {
+                        when (state) {
+                            EnterExitState.PreEnter -> ActionRotationDegrees
+                            EnterExitState.Visible -> 0f
+                            EnterExitState.PostExit -> -ActionRotationDegrees
+                        }
+                    }
+                }
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .graphicsLayer { rotationZ = rotation },
+                        .graphicsLayer {
+                            if (targetState.isContextualActive || currentVisualState.isContextualActive) {
+                                rotationZ = rotation
+                            }
+                        },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
