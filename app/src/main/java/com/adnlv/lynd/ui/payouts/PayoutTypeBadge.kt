@@ -37,8 +37,8 @@ fun PayoutTypeBadge(
             contentDescription = "Coupon"
         )
         PayoutType.REDEMPTION -> BadgeConfig(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f),
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
             icon = MaterialSymbols.ModeHeat,
             contentDescription = "Redemption"
         )
