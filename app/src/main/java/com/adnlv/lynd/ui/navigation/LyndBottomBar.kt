@@ -11,8 +11,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,20 +33,10 @@ fun LyndBottomBar(
     action: BottomBarAction = BottomBarAction.defaultForRoute(currentRoute)
 ) {
     val view = LocalView.current
-    val scrimColor = MaterialTheme.colorScheme.surface
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        scrimColor.copy(alpha = 0.5f),
-                        scrimColor
-                    )
-                )
-            )
             .navigationBarsPadding()
             .padding(
                 start = ContainerHorizontalMargin,
