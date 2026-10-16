@@ -140,6 +140,9 @@ private fun RegisterScrollToTopHandler(
     DisposableEffect(route, bottomBarActionState, listState) {
         bottomBarActionState?.setReselectHandler(route) {
             coroutineScope.launch {
+                if (listState.firstVisibleItemIndex > 6) {
+                    listState.scrollToItem(6)
+                }
                 listState.animateScrollToItem(0)
             }
         }
