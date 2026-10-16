@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,6 +36,7 @@ import java.util.Locale
 fun PayoutsScreen(
     viewModel: PayoutsViewModel,
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
     onActionChange: ((BottomBarAction) -> Unit)? = null,
     onNavigateToHoldings: () -> Unit = {}
 ) {
@@ -95,6 +98,7 @@ fun PayoutsScreen(
             }
 
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)

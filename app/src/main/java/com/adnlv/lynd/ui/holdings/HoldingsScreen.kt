@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +56,7 @@ import kotlinx.coroutines.launch
 fun HoldingsScreen(
     viewModel: HoldingsViewModel,
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
     onActionChange: ((BottomBarAction) -> Unit)? = null,
     onNavigateBack: (() -> Unit)? = null,
     onNavigateToAdd: (() -> Unit)? = null,
@@ -71,7 +73,6 @@ fun HoldingsScreen(
     var editingHolding by remember { mutableStateOf<HoldingItem?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
     val context = LocalContext.current
     val sharedPrefs = remember(context) {
         context.getSharedPreferences("lynd_prefs", Context.MODE_PRIVATE)
