@@ -55,43 +55,52 @@ class ScreenNavigationTest {
     fun bottomBarAction_defaultForRoute_returnsDistinctActionForEachScreen() {
         val overviewAction = BottomBarAction.defaultForRoute(Screen.Overview.route)
         assertEquals(Icons.Default.Tune, overviewAction.icon)
+        assertEquals("Options", overviewAction.label)
         assertEquals("Overview actions", overviewAction.contentDescription)
 
         val plannerAction = BottomBarAction.defaultForRoute(Screen.Planner.route)
         assertEquals(Icons.Default.FilterList, plannerAction.icon)
+        assertEquals("Filter", plannerAction.label)
         assertEquals("Planner actions", plannerAction.contentDescription)
 
         val payoutsAction = BottomBarAction.defaultForRoute(Screen.Payouts.route)
         assertEquals(Icons.Default.FilterList, payoutsAction.icon)
+        assertEquals("Filter", payoutsAction.label)
         assertEquals("Open filter menu", payoutsAction.contentDescription)
 
         val holdingsAction = BottomBarAction.defaultForRoute(Screen.Holdings.route)
         assertEquals(Icons.Default.Add, holdingsAction.icon)
+        assertEquals("Add", holdingsAction.label)
         assertEquals("Holdings actions", holdingsAction.contentDescription)
 
         val nullAction = BottomBarAction.defaultForRoute(null)
         assertEquals(Icons.Default.Tune, nullAction.icon)
+        assertEquals("Options", nullAction.label)
     }
 
     @Test
     fun bottomBarActionState_registersAndClearsActions() {
         val state = BottomBarActionState()
         val defaultPayouts = state.actionForRoute(Screen.Payouts.route)
+        assertEquals("Filter", defaultPayouts.label)
         assertEquals("Open filter menu", defaultPayouts.contentDescription)
         assertNull(defaultPayouts.menuContent)
 
         val customAction = BottomBarAction(
             icon = Icons.Default.FilterList,
+            label = "Filter",
             contentDescription = "Custom payouts filter",
             menuContent = {}
         )
         state.setAction(Screen.Payouts.route, customAction)
         val resolved = state.actionForRoute(Screen.Payouts.route)
+        assertEquals("Filter", resolved.label)
         assertEquals("Custom payouts filter", resolved.contentDescription)
         assertNotNull(resolved.menuContent)
 
         state.clearAction(Screen.Payouts.route)
         val cleared = state.actionForRoute(Screen.Payouts.route)
+        assertEquals("Filter", cleared.label)
         assertEquals("Open filter menu", cleared.contentDescription)
     }
 }
