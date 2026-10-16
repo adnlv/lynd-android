@@ -114,6 +114,16 @@ fun PayoutsScreen(
                     )
                 }
 
+                item(key = "payouts_section_title") {
+                    Text(
+                        text = "Payouts",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                    )
+                }
+
                 groupedPayouts.forEach { (date, payoutsForDate) ->
                     item(key = "header_$date") {
                         Row(
