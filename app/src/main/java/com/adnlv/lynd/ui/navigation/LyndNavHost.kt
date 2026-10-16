@@ -2,6 +2,9 @@ package com.adnlv.lynd.ui.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -140,10 +143,27 @@ private fun RegisterScrollToTopHandler(
     DisposableEffect(route, bottomBarActionState, listState) {
         bottomBarActionState?.setReselectHandler(route) {
             coroutineScope.launch {
-                if (listState.firstVisibleItemIndex > 6) {
-                    listState.scrollToItem(6)
+                val layoutInfo = listState.layoutInfo
+                val visibleItems = layoutInfo.visibleItemsInfo
+                val firstVisible = visibleItems.firstOrNull()
+                val totalDistance = if (firstVisible != null && firstVisible.index > 0) {
+                    val avgItemSize = visibleItems.map { it.size }.average().toFloat().coerceAtLeast(100f)
+                    (firstVisible.index * avgItemSize) + listState.firstVisibleItemScrollOffset
+                } else {
+                    listState.firstVisibleItemScrollOffset.toFloat()
                 }
-                listState.animateScrollToItem(0)
+
+                if (totalDistance > 0f) {
+                    // Decelerate curve: fast start (0.165), descending speed towards top (1.0)
+                    listState.animateScrollBy(
+                        value = -totalDistance,
+                        animationSpec = tween(
+                            durationMillis = 400,
+                            easing = CubicBezierEasing(0.165f, 0.84f, 0.44f, 1f)
+                        )
+                    )
+                }
+                listState.scrollToItem(0)
             }
         }
         onDispose {
