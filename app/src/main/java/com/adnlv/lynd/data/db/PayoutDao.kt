@@ -14,7 +14,8 @@ data class PayoutRow(
     val payVal: BigDecimal,
     val quantity: Int,
     val currency: String,
-    val purchaseDate: LocalDate
+    val purchaseDate: LocalDate,
+    val holdingId: Int = 0
 )
 
 @Dao
@@ -28,7 +29,8 @@ interface PayoutDao {
             bp.pay_val AS payVal,
             h.quantity AS quantity,
             COALESCE(b.currency, 'UAH') AS currency,
-            h.purchase_date AS purchaseDate
+            h.purchase_date AS purchaseDate,
+            h.id AS holdingId
         FROM holdings h
         INNER JOIN bond_payments bp ON h.isin = bp.bond_isin
         LEFT JOIN bonds b ON h.isin = b.isin
