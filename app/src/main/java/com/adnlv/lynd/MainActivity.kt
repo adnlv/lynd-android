@@ -75,6 +75,9 @@ fun MainApp(appContainer: AppContainer) {
                         currentRoute = currentRoute,
                         bottomTabs = bottomTabs,
                         action = bottomBarActionState.actionForRoute(currentRoute),
+                        onTabReselected = { screen ->
+                            bottomBarActionState.onReselect(screen.route)
+                        },
                         modifier = Modifier.align(Alignment.BottomCenter)
                     )
                 }
