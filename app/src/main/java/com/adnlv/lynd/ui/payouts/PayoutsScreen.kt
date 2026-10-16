@@ -23,7 +23,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.ui.icons.FilterList
 import com.adnlv.lynd.ui.icons.MaterialSymbols
@@ -175,9 +178,15 @@ fun PayoutsScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "${Formatters.formatAmount(totalAmount)} $symbol",
+                                    text = buildAnnotatedString {
+                                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                            append(Formatters.formatAmount(totalAmount))
+                                        }
+                                        append(" ")
+                                        append(symbol)
+                                    },
                                     style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
