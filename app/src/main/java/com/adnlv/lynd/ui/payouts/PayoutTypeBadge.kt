@@ -1,47 +1,60 @@
 package com.adnlv.lynd.ui.payouts
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.PayoutType
+import com.adnlv.lynd.ui.icons.ConfirmationNumber
+import com.adnlv.lynd.ui.icons.MaterialSymbols
+import com.adnlv.lynd.ui.icons.ModeHeat
+
+private data class BadgeConfig(
+    val containerColor: Color,
+    val contentColor: Color,
+    val icon: ImageVector,
+    val contentDescription: String
+)
 
 @Composable
 fun PayoutTypeBadge(
     type: PayoutType,
     modifier: Modifier = Modifier
 ) {
-    val (containerColor, contentColor, text) = when (type) {
-        PayoutType.COUPON -> Triple(
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
-            MaterialTheme.colorScheme.onPrimaryContainer,
-            "Coupon"
+    val config = when (type) {
+        PayoutType.COUPON -> BadgeConfig(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            icon = MaterialSymbols.ConfirmationNumber,
+            contentDescription = "Coupon"
         )
-        PayoutType.REDEMPTION -> Triple(
-            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f),
-            MaterialTheme.colorScheme.onTertiaryContainer,
-            "Redemption"
+        PayoutType.REDEMPTION -> BadgeConfig(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f),
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            icon = MaterialSymbols.ModeHeat,
+            contentDescription = "Redemption"
         )
     }
 
     Badge(
-        containerColor = containerColor,
-        contentColor = contentColor,
-        modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
+        containerColor = config.containerColor,
+        contentColor = config.contentColor,
+        modifier = modifier.clip(RoundedCornerShape(6.dp))
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+        Icon(
+            imageVector = config.icon,
+            contentDescription = config.contentDescription,
+            modifier = Modifier
+                .padding(horizontal = 4.dp, vertical = 2.dp)
+                .size(14.dp)
         )
     }
 }
