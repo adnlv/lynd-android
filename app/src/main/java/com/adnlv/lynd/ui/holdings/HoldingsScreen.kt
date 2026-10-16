@@ -74,7 +74,6 @@ fun HoldingsScreen(
         onActionChange?.invoke(
             BottomBarAction(
                 icon = Icons.Default.Add,
-                label = "Add",
                 contentDescription = "Add Holding",
                 onClick = {
                     revealedHoldingId = null

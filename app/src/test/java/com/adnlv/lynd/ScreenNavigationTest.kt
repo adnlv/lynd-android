@@ -55,34 +55,34 @@ class ScreenNavigationTest {
     fun bottomBarAction_defaultForRoute_returnsDistinctActionForEachScreen() {
         val overviewAction = BottomBarAction.defaultForRoute(Screen.Overview.route)
         assertEquals(Icons.Default.Tune, overviewAction.icon)
-        assertEquals("Options", overviewAction.label)
+        assertNull(overviewAction.label)
         assertEquals("Overview actions", overviewAction.contentDescription)
 
         val plannerAction = BottomBarAction.defaultForRoute(Screen.Planner.route)
         assertEquals(Icons.Default.FilterList, plannerAction.icon)
-        assertEquals("Filter", plannerAction.label)
+        assertNull(plannerAction.label)
         assertEquals("Planner actions", plannerAction.contentDescription)
 
         val payoutsAction = BottomBarAction.defaultForRoute(Screen.Payouts.route)
         assertEquals(Icons.Default.FilterList, payoutsAction.icon)
-        assertEquals("Filter", payoutsAction.label)
+        assertNull(payoutsAction.label)
         assertEquals("Open filter menu", payoutsAction.contentDescription)
 
         val holdingsAction = BottomBarAction.defaultForRoute(Screen.Holdings.route)
         assertEquals(Icons.Default.Add, holdingsAction.icon)
-        assertEquals("Add", holdingsAction.label)
+        assertNull(holdingsAction.label)
         assertEquals("Holdings actions", holdingsAction.contentDescription)
 
         val nullAction = BottomBarAction.defaultForRoute(null)
         assertEquals(Icons.Default.Tune, nullAction.icon)
-        assertEquals("Options", nullAction.label)
+        assertNull(nullAction.label)
     }
 
     @Test
     fun bottomBarActionState_registersAndClearsActions() {
         val state = BottomBarActionState()
         val defaultPayouts = state.actionForRoute(Screen.Payouts.route)
-        assertEquals("Filter", defaultPayouts.label)
+        assertNull(defaultPayouts.label)
         assertEquals("Open filter menu", defaultPayouts.contentDescription)
         assertNull(defaultPayouts.menuContent)
 
@@ -100,7 +100,7 @@ class ScreenNavigationTest {
 
         state.clearAction(Screen.Payouts.route)
         val cleared = state.actionForRoute(Screen.Payouts.route)
-        assertEquals("Filter", cleared.label)
+        assertNull(cleared.label)
         assertEquals("Open filter menu", cleared.contentDescription)
     }
 }

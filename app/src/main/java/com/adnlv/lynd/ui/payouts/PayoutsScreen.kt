@@ -41,7 +41,6 @@ fun PayoutsScreen(
         onActionChange?.invoke(
             BottomBarAction(
                 icon = Icons.Default.FilterList,
-                label = "Filter",
                 contentDescription = "Open filter menu",
                 menuContent = {
                     PayoutFilterMenuContent(

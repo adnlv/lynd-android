@@ -13,8 +13,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 data class BottomBarAction(
     val icon: ImageVector,
-    val label: String,
     val contentDescription: String,
+    val label: String? = null,
     val onClick: () -> Unit = {},
     val menuContent: (@Composable ColumnScope.(onDismissRequest: () -> Unit) -> Unit)? = null
 ) {
@@ -22,27 +22,22 @@ data class BottomBarAction(
         fun defaultForRoute(route: String?): BottomBarAction = when (route) {
             Screen.Overview.route -> BottomBarAction(
                 icon = Icons.Default.Tune,
-                label = "Options",
                 contentDescription = "Overview actions"
             )
             Screen.Planner.route -> BottomBarAction(
                 icon = Icons.Default.FilterList,
-                label = "Filter",
                 contentDescription = "Planner actions"
             )
             Screen.Payouts.route -> BottomBarAction(
                 icon = Icons.Default.FilterList,
-                label = "Filter",
                 contentDescription = "Open filter menu"
             )
             Screen.Holdings.route -> BottomBarAction(
                 icon = Icons.Default.Add,
-                label = "Add",
                 contentDescription = "Holdings actions"
             )
             else -> BottomBarAction(
                 icon = Icons.Default.Tune,
-                label = "Options",
                 contentDescription = "Contextual actions"
             )
         }
