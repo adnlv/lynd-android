@@ -11,14 +11,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import com.adnlv.lynd.ui.theme.LyndTheme
-import com.adnlv.lynd.util.HapticFeedbackHelper
 
 private val ContainerHorizontalMargin = 16.dp
 private val ContainerBottomMargin = 4.dp
@@ -33,8 +31,6 @@ fun LyndBottomBar(
     action: BottomBarAction = BottomBarAction.defaultForRoute(currentRoute),
     onTabReselected: (Screen) -> Unit = {}
 ) {
-    val view = LocalView.current
-
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -51,7 +47,6 @@ fun LyndBottomBar(
             bottomTabs = bottomTabs,
             currentRoute = currentRoute,
             onTabSelected = { screen ->
-                HapticFeedbackHelper.vibratePageSwitch(view)
                 val activeTabRoute = Screen.resolveBottomTabRoute(currentRoute, bottomTabs)
                 if (activeTabRoute == screen.route && currentRoute != screen.route) {
                     navController.popBackStack(screen.route, inclusive = false)
