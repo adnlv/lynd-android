@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.PayoutType
@@ -33,12 +34,13 @@ fun PayoutTypeBadge(
     Badge(
         containerColor = containerColor,
         contentColor = contentColor,
-        shape = RoundedCornerShape(6.dp),
-        modifier = modifier.border(
-            width = 1.dp,
-            color = contentColor.copy(alpha = 0.25f),
-            shape = RoundedCornerShape(6.dp)
-        )
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .border(
+                width = 1.dp,
+                color = contentColor.copy(alpha = 0.25f),
+                shape = RoundedCornerShape(6.dp)
+            )
     ) {
         Text(
             text = text,
