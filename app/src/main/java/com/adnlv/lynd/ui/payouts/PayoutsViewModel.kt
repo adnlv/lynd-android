@@ -25,7 +25,8 @@ data class PayoutsUiState(
     val availableCurrencies: List<String> = emptyList(),
     val selectedCurrencies: Set<String> = setOf("UAH"),
     val selectedTab: PayoutTab = PayoutTab.UPCOMING,
-    val payouts: List<PayoutItem> = emptyList()
+    val payouts: List<PayoutItem> = emptyList(),
+    val dateGroups: List<com.adnlv.lynd.domain.PayoutDateGroup> = emptyList()
 ) {
     val selectedCurrency: String get() = selectedCurrencies.firstOrNull() ?: ""
 }
@@ -43,7 +44,7 @@ class PayoutsViewModel(
     private val allPayouts = payoutDao.getAllPayoutRows()
 
     val uiState: StateFlow<PayoutsUiState> = combine(allPayouts, _selectedCurrencies, _selectedTab) { rows, selectedCurrs, currentTab ->
-        data class PayoutWithPurchase(val item: PayoutItem, val purchaseDate: LocalDate)
+        data class PayoutWithPurchase(val item: PayoutItem, val purchaseDate: LocalDate, val row: com.adnlv.lynd.data.db.PayoutRow)
 
         val itemsWithPurchase = rows.map { row ->
             val totalPayout = row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong()))
@@ -61,7 +62,8 @@ class PayoutsViewModel(
                     payoutAmount = totalPayout,
                     currency = row.currency
                 ),
-                purchaseDate = row.purchaseDate
+                purchaseDate = row.purchaseDate,
+                row = row
             )
         }
 
@@ -92,26 +94,109 @@ class PayoutsViewModel(
         }
 
         val today = LocalDate.now()
-        val upcomingItems = filtered
+        val upcomingEntries = filtered
             .filter { !it.item.payDate.isBefore(today) }
             .sortedBy { it.item.payDate }
-            .map { it.item }
 
-        val receivedItems = filtered
+        val receivedEntries = filtered
             .filter { it.item.payDate.isBefore(today) && !it.item.payDate.isBefore(it.purchaseDate) }
             .sortedByDescending { it.item.payDate }
-            .map { it.item }
 
-        val activePayouts = when (currentTab) {
-            PayoutTab.UPCOMING -> upcomingItems
-            PayoutTab.RECEIVED -> receivedItems
+        val activeEntries = when (currentTab) {
+            PayoutTab.UPCOMING -> upcomingEntries
+            PayoutTab.RECEIVED -> receivedEntries
         }
+
+        val activePayouts = activeEntries.map { it.item }
+
+        val dateGroups = activeEntries
+            .groupBy { it.item.payDate }
+            .map { (payDate, dateEntries) ->
+                val dateRows = dateEntries.map { it.row }
+
+                val bonds = dateRows
+                    .groupBy { it.isin }
+                    .map { (isin, isinRows) ->
+                        val firstRow = isinRows.first()
+                        val bondName = firstRow.bondName.ifBlank { isin }
+                        val currency = firstRow.currency
+
+                        var couponSum = BigDecimal.ZERO
+                        var principalSum = BigDecimal.ZERO
+                        val bondPayoutTypes = mutableSetOf<com.adnlv.lynd.domain.PayoutType>()
+
+                        isinRows.forEach { row ->
+                            val rowAmount = row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong()))
+                            val isRedemption = row.payType.equals("redemption", ignoreCase = true) || row.payType == "2"
+                            if (isRedemption) {
+                                principalSum = principalSum.add(rowAmount)
+                                bondPayoutTypes.add(com.adnlv.lynd.domain.PayoutType.REDEMPTION)
+                            } else {
+                                couponSum = couponSum.add(rowAmount)
+                                bondPayoutTypes.add(com.adnlv.lynd.domain.PayoutType.COUPON)
+                            }
+                        }
+
+                        val lots = isinRows
+                            .groupBy { if (it.holdingId > 0) it.holdingId else Pair(it.purchaseDate, it.quantity) }
+                            .map { (_, lotRows) ->
+                                val sample = lotRows.first()
+                                val lotAmount = lotRows.fold(BigDecimal.ZERO) { acc, r ->
+                                    acc.add(r.payVal.multiply(BigDecimal.valueOf(r.quantity.toLong())))
+                                }
+                                com.adnlv.lynd.domain.PayoutLot(
+                                    holdingId = sample.holdingId,
+                                    purchaseDate = sample.purchaseDate,
+                                    quantity = sample.quantity,
+                                    amount = lotAmount
+                                )
+                            }
+                            .sortedBy { it.purchaseDate }
+
+                        val totalQuantity = lots.sumOf { it.quantity }
+                        val totalAmount = couponSum.add(principalSum)
+
+                        com.adnlv.lynd.domain.PayoutBondDetail(
+                            isin = isin,
+                            bondName = bondName,
+                            totalQuantity = totalQuantity,
+                            totalAmount = totalAmount,
+                            couponAmount = couponSum,
+                            principalAmount = principalSum,
+                            currency = currency,
+                            payoutTypes = bondPayoutTypes,
+                            lots = lots
+                        )
+                    }
+
+                val datePayoutTypes = bonds.flatMap { it.payoutTypes }.toSet()
+
+                val totalAmounts = dateRows
+                    .groupBy { it.currency }
+                    .map { (curr, currRows) ->
+                        val sum = currRows.fold(BigDecimal.ZERO) { acc, r ->
+                            acc.add(r.payVal.multiply(BigDecimal.valueOf(r.quantity.toLong())))
+                        }
+                        com.adnlv.lynd.domain.CurrencyTotal(
+                            currency = curr,
+                            amount = sum
+                        )
+                    }
+
+                com.adnlv.lynd.domain.PayoutDateGroup(
+                    date = payDate,
+                    totalAmounts = totalAmounts,
+                    payoutTypes = datePayoutTypes,
+                    bonds = bonds
+                )
+            }
 
         PayoutsUiState(
             availableCurrencies = orderedCurrencies,
             selectedCurrencies = effectiveCurrencies,
             selectedTab = currentTab,
-            payouts = activePayouts
+            payouts = activePayouts,
+            dateGroups = dateGroups
         )
     }.stateIn(
         scope = viewModelScope,

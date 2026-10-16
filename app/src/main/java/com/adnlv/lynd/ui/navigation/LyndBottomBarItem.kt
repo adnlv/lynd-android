@@ -2,14 +2,15 @@ package com.adnlv.lynd.ui.navigation
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Icon
@@ -17,11 +18,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -47,12 +53,18 @@ fun Screen.icon(): ImageVector = when (this) {
 fun LyndBottomBarItem(
     screen: Screen,
     selected: Boolean,
-    onClick: () -> Unit,
+    onPressStart: () -> Unit,
+    onRelease: () -> Unit,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val currentOnPressStart by rememberUpdatedState(onPressStart)
+    val currentOnRelease by rememberUpdatedState(onRelease)
+    val currentOnCancel by rememberUpdatedState(onCancel)
+
     val itemColor by animateColorAsState(
         targetValue = if (selected) {
-            MaterialTheme.colorScheme.onPrimary
+            MaterialTheme.colorScheme.onSurface
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
@@ -63,13 +75,29 @@ fun LyndBottomBarItem(
     Column(
         modifier = modifier
             .fillMaxHeight()
-            .selectable(
-                selected = selected,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                role = Role.Tab,
-                onClick = onClick
-            ),
+            .semantics {
+                this.selected = selected
+                this.role = Role.Tab
+                onClick {
+                    currentOnRelease()
+                    true
+                }
+            }
+            .pointerInput(screen) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    currentOnPressStart()
+                    val up = waitForUpOrCancellation()
+                    if (up != null &&
+                        up.position.x in 0f..size.width.toFloat() &&
+                        up.position.y in 0f..size.height.toFloat()
+                    ) {
+                        currentOnRelease()
+                    } else {
+                        currentOnCancel()
+                    }
+                }
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

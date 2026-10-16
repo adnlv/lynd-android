@@ -277,4 +277,201 @@ class PayoutsViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun dateGroups_singleIsinWithCouponAndRedemption_groupsAccurately() = runTest {
+        val today = LocalDate.now()
+        val payDate = today.plusDays(5)
+        val purchaseDate1 = today.minusDays(20)
+        val purchaseDate2 = today.minusDays(10)
+
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA4000190441",
+                    bondName = "Test Bond",
+                    payDate = payDate,
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 10,
+                    currency = "UAH",
+                    purchaseDate = purchaseDate1,
+                    holdingId = 1
+                ),
+                PayoutRow(
+                    isin = "UA4000190441",
+                    bondName = "Test Bond",
+                    payDate = payDate,
+                    payType = "redemption",
+                    payVal = BigDecimal("1000.00"),
+                    quantity = 10,
+                    currency = "UAH",
+                    purchaseDate = purchaseDate1,
+                    holdingId = 1
+                ),
+                PayoutRow(
+                    isin = "UA4000190441",
+                    bondName = "Test Bond",
+                    payDate = payDate,
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 5,
+                    currency = "UAH",
+                    purchaseDate = purchaseDate2,
+                    holdingId = 2
+                ),
+                PayoutRow(
+                    isin = "UA4000190441",
+                    bondName = "Test Bond",
+                    payDate = payDate,
+                    payType = "redemption",
+                    payVal = BigDecimal("1000.00"),
+                    quantity = 5,
+                    currency = "UAH",
+                    purchaseDate = purchaseDate2,
+                    holdingId = 2
+                )
+            )
+        }
+
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        val groups = viewModel.uiState.value.dateGroups
+        assertEquals(1, groups.size)
+
+        val group = groups[0]
+        assertEquals(payDate, group.date)
+        assertTrue(group.isSingleBond)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON, com.adnlv.lynd.domain.PayoutType.REDEMPTION), group.payoutTypes)
+
+        // Total amount for date: (50 * 15) + (1000 * 15) = 750 + 15000 = 15750.00
+        assertEquals(1, group.totalAmounts.size)
+        assertEquals("UAH", group.totalAmounts[0].currency)
+        assertEquals(0, BigDecimal("15750.00").compareTo(group.totalAmounts[0].amount))
+
+        val bond = group.singleBond!!
+        assertEquals("UA4000190441", bond.isin)
+        assertEquals(15, bond.totalQuantity)
+        assertEquals(0, BigDecimal("750.00").compareTo(bond.couponAmount))
+        assertEquals(0, BigDecimal("15000.00").compareTo(bond.principalAmount))
+        assertEquals(0, BigDecimal("15750.00").compareTo(bond.totalAmount))
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON, com.adnlv.lynd.domain.PayoutType.REDEMPTION), bond.payoutTypes)
+
+        // Lot breakdown: Lot 1 (qty 10, amount 10500), Lot 2 (qty 5, amount 5250)
+        assertEquals(2, bond.lots.size)
+        assertEquals(10, bond.lots[0].quantity)
+        assertEquals(purchaseDate1, bond.lots[0].purchaseDate)
+        assertEquals(0, BigDecimal("10500.00").compareTo(bond.lots[0].amount))
+
+        assertEquals(5, bond.lots[1].quantity)
+        assertEquals(purchaseDate2, bond.lots[1].purchaseDate)
+        assertEquals(0, BigDecimal("5250.00").compareTo(bond.lots[1].amount))
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun dateGroups_multipleIsinsOnSameDate_groupsAccurately() = runTest {
+        val today = LocalDate.now()
+        val payDate = today.plusDays(3)
+
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "Bond 1",
+                    payDate = payDate,
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 2,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10),
+                    holdingId = 1
+                ),
+                PayoutRow(
+                    isin = "UA2",
+                    bondName = "Bond 2",
+                    payDate = payDate,
+                    payType = "redemption",
+                    payVal = BigDecimal("1000.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10),
+                    holdingId = 2
+                )
+            )
+        }
+
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        val groups = viewModel.uiState.value.dateGroups
+        assertEquals(1, groups.size)
+
+        val group = groups[0]
+        assertEquals(false, group.isSingleBond)
+        assertEquals(2, group.bonds.size)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON, com.adnlv.lynd.domain.PayoutType.REDEMPTION), group.payoutTypes)
+
+        val bond1 = group.bonds.first { it.isin == "UA1" }
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON), bond1.payoutTypes)
+        assertEquals(0, BigDecimal("100.00").compareTo(bond1.totalAmount))
+
+        val bond2 = group.bonds.first { it.isin == "UA2" }
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION), bond2.payoutTypes)
+        assertEquals(0, BigDecimal("1000.00").compareTo(bond2.totalAmount))
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun dateGroups_multiCurrencyOnSameDate_computesTotalsPerCurrency() = runTest {
+        val today = LocalDate.now()
+        val payDate = today.plusDays(4)
+
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "UAH Bond",
+                    payDate = payDate,
+                    payType = "coupon",
+                    payVal = BigDecimal("100.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10),
+                    holdingId = 1
+                ),
+                PayoutRow(
+                    isin = "US1",
+                    bondName = "USD Bond",
+                    payDate = payDate,
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 2,
+                    currency = "USD",
+                    purchaseDate = today.minusDays(10),
+                    holdingId = 2
+                )
+            )
+        }
+
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        viewModel.selectAllCurrencies(listOf("UAH", "USD"))
+
+        val groups = viewModel.uiState.value.dateGroups
+        assertEquals(1, groups.size)
+
+        val group = groups[0]
+        assertEquals(2, group.totalAmounts.size)
+        val uahTotal = group.totalAmounts.first { it.currency == "UAH" }
+        val usdTotal = group.totalAmounts.first { it.currency == "USD" }
+        assertEquals(0, BigDecimal("100.00").compareTo(uahTotal.amount))
+        assertEquals(0, BigDecimal("100.00").compareTo(usdTotal.amount))
+
+        collectJob.cancel()
+    }
 }

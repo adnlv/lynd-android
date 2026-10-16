@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,7 +33,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingItem
 import com.adnlv.lynd.ui.icons.Add
@@ -46,7 +56,9 @@ import kotlinx.coroutines.launch
 fun HoldingsScreen(
     viewModel: HoldingsViewModel,
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
     onActionChange: ((BottomBarAction) -> Unit)? = null,
+    onNavigateBack: (() -> Unit)? = null,
     onNavigateToAdd: (() -> Unit)? = null,
     onNavigateToEdit: ((HoldingItem) -> Unit)? = null
 ) {
@@ -61,7 +73,6 @@ fun HoldingsScreen(
     var editingHolding by remember { mutableStateOf<HoldingItem?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
     val context = LocalContext.current
     val sharedPrefs = remember(context) {
         context.getSharedPreferences("lynd_prefs", Context.MODE_PRIVATE)
@@ -146,6 +157,28 @@ fun HoldingsScreen(
                     }
                 }
         ) {
+            if (onNavigateBack != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back to Payouts"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Payouts",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+
             if (isSyncing) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }

@@ -43,6 +43,32 @@ class ScreenNavigationTest {
     fun holdingsScreen_hasCorrectRouteAndTitle() {
         assertEquals("holdings", Screen.Holdings.route)
         assertEquals("Holdings", Screen.Holdings.title)
+        assertEquals("payouts", Screen.Holdings.parentRoute)
+    }
+
+    @Test
+    fun screen_defaultBottomTabs_containsExpectedScreens() {
+        assertEquals(listOf(Screen.Overview, Screen.Planner, Screen.Payouts), Screen.defaultBottomTabs)
+    }
+
+    @Test
+    fun screen_resolveBottomTabRoute_mapsChildToParentRoute() {
+        assertEquals("overview", Screen.resolveBottomTabRoute(Screen.Overview.route))
+        assertEquals("planner", Screen.resolveBottomTabRoute(Screen.Planner.route))
+        assertEquals("payouts", Screen.resolveBottomTabRoute(Screen.Payouts.route))
+        assertEquals("payouts", Screen.resolveBottomTabRoute(Screen.Holdings.route))
+        assertEquals(null, Screen.resolveBottomTabRoute("unknown_route"))
+        assertEquals(null, Screen.resolveBottomTabRoute(null))
+    }
+
+    @Test
+    fun screen_shouldShowBottomBar_returnsTrueForTabsAndChildren() {
+        org.junit.Assert.assertTrue(Screen.shouldShowBottomBar(Screen.Overview.route))
+        org.junit.Assert.assertTrue(Screen.shouldShowBottomBar(Screen.Planner.route))
+        org.junit.Assert.assertTrue(Screen.shouldShowBottomBar(Screen.Payouts.route))
+        org.junit.Assert.assertTrue(Screen.shouldShowBottomBar(Screen.Holdings.route))
+        org.junit.Assert.assertFalse(Screen.shouldShowBottomBar("unknown_route"))
+        org.junit.Assert.assertFalse(Screen.shouldShowBottomBar(null))
     }
 
     @Test
@@ -124,5 +150,28 @@ class ScreenNavigationTest {
         val activeAction = action.copy(isActive = true)
         assertEquals(MaterialSymbols.Close, activeAction.resolveIcon(isMenuExpanded = false))
         assertEquals("Close filter menu", activeAction.resolveContentDescription(isMenuExpanded = false))
+    }
+
+    @Test
+    fun bottomBarActionState_registersInvokesAndClearsReselectHandlers() {
+        val state = BottomBarActionState()
+        var reselectedCount = 0
+
+        state.setReselectHandler(Screen.Overview.route) {
+            reselectedCount++
+        }
+
+        state.onReselect(Screen.Overview.route)
+        assertEquals(1, reselectedCount)
+
+        state.onReselect(Screen.Planner.route)
+        assertEquals(1, reselectedCount)
+
+        state.onReselect(null)
+        assertEquals(1, reselectedCount)
+
+        state.clearReselectHandler(Screen.Overview.route)
+        state.onReselect(Screen.Overview.route)
+        assertEquals(1, reselectedCount)
     }
 }
