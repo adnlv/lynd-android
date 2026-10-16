@@ -144,8 +144,7 @@ fun PayoutsScreen(
                         key = { "${it.isin}_${it.payDate}_${it.payType}_${it.payoutAmount}" }
                     ) { payout ->
                         PayoutCard(
-                            payout = payout,
-                            tab = uiState.selectedTab
+                            payout = payout
                         )
                     }
 
@@ -162,15 +161,9 @@ fun PayoutsScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 8.dp, bottom = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                                horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = if (dateTotalsByCurrency.size > 1) "Total ($currency)" else "Total",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
                                 Text(
                                     text = "${Formatters.formatAmount(totalAmount)} $symbol",
                                     style = MaterialTheme.typography.titleLarge,
