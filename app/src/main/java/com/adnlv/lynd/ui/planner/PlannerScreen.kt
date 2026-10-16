@@ -1,5 +1,6 @@
 package com.adnlv.lynd.ui.planner
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +26,11 @@ fun PlannerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         if (uiState.summaries.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
