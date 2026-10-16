@@ -36,11 +36,6 @@ fun PayoutTypeBadge(
         contentColor = contentColor,
         modifier = modifier
             .clip(RoundedCornerShape(6.dp))
-            .border(
-                width = 1.dp,
-                color = contentColor.copy(alpha = 0.25f),
-                shape = RoundedCornerShape(6.dp)
-            )
     ) {
         Text(
             text = text,
