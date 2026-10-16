@@ -64,7 +64,7 @@ fun LyndBottomBarItem(
 
     val itemColor by animateColorAsState(
         targetValue = if (selected) {
-            MaterialTheme.colorScheme.onPrimary
+            MaterialTheme.colorScheme.onSurface
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
