@@ -9,7 +9,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,14 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.adnlv.lynd.domain.PayoutBondDetail
 import com.adnlv.lynd.domain.PayoutDateGroup
-import com.adnlv.lynd.domain.PayoutItem
 import com.adnlv.lynd.domain.PayoutLot
 import com.adnlv.lynd.domain.PayoutType
 import com.adnlv.lynd.util.Formatters
-import java.math.BigDecimal
 
 @Composable
 fun PayoutCard(
@@ -278,43 +273,6 @@ private fun LotBreakdownList(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun PayoutCard(
-    payout: PayoutItem,
-    modifier: Modifier = Modifier,
-    tab: PayoutTab = PayoutTab.UPCOMING
-) {
-    val symbol = remember(payout.currency) { Formatters.getCurrencySymbol(payout.currency) }
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = payout.isin,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "${Formatters.formatAmount(payout.payoutAmount)} $symbol",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }
