@@ -64,35 +64,36 @@ fun PayoutsScreen(
         )
     }
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        HoldingsSuggestionCard(
-            onClick = onNavigateToHoldings,
-            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
-        )
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        ) {
         if (uiState.payouts.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
-                val emptyMessage = when (uiState.selectedTab) {
-                    PayoutTab.UPCOMING -> "No upcoming payouts found."
-                    PayoutTab.RECEIVED -> "No received payouts found."
-                }
-                Text(
-                    text = emptyMessage,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                HoldingsSuggestionCard(
+                    onClick = onNavigateToHoldings
                 )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val emptyMessage = when (uiState.selectedTab) {
+                        PayoutTab.UPCOMING -> "No upcoming payouts found."
+                        PayoutTab.RECEIVED -> "No received payouts found."
+                    }
+                    Text(
+                        text = emptyMessage,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else {
             val dateFormatter = remember { DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()) }
@@ -106,6 +107,13 @@ fun PayoutsScreen(
                 contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
+                item(key = "holdings_suggestion") {
+                    HoldingsSuggestionCard(
+                        onClick = onNavigateToHoldings,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+                }
+
                 groupedPayouts.forEach { (date, payoutsForDate) ->
                     item(key = "header_$date") {
                         Row(
@@ -174,7 +182,6 @@ fun PayoutsScreen(
                     }
                 }
             }
-        }
         }
     }
 }
