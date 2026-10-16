@@ -6,6 +6,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -67,13 +69,6 @@ fun LyndContextualActionButton(
         isContextualActive = isContextualActive
     )
 
-    val rotationTarget = if (isContextualActive) ActionRotationDegrees else 0f
-    val rotation by animateFloatAsState(
-        targetValue = rotationTarget,
-        animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
-        label = "contextual_action_rotation"
-    )
-
     Box(modifier = modifier) {
         LyndBottomBarCircleButton(
             onClick = {
@@ -97,24 +92,48 @@ fun LyndContextualActionButton(
         ) {
             AnimatedContent(
                 targetState = currentVisualState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { rotationZ = rotation },
+                modifier = Modifier.fillMaxSize(),
                 transitionSpec = {
-                    (fadeIn(
-                        animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
-                    )).togetherWith(
-                        fadeOut(
+                    val isTogglingActiveState = initialState.isContextualActive != targetState.isContextualActive
+
+                    if (isTogglingActiveState) {
+                        (fadeIn(
                             animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
-                        )
-                    ).using(SizeTransform(clip = false))
+                        )).togetherWith(
+                            fadeOut(
+                                animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
+                            )
+                        ).using(SizeTransform(clip = false))
+                    } else {
+                        (slideInVertically(
+                            animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+                            initialOffsetY = { fullHeight -> fullHeight }
+                        ) + fadeIn(
+                            animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
+                        )).togetherWith(
+                            slideOutVertically(
+                                animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+                                targetOffsetY = { fullHeight -> fullHeight }
+                            ) + fadeOut(
+                                animationSpec = tween(durationMillis = ActionTransitionDurationMillis)
+                            )
+                        ).using(SizeTransform(clip = false))
+                    }
                 },
                 contentAlignment = Alignment.Center,
                 contentKey = { targetState -> targetState.icon to targetState.isContextualActive },
                 label = "contextual_action_transition"
             ) { targetState ->
+                val rotation by animateFloatAsState(
+                    targetValue = if (targetState.isContextualActive) ActionRotationDegrees else 0f,
+                    animationSpec = tween(durationMillis = ActionTransitionDurationMillis),
+                    label = "contextual_action_rotation"
+                )
+
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { rotationZ = rotation },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
