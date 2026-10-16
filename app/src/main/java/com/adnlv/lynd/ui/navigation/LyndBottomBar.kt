@@ -1,12 +1,15 @@
 package com.adnlv.lynd.ui.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -21,47 +24,39 @@ import com.adnlv.lynd.util.HapticFeedbackHelper
 
 private val ContainerHorizontalMargin = 16.dp
 private val ContainerBottomMargin = 4.dp
+private val ActionButtonSpacing = 8.dp
 
 @Composable
 fun LyndBottomBar(
     navController: NavController,
     currentRoute: String?,
     modifier: Modifier = Modifier,
-    bottomTabs: List<Screen> = listOf(Screen.Overview, Screen.Planner, Screen.Payouts, Screen.Holdings)
+    bottomTabs: List<Screen> = listOf(Screen.Overview, Screen.Planner, Screen.Payouts, Screen.Holdings),
+    action: BottomBarAction = BottomBarAction.defaultForRoute(currentRoute)
 ) {
     val view = LocalView.current
     val scrimColor = MaterialTheme.colorScheme.surface
-    val isPayoutsRoute = currentRoute == Screen.Payouts.route
-    val endMargin = if (isPayoutsRoute) {
-        ContainerHorizontalMargin + FloatingBarHeight + 8.dp
-    } else {
-        ContainerHorizontalMargin
-    }
 
-    Box(
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .then(
-                if (!isPayoutsRoute) {
-                    Modifier.background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                scrimColor.copy(alpha = 0.5f),
-                                scrimColor
-                            )
-                        )
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        scrimColor.copy(alpha = 0.5f),
+                        scrimColor
                     )
-                } else {
-                    Modifier
-                }
+                )
             )
             .navigationBarsPadding()
             .padding(
                 start = ContainerHorizontalMargin,
-                end = endMargin,
+                end = ContainerHorizontalMargin,
                 bottom = ContainerBottomMargin
-            )
+            ),
+        horizontalArrangement = Arrangement.spacedBy(ActionButtonSpacing),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         LyndBottomBarPill(
             bottomTabs = bottomTabs,
@@ -76,8 +71,10 @@ fun LyndBottomBar(
                     restoreState = true
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.weight(1f)
         )
+
+        LyndContextualActionButton(action = action)
     }
 }
 

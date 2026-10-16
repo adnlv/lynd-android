@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.adnlv.lynd.ui.navigation.LyndBottomBar
 import com.adnlv.lynd.ui.navigation.LyndNavHost
 import com.adnlv.lynd.ui.navigation.Screen
+import com.adnlv.lynd.ui.navigation.rememberBottomBarActionState
 import com.adnlv.lynd.ui.theme.LyndTheme
 
 class MainActivity : ComponentActivity() {
@@ -40,6 +41,7 @@ fun MainApp(appContainer: AppContainer) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val bottomBarActionState = rememberBottomBarActionState()
 
     val bottomTabs = listOf(Screen.Overview, Screen.Planner, Screen.Payouts, Screen.Holdings)
     val showBottomBar = currentRoute in bottomTabs.map { it.route }
@@ -56,13 +58,15 @@ fun MainApp(appContainer: AppContainer) {
             LyndNavHost(
                 navController = navController,
                 appContainer = appContainer,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                bottomBarActionState = bottomBarActionState
             )
             if (showBottomBar) {
                 LyndBottomBar(
                     navController = navController,
                     currentRoute = currentRoute,
                     bottomTabs = bottomTabs,
+                    action = bottomBarActionState.actionForRoute(currentRoute),
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
