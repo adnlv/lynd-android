@@ -30,7 +30,7 @@ import com.adnlv.lynd.ui.components.LyndGlassSurface
 private val ContainerInnerPaddingHorizontal = 4.dp
 private val ContainerInnerPaddingVertical = 4.dp
 private val PillPaddingHorizontal = 2.dp
-private val PillPaddingVertical = 0.dp
+private val PillPaddingVertical = 1.dp
 
 @Composable
 fun LyndBottomBarPill(
