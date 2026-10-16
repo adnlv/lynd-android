@@ -66,7 +66,6 @@ fun LyndBottomBar(
                 }
             },
             onTabReselected = { screen ->
-                HapticFeedbackHelper.vibratePageSwitch(view)
                 onTabReselected(screen)
             },
             modifier = Modifier.weight(1f)
