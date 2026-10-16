@@ -2,16 +2,13 @@ package com.adnlv.lynd
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Tune
+import com.adnlv.lynd.ui.icons.Add
 import com.adnlv.lynd.ui.icons.Event
+import com.adnlv.lynd.ui.icons.FilterList
 import com.adnlv.lynd.ui.icons.Home
 import com.adnlv.lynd.ui.icons.MaterialSymbols
 import com.adnlv.lynd.ui.icons.PlannerReview
+import com.adnlv.lynd.ui.icons.Settings
 import com.adnlv.lynd.ui.navigation.BottomBarAction
 import com.adnlv.lynd.ui.navigation.BottomBarActionState
 import com.adnlv.lynd.ui.navigation.Screen
@@ -58,27 +55,27 @@ class ScreenNavigationTest {
     @Test
     fun bottomBarAction_defaultForRoute_returnsDistinctActionForEachScreen() {
         val overviewAction = BottomBarAction.defaultForRoute(Screen.Overview.route)
-        assertEquals(Icons.Default.Tune, overviewAction.icon)
+        assertEquals(MaterialSymbols.Settings, overviewAction.icon)
         assertNull(overviewAction.label)
         assertEquals("Overview actions", overviewAction.contentDescription)
 
         val plannerAction = BottomBarAction.defaultForRoute(Screen.Planner.route)
-        assertEquals(Icons.Default.FilterList, plannerAction.icon)
+        assertEquals(MaterialSymbols.FilterList, plannerAction.icon)
         assertNull(plannerAction.label)
         assertEquals("Planner actions", plannerAction.contentDescription)
 
         val payoutsAction = BottomBarAction.defaultForRoute(Screen.Payouts.route)
-        assertEquals(Icons.Default.FilterList, payoutsAction.icon)
+        assertEquals(MaterialSymbols.FilterList, payoutsAction.icon)
         assertNull(payoutsAction.label)
         assertEquals("Open filter menu", payoutsAction.contentDescription)
 
         val holdingsAction = BottomBarAction.defaultForRoute(Screen.Holdings.route)
-        assertEquals(Icons.Default.Add, holdingsAction.icon)
+        assertEquals(MaterialSymbols.Add, holdingsAction.icon)
         assertNull(holdingsAction.label)
         assertEquals("Holdings actions", holdingsAction.contentDescription)
 
         val nullAction = BottomBarAction.defaultForRoute(null)
-        assertEquals(Icons.Default.Tune, nullAction.icon)
+        assertEquals(MaterialSymbols.Settings, nullAction.icon)
         assertNull(nullAction.label)
     }
 
@@ -91,7 +88,7 @@ class ScreenNavigationTest {
         assertNull(defaultPayouts.menuContent)
 
         val customAction = BottomBarAction(
-            icon = Icons.Default.FilterList,
+            icon = MaterialSymbols.FilterList,
             label = "Filter",
             contentDescription = "Custom payouts filter",
             menuContent = {}

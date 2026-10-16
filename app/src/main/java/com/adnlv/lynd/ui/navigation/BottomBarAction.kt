@@ -1,15 +1,15 @@
 package com.adnlv.lynd.ui.navigation
 
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.adnlv.lynd.ui.icons.Add
+import com.adnlv.lynd.ui.icons.FilterList
+import com.adnlv.lynd.ui.icons.MaterialSymbols
+import com.adnlv.lynd.ui.icons.Settings
 
 data class BottomBarAction(
     val icon: ImageVector,
@@ -21,23 +21,23 @@ data class BottomBarAction(
     companion object {
         fun defaultForRoute(route: String?): BottomBarAction = when (route) {
             Screen.Overview.route -> BottomBarAction(
-                icon = Icons.Default.Tune,
+                icon = MaterialSymbols.Settings,
                 contentDescription = "Overview actions"
             )
             Screen.Planner.route -> BottomBarAction(
-                icon = Icons.Default.FilterList,
+                icon = MaterialSymbols.FilterList,
                 contentDescription = "Planner actions"
             )
             Screen.Payouts.route -> BottomBarAction(
-                icon = Icons.Default.FilterList,
+                icon = MaterialSymbols.FilterList,
                 contentDescription = "Open filter menu"
             )
             Screen.Holdings.route -> BottomBarAction(
-                icon = Icons.Default.Add,
+                icon = MaterialSymbols.Add,
                 contentDescription = "Holdings actions"
             )
             else -> BottomBarAction(
-                icon = Icons.Default.Tune,
+                icon = MaterialSymbols.Settings,
                 contentDescription = "Contextual actions"
             )
         }

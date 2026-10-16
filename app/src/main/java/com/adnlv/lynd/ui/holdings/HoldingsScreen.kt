@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +35,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingItem
+import com.adnlv.lynd.ui.icons.Add
+import com.adnlv.lynd.ui.icons.MaterialSymbols
 import com.adnlv.lynd.ui.navigation.BottomBarAction
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -73,7 +73,7 @@ fun HoldingsScreen(
     SideEffect {
         onActionChange?.invoke(
             BottomBarAction(
-                icon = Icons.Default.Add,
+                icon = MaterialSymbols.Add,
                 contentDescription = "Add Holding",
                 onClick = {
                     revealedHoldingId = null
