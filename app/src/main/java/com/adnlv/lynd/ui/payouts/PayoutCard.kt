@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,18 +21,11 @@ import com.adnlv.lynd.util.Formatters
 @Composable
 fun PayoutCard(
     payout: PayoutItem,
-    tab: PayoutTab,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    tab: PayoutTab = PayoutTab.UPCOMING
 ) {
-    val cardAlpha = when (tab) {
-        PayoutTab.UPCOMING -> 1.0f
-        PayoutTab.RECEIVED -> 0.75f
-    }
-
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .alpha(cardAlpha),
+        modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
@@ -45,10 +37,10 @@ fun PayoutCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = payout.payType,
+                text = payout.isin,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.outline
+                color = MaterialTheme.colorScheme.onSurface
             )
             val formattedAmount = remember(payout.payoutAmount) {
                 Formatters.formatAmount(payout.payoutAmount)
@@ -56,8 +48,8 @@ fun PayoutCard(
             Text(
                 text = "$formattedAmount ${Formatters.getCurrencySymbol(payout.currency)}",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.outline
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
