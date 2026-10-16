@@ -20,7 +20,8 @@ import com.adnlv.lynd.ui.planner.PlannerViewModel
 fun LyndNavHost(
     navController: NavHostController,
     appContainer: AppContainer,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    bottomBarActionState: BottomBarActionState? = null
 ) {
     NavHost(
         navController = navController,
@@ -55,13 +56,23 @@ fun LyndNavHost(
                     bondDao = appContainer.database.bondDao()
                 )
             )
-            HoldingsScreen(viewModel = holdingsViewModel)
+            HoldingsScreen(
+                viewModel = holdingsViewModel,
+                onActionChange = { action ->
+                    bottomBarActionState?.setAction(Screen.Holdings.route, action)
+                }
+            )
         }
         composable(Screen.Payouts.route) {
             val payoutsViewModel: PayoutsViewModel = viewModel(
                 factory = PayoutsViewModel.provideFactory(appContainer.database.payoutDao())
             )
-            PayoutsScreen(viewModel = payoutsViewModel)
+            PayoutsScreen(
+                viewModel = payoutsViewModel,
+                onActionChange = { action ->
+                    bottomBarActionState?.setAction(Screen.Payouts.route, action)
+                }
+            )
         }
     }
 }

@@ -2,7 +2,6 @@ package com.adnlv.lynd.ui.payouts
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,26 +10,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.adnlv.lynd.ui.navigation.BottomBarAction
 import com.adnlv.lynd.util.Formatters
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
@@ -39,106 +32,34 @@ import java.util.Locale
 @Composable
 fun PayoutsScreen(
     viewModel: PayoutsViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onActionChange: ((BottomBarAction) -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Column(
+    SideEffect {
+        onActionChange?.invoke(
+            BottomBarAction(
+                icon = Icons.Default.FilterList,
+                contentDescription = "Open filter menu",
+                menuContent = {
+                    PayoutFilterMenuContent(
+                        selectedTab = uiState.selectedTab,
+                        availableCurrencies = uiState.availableCurrencies,
+                        selectedCurrencies = uiState.selectedCurrencies,
+                        onSelectTab = viewModel::selectTab,
+                        onSelectCurrency = viewModel::selectCurrency,
+                        onSelectAllCurrencies = viewModel::selectAllCurrencies,
+                        onToggleCurrency = viewModel::toggleCurrency
+                    )
+                }
+            )
+        )
+    }
+
+    Box(
         modifier = modifier.fillMaxSize()
     ) {
-        PayoutCategorySelector(
-            selectedTab = uiState.selectedTab,
-            onTabSelected = viewModel::selectTab,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-
-        if (uiState.availableCurrencies.size > 1) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            ) {
-                var menuExpanded by remember { mutableStateOf(false) }
-                val isAllSelected = remember(uiState.selectedCurrencies, uiState.availableCurrencies) {
-                    uiState.availableCurrencies.isNotEmpty() &&
-                        uiState.availableCurrencies.all { it in uiState.selectedCurrencies }
-                }
-
-                val filterLabel = remember(uiState.selectedCurrencies, uiState.availableCurrencies) {
-                    val count = uiState.selectedCurrencies.size
-                    val total = uiState.availableCurrencies.size
-                    val symbols = uiState.selectedCurrencies.joinToString(", ") { Formatters.getCurrencySymbol(it) }
-                    when {
-                        count == 1 -> {
-                            val single = uiState.selectedCurrencies.first()
-                            "Currency: ${Formatters.getCurrencySymbol(single)} ($single)"
-                        }
-                        isAllSelected || (total > 0 && count == total) -> "All currencies ($symbols)"
-                        else -> "Currencies: $symbols"
-                    }
-                }
-
-                FilterChip(
-                    selected = true,
-                    onClick = { menuExpanded = true },
-                    label = {
-                        Text(
-                            text = filterLabel,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Expand currency filter"
-                        )
-                    }
-                )
-
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Select all") },
-                        leadingIcon = {
-                            Checkbox(
-                                checked = isAllSelected,
-                                onCheckedChange = null
-                            )
-                        },
-                        onClick = {
-                            if (isAllSelected) {
-                                val primary = uiState.availableCurrencies.firstOrNull { it == "UAH" }
-                                    ?: uiState.availableCurrencies.firstOrNull()
-                                if (primary != null) viewModel.selectCurrency(primary)
-                            } else {
-                                viewModel.selectAllCurrencies(uiState.availableCurrencies)
-                            }
-                        }
-                    )
-                    HorizontalDivider()
-                    uiState.availableCurrencies.forEach { currency ->
-                        val isSelected = currency in uiState.selectedCurrencies
-                        val symbol = Formatters.getCurrencySymbol(currency)
-                        DropdownMenuItem(
-                            text = { Text("$symbol  $currency") },
-                            leadingIcon = {
-                                Checkbox(
-                                    checked = isSelected,
-                                    onCheckedChange = null
-                                )
-                            },
-                            onClick = { viewModel.toggleCurrency(currency) }
-                        )
-                    }
-                }
-            }
-        }
-
         if (uiState.payouts.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
