@@ -3,6 +3,7 @@ package com.adnlv.lynd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import com.adnlv.lynd.ui.icons.Add
+import com.adnlv.lynd.ui.icons.Close
 import com.adnlv.lynd.ui.icons.Event
 import com.adnlv.lynd.ui.icons.FilterList
 import com.adnlv.lynd.ui.icons.Home
@@ -50,6 +51,7 @@ class ScreenNavigationTest {
         assertEquals(MaterialSymbols.PlannerReview, Screen.Planner.icon())
         assertEquals(MaterialSymbols.Event, Screen.Payouts.icon())
         assertEquals(Icons.AutoMirrored.Filled.List, Screen.Holdings.icon())
+        assertEquals("close", MaterialSymbols.Close.name)
     }
 
     @Test
