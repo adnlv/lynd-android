@@ -168,7 +168,7 @@ fun PayoutCard(
                             text = total.currency.uppercase(),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Medium,
-                            color = dotTrailColor
+                            color = dateColor
                         )
                     }
                 }
