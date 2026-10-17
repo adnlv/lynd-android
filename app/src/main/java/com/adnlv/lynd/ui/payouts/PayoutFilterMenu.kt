@@ -1,5 +1,6 @@
 package com.adnlv.lynd.ui.payouts
 
+import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -12,6 +13,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -104,7 +107,8 @@ fun PayoutFilterMenuContent(
     onSelectPayoutType: (PayoutType) -> Unit = {},
     onTogglePayoutType: (PayoutType) -> Unit = {},
     modifier: Modifier = Modifier,
-    horizontal: Boolean = LocalConfiguration.current.screenWidthDp.dp >= HorizontalLayoutBreakpoint
+    horizontal: Boolean = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE ||
+        LocalConfiguration.current.screenWidthDp.dp >= HorizontalLayoutBreakpoint
 ) {
     if (horizontal) {
         PayoutFilterHorizontalMenu(
@@ -149,12 +153,15 @@ private fun PayoutFilterHorizontalMenu(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.height(IntrinsicSize.Min),
+        modifier = modifier
+            .height(IntrinsicSize.Min)
+            .horizontalScroll(rememberScrollState()),
         verticalAlignment = Alignment.Top
     ) {
         StatusFilterSection(
             selectedTab = selectedTab,
-            onSelectTab = onSelectTab
+            onSelectTab = onSelectTab,
+            modifier = Modifier.width(IntrinsicSize.Min)
         )
 
         VerticalDivider(
@@ -167,7 +174,8 @@ private fun PayoutFilterHorizontalMenu(
         TypeFilterSection(
             selectedPayoutTypes = selectedPayoutTypes,
             onSelectPayoutType = onSelectPayoutType,
-            onTogglePayoutType = onTogglePayoutType
+            onTogglePayoutType = onTogglePayoutType,
+            modifier = Modifier.width(IntrinsicSize.Min)
         )
 
         if (availableCurrencies.size > 1) {
@@ -182,7 +190,8 @@ private fun PayoutFilterHorizontalMenu(
                 availableCurrencies = availableCurrencies,
                 selectedCurrencies = selectedCurrencies,
                 onSelectCurrency = onSelectCurrency,
-                onToggleCurrency = onToggleCurrency
+                onToggleCurrency = onToggleCurrency,
+                modifier = Modifier.width(IntrinsicSize.Min)
             )
         }
     }
