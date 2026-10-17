@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.adnlv.lynd.domain.PayoutDateGroup
 import com.adnlv.lynd.domain.PayoutLot
 import com.adnlv.lynd.domain.PayoutType
@@ -165,9 +166,10 @@ fun PayoutCard(
                         val symbol = Formatters.getCurrencySymbol(total.currency)
                         Text(
                             text = "${Formatters.formatAmount(total.amount)} $symbol",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             fontFamily = RobotoFlexHeavy,
                             fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.5.sp,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
