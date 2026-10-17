@@ -278,7 +278,7 @@ private fun StatusToggleItem(
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            fontWeight = FontWeight.Medium,
             color = contentColor,
             maxLines = 1,
             softWrap = false
