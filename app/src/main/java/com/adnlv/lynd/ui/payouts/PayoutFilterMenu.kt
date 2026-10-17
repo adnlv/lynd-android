@@ -1,6 +1,7 @@
 package com.adnlv.lynd.ui.payouts
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,18 +10,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
@@ -38,6 +38,10 @@ private val GroupHeaderVerticalPadding = 6.dp
 private val StatusRowHorizontalPadding = 16.dp
 private val StatusRowTopPadding = 4.dp
 private val StatusRowBottomPadding = 4.dp
+private val StatusPillInnerPadding = 2.dp
+private val StatusSegmentMinHeight = 32.dp
+private val StatusSegmentHorizontalPadding = 12.dp
+private val StatusSegmentVerticalPadding = 6.dp
 private val CurrencyRowHorizontalPadding = 16.dp
 private val CurrencyRowTopPadding = 4.dp
 private val CurrencyRowBottomPadding = 4.dp
@@ -58,11 +62,9 @@ fun ColumnScope.PayoutFilterMenuContent(
 ) {
     FilterGroupHeader(title = "Status")
 
-    val statusTabs = listOf(
-        PayoutTab.UPCOMING to "Upcoming",
-        PayoutTab.RECEIVED to "Received"
-    )
-    SingleChoiceSegmentedButtonRow(
+    StatusTogglePill(
+        selectedTab = selectedTab,
+        onSelectTab = onSelectTab,
         modifier = Modifier
             .fillMaxWidth()
             .padding(
@@ -71,26 +73,7 @@ fun ColumnScope.PayoutFilterMenuContent(
                 end = StatusRowHorizontalPadding,
                 bottom = StatusRowBottomPadding
             )
-    ) {
-        statusTabs.forEachIndexed { index, (tab, label) ->
-            val isSelected = selectedTab == tab
-            SegmentedButton(
-                selected = isSelected,
-                onClick = { onSelectTab(tab) },
-                shape = SegmentedButtonDefaults.itemShape(
-                    index = index,
-                    count = statusTabs.size
-                ),
-                icon = {}
-            ) {
-                Text(
-                    text = label,
-                    maxLines = 1,
-                    softWrap = false
-                )
-            }
-        }
-    }
+    )
 
     if (availableCurrencies.size > 1) {
         HorizontalDivider(
@@ -123,6 +106,74 @@ fun ColumnScope.PayoutFilterMenuContent(
                     onClick = { onSelectCurrency(currency) },
                     onLongClick = { onToggleCurrency(currency) }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusTogglePill(
+    selectedTab: PayoutTab,
+    onSelectTab: (PayoutTab) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val statusTabs = listOf(
+        PayoutTab.UPCOMING to "Upcoming",
+        PayoutTab.RECEIVED to "Received"
+    )
+
+    Surface(
+        modifier = modifier,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(StatusPillInnerPadding),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            statusTabs.forEach { (tab, label) ->
+                val isSelected = selectedTab == tab
+                val segmentColor = if (isSelected) {
+                    MaterialTheme.colorScheme.secondaryContainer
+                } else {
+                    Color.Transparent
+                }
+                val contentColor = if (isSelected) {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .defaultMinSize(minHeight = StatusSegmentMinHeight)
+                        .clip(CircleShape)
+                        .background(color = segmentColor, shape = CircleShape)
+                        .selectable(
+                            selected = isSelected,
+                            role = Role.RadioButton,
+                            onClick = { onSelectTab(tab) }
+                        )
+                        .padding(
+                            horizontal = StatusSegmentHorizontalPadding,
+                            vertical = StatusSegmentVerticalPadding
+                        )
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = contentColor,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
             }
         }
     }
