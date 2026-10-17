@@ -49,8 +49,6 @@ fun PayoutsScreen(
                         availableCurrencies = uiState.availableCurrencies,
                         selectedCurrencies = uiState.selectedCurrencies,
                         onSelectTab = viewModel::selectTab,
-                        onSelectCurrency = viewModel::selectCurrency,
-                        onSelectAllCurrencies = viewModel::selectAllCurrencies,
                         onToggleCurrency = viewModel::toggleCurrency
                     )
                 }
