@@ -537,4 +537,125 @@ class PayoutsViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun initialState_defaultsToBothPayoutTypesSelected() = runTest {
+        val fakeDao = FakePayoutDao()
+        val viewModel = PayoutsViewModel(fakeDao)
+
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals(
+            setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION, com.adnlv.lynd.domain.PayoutType.COUPON),
+            viewModel.uiState.value.selectedPayoutTypes
+        )
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun selectPayoutType_filtersPayoutsAndDateGroupsByType() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "Coupon Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "UA2",
+                    bondName = "Redemption Bond",
+                    payDate = today.plusDays(5),
+                    payType = "redemption",
+                    payVal = BigDecimal("1000.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        // Initially both are selected
+        assertEquals(2, viewModel.uiState.value.payouts.size)
+        assertEquals(1, viewModel.uiState.value.dateGroups.size)
+
+        // Select Coupon only
+        viewModel.selectPayoutType(com.adnlv.lynd.domain.PayoutType.COUPON)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON), viewModel.uiState.value.selectedPayoutTypes)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+        assertEquals("Coupon Bond", viewModel.uiState.value.payouts[0].bondName)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON), viewModel.uiState.value.dateGroups[0].payoutTypes)
+
+        // Select Redemption only
+        viewModel.selectPayoutType(com.adnlv.lynd.domain.PayoutType.REDEMPTION)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION), viewModel.uiState.value.selectedPayoutTypes)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+        assertEquals("Redemption Bond", viewModel.uiState.value.payouts[0].bondName)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION), viewModel.uiState.value.dateGroups[0].payoutTypes)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun togglePayoutType_supportsMultiSelectAndPreventsEmptySelection() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "Coupon Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "UA2",
+                    bondName = "Redemption Bond",
+                    payDate = today.plusDays(5),
+                    payType = "redemption",
+                    payVal = BigDecimal("1000.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        // Start with both types selected
+        assertEquals(2, viewModel.uiState.value.payouts.size)
+
+        // Toggle Coupon off -> Redemption remains
+        viewModel.togglePayoutType(com.adnlv.lynd.domain.PayoutType.COUPON)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION), viewModel.uiState.value.selectedPayoutTypes)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+        assertEquals("Redemption Bond", viewModel.uiState.value.payouts[0].bondName)
+
+        // Cannot deselect the last remaining type
+        viewModel.togglePayoutType(com.adnlv.lynd.domain.PayoutType.REDEMPTION)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION), viewModel.uiState.value.selectedPayoutTypes)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+
+        // Toggle Coupon back on -> both selected
+        viewModel.togglePayoutType(com.adnlv.lynd.domain.PayoutType.COUPON)
+        assertEquals(
+            setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION, com.adnlv.lynd.domain.PayoutType.COUPON),
+            viewModel.uiState.value.selectedPayoutTypes
+        )
+        assertEquals(2, viewModel.uiState.value.payouts.size)
+
+        collectJob.cancel()
+    }
 }

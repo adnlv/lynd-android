@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.adnlv.lynd.data.db.PayoutDao
 import com.adnlv.lynd.domain.PayoutItem
+import com.adnlv.lynd.domain.PayoutType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +25,7 @@ enum class PayoutTab {
 data class PayoutsUiState(
     val availableCurrencies: List<String> = emptyList(),
     val selectedCurrencies: Set<String> = setOf("UAH"),
+    val selectedPayoutTypes: Set<PayoutType> = setOf(PayoutType.REDEMPTION, PayoutType.COUPON),
     val selectedTab: PayoutTab = PayoutTab.UPCOMING,
     val payouts: List<PayoutItem> = emptyList(),
     val dateGroups: List<com.adnlv.lynd.domain.PayoutDateGroup> = emptyList()
@@ -38,16 +40,33 @@ class PayoutsViewModel(
     private val _selectedCurrencies = MutableStateFlow<Set<String>>(setOf("UAH"))
     val selectedCurrencies: StateFlow<Set<String>> = _selectedCurrencies.asStateFlow()
 
+    private val _selectedPayoutTypes = MutableStateFlow<Set<PayoutType>>(
+        setOf(PayoutType.REDEMPTION, PayoutType.COUPON)
+    )
+    val selectedPayoutTypes: StateFlow<Set<PayoutType>> = _selectedPayoutTypes.asStateFlow()
+
     private val _selectedTab = MutableStateFlow(PayoutTab.UPCOMING)
     val selectedTab: StateFlow<PayoutTab> = _selectedTab.asStateFlow()
 
     private val allPayouts = payoutDao.getAllPayoutRows()
 
-    val uiState: StateFlow<PayoutsUiState> = combine(allPayouts, _selectedCurrencies, _selectedTab) { rows, selectedCurrs, currentTab ->
-        data class PayoutWithPurchase(val item: PayoutItem, val purchaseDate: LocalDate, val row: com.adnlv.lynd.data.db.PayoutRow)
+    val uiState: StateFlow<PayoutsUiState> = combine(
+        allPayouts,
+        _selectedCurrencies,
+        _selectedPayoutTypes,
+        _selectedTab
+    ) { rows, selectedCurrs, selectedTypes, currentTab ->
+        data class PayoutWithPurchase(
+            val item: PayoutItem,
+            val payoutType: PayoutType,
+            val purchaseDate: LocalDate,
+            val row: com.adnlv.lynd.data.db.PayoutRow
+        )
 
         val itemsWithPurchase = rows.map { row ->
             val totalPayout = row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong()))
+            val isRedemption = row.payType.equals("redemption", ignoreCase = true) || row.payType == "2"
+            val type = if (isRedemption) PayoutType.REDEMPTION else PayoutType.COUPON
             val label = when (row.payType.lowercase()) {
                 "coupon", "1" -> "Coupon"
                 "redemption", "2" -> "Redemption"
@@ -62,6 +81,7 @@ class PayoutsViewModel(
                     payoutAmount = totalPayout,
                     currency = row.currency
                 ),
+                payoutType = type,
                 purchaseDate = row.purchaseDate,
                 row = row
             )
@@ -85,12 +105,11 @@ class PayoutsViewModel(
             else -> emptySet()
         }
 
-        val filtered = if (effectiveCurrencies.isEmpty()) {
-            itemsWithPurchase
-        } else {
-            itemsWithPurchase.filter { item ->
+        val filtered = itemsWithPurchase.filter { item ->
+            val matchesCurrency = effectiveCurrencies.isEmpty() ||
                 effectiveCurrencies.any { it.equals(item.item.currency, ignoreCase = true) }
-            }
+            val matchesType = item.payoutType in selectedTypes
+            matchesCurrency && matchesType
         }
 
         val today = LocalDate.now()
@@ -200,6 +219,7 @@ class PayoutsViewModel(
         PayoutsUiState(
             availableCurrencies = orderedCurrencies,
             selectedCurrencies = effectiveCurrencies,
+            selectedPayoutTypes = selectedTypes,
             selectedTab = currentTab,
             payouts = activePayouts,
             dateGroups = dateGroups
@@ -228,6 +248,21 @@ class PayoutsViewModel(
     fun selectAllCurrencies(currencies: Collection<String>) {
         if (currencies.isNotEmpty()) {
             _selectedCurrencies.value = currencies.toSet()
+        }
+    }
+
+    fun selectPayoutType(type: PayoutType) {
+        _selectedPayoutTypes.value = setOf(type)
+    }
+
+    fun togglePayoutType(type: PayoutType) {
+        val current = _selectedPayoutTypes.value
+        if (current.contains(type)) {
+            if (current.size > 1) {
+                _selectedPayoutTypes.value = current - type
+            }
+        } else {
+            _selectedPayoutTypes.value = current + type
         }
     }
 
