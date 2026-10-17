@@ -1,13 +1,22 @@
 package com.adnlv.lynd.ui.payouts
 
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.adnlv.lynd.ui.theme.LyndGlassDefaults
 import com.adnlv.lynd.util.Formatters
+
+private val GroupHeaderHorizontalPadding = 16.dp
+private val GroupHeaderVerticalPadding = 6.dp
 
 @Composable
 fun ColumnScope.PayoutFilterMenuContent(
@@ -21,6 +30,8 @@ fun ColumnScope.PayoutFilterMenuContent(
 ) {
     val isAllSelected = availableCurrencies.isNotEmpty() &&
         availableCurrencies.all { it in selectedCurrencies }
+
+    FilterGroupHeader(title = "Status")
 
     PayoutTab.entries.forEach { tab ->
         val isSelected = selectedTab == tab
@@ -41,7 +52,11 @@ fun ColumnScope.PayoutFilterMenuContent(
     }
 
     if (availableCurrencies.isNotEmpty()) {
-        HorizontalDivider()
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
+        )
+        FilterGroupHeader(title = "Currency")
         if (availableCurrencies.size > 1) {
             DropdownMenuItem(
                 text = { Text("Select all") },
@@ -77,4 +92,21 @@ fun ColumnScope.PayoutFilterMenuContent(
             )
         }
     }
+}
+
+@Composable
+private fun FilterGroupHeader(
+    title: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier.padding(
+            horizontal = GroupHeaderHorizontalPadding,
+            vertical = GroupHeaderVerticalPadding
+        )
+    )
 }
