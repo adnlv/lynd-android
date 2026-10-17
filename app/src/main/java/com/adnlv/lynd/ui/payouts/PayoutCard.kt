@@ -47,6 +47,7 @@ import com.adnlv.lynd.domain.PayoutLot
 import com.adnlv.lynd.domain.PayoutType
 import com.adnlv.lynd.ui.icons.Event
 import com.adnlv.lynd.ui.icons.MaterialSymbols
+import com.adnlv.lynd.ui.theme.RobotoFlexHeavy
 import com.adnlv.lynd.util.Formatters
 
 @Composable
@@ -161,11 +162,13 @@ fun PayoutCard(
                                     )
                                 }
                         )
+                        val symbol = Formatters.getCurrencySymbol(total.currency)
                         Text(
-                            text = Formatters.formatAmount(total.amount),
+                            text = "${Formatters.formatAmount(total.amount)} $symbol",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = totalRowColor
+                            fontFamily = RobotoFlexHeavy,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
