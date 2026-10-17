@@ -100,64 +100,147 @@ fun PayoutFilterMenuContent(
     onSelectPayoutType: (PayoutType) -> Unit = {},
     onTogglePayoutType: (PayoutType) -> Unit = {}
 ) {
-    FilterGroupHeader(title = "Status")
-
-    StatusTogglePill(
+    PayoutFilterVerticalMenu(
         selectedTab = selectedTab,
+        availableCurrencies = availableCurrencies,
+        selectedCurrencies = selectedCurrencies,
+        selectedPayoutTypes = selectedPayoutTypes,
         onSelectTab = onSelectTab,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = StatusRowHorizontalPadding,
-                top = StatusRowTopPadding,
-                end = StatusRowHorizontalPadding,
-                bottom = StatusRowBottomPadding
-            )
+        onSelectCurrency = onSelectCurrency,
+        onToggleCurrency = onToggleCurrency,
+        onSelectPayoutType = onSelectPayoutType,
+        onTogglePayoutType = onTogglePayoutType
     )
+}
 
-    HorizontalDivider(
-        modifier = Modifier.padding(vertical = 8.dp),
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
-    )
+@Composable
+private fun PayoutFilterVerticalMenu(
+    selectedTab: PayoutTab,
+    availableCurrencies: List<String>,
+    selectedCurrencies: Set<String>,
+    selectedPayoutTypes: Set<PayoutType>,
+    onSelectTab: (PayoutTab) -> Unit,
+    onSelectCurrency: (String) -> Unit,
+    onToggleCurrency: (String) -> Unit,
+    onSelectPayoutType: (PayoutType) -> Unit,
+    onTogglePayoutType: (PayoutType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        StatusFilterSection(
+            selectedTab = selectedTab,
+            onSelectTab = onSelectTab,
+            modifier = Modifier.fillMaxWidth()
+        )
 
-    FilterGroupHeader(title = "Type")
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = CurrencyRowHorizontalPadding,
-                top = CurrencyRowTopPadding,
-                end = CurrencyRowHorizontalPadding,
-                bottom = CurrencyRowBottomPadding
-            ),
-        horizontalArrangement = Arrangement.spacedBy(
-            space = CurrencyPillSpacing,
-            alignment = Alignment.CenterHorizontally
-        ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val payoutTypes = listOf(PayoutType.REDEMPTION, PayoutType.COUPON)
-        payoutTypes.forEach { type ->
-            val isSelected = type in selectedPayoutTypes
-            PayoutTypeFilterPill(
-                type = type,
-                selected = isSelected,
-                onClick = { onSelectPayoutType(type) },
-                onLongClick = { onTogglePayoutType(type) }
-            )
-        }
-    }
-
-    if (availableCurrencies.size > 1) {
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 8.dp),
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
         )
+
+        TypeFilterSection(
+            selectedPayoutTypes = selectedPayoutTypes,
+            onSelectPayoutType = onSelectPayoutType,
+            onTogglePayoutType = onTogglePayoutType,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        if (availableCurrencies.size > 1) {
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
+            )
+            CurrencyFilterSection(
+                availableCurrencies = availableCurrencies,
+                selectedCurrencies = selectedCurrencies,
+                onSelectCurrency = onSelectCurrency,
+                onToggleCurrency = onToggleCurrency,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatusFilterSection(
+    selectedTab: PayoutTab,
+    onSelectTab: (PayoutTab) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        FilterGroupHeader(title = "Status")
+        StatusTogglePill(
+            selectedTab = selectedTab,
+            onSelectTab = onSelectTab,
+            modifier = Modifier
+                .padding(
+                    start = StatusRowHorizontalPadding,
+                    top = StatusRowTopPadding,
+                    end = StatusRowHorizontalPadding,
+                    bottom = StatusRowBottomPadding
+                )
+        )
+    }
+}
+
+@Composable
+private fun TypeFilterSection(
+    selectedPayoutTypes: Set<PayoutType>,
+    onSelectPayoutType: (PayoutType) -> Unit,
+    onTogglePayoutType: (PayoutType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        FilterGroupHeader(title = "Type")
+        Row(
+            modifier = Modifier
+                .padding(
+                    start = CurrencyRowHorizontalPadding,
+                    top = CurrencyRowTopPadding,
+                    end = CurrencyRowHorizontalPadding,
+                    bottom = CurrencyRowBottomPadding
+                ),
+            horizontalArrangement = Arrangement.spacedBy(
+                space = CurrencyPillSpacing,
+                alignment = Alignment.CenterHorizontally
+            ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val payoutTypes = listOf(PayoutType.REDEMPTION, PayoutType.COUPON)
+            payoutTypes.forEach { type ->
+                val isSelected = type in selectedPayoutTypes
+                PayoutTypeFilterPill(
+                    type = type,
+                    selected = isSelected,
+                    onClick = { onSelectPayoutType(type) },
+                    onLongClick = { onTogglePayoutType(type) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CurrencyFilterSection(
+    availableCurrencies: List<String>,
+    selectedCurrencies: Set<String>,
+    onSelectCurrency: (String) -> Unit,
+    onToggleCurrency: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         FilterGroupHeader(title = "Currency")
         Row(
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(
                     start = CurrencyRowHorizontalPadding,
                     top = CurrencyRowTopPadding,
@@ -416,9 +499,9 @@ private fun CurrencySymbolPill(
         MaterialTheme.colorScheme.onSurfaceVariant
     }
     val labelColor = if (selected) {
-        MaterialTheme.colorScheme.onSurface
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
     } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
     }
     val border = if (selected) {
         null
@@ -464,7 +547,7 @@ private fun CurrencySymbolPill(
                 Text(
                     text = symbol,
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -472,7 +555,7 @@ private fun CurrencySymbolPill(
         Text(
             text = currencyCode.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            fontWeight = FontWeight.Normal,
             color = labelColor,
             maxLines = 1
         )
@@ -521,9 +604,9 @@ private fun PayoutTypeFilterPill(
         MaterialTheme.colorScheme.onSurfaceVariant
     }
     val labelColor = if (selected) {
-        MaterialTheme.colorScheme.onSurface
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
     } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
     }
     val border = if (selected) {
         null
@@ -577,7 +660,7 @@ private fun PayoutTypeFilterPill(
         Text(
             text = config.label,
             style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            fontWeight = FontWeight.Normal,
             color = labelColor,
             maxLines = 1
         )
