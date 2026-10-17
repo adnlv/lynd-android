@@ -14,7 +14,6 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -43,6 +42,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -150,6 +151,8 @@ private fun StatusTogglePill(
     var pressedTab by remember { mutableStateOf<PayoutTab?>(null) }
     var isIndicatorPressed by remember { mutableStateOf(false) }
     val displayedTab = pressedTab ?: selectedTab
+    var containerWidthPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
 
     Surface(
         modifier = modifier,
@@ -160,20 +163,27 @@ private fun StatusTogglePill(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
         )
     ) {
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)
                 .padding(StatusPillInnerPadding)
+                .onSizeChanged { containerWidthPx = it.width }
         ) {
-            val segmentWidth = maxWidth / statusTabs.size
+            val segmentWidthDp = if (containerWidthPx > 0) {
+                with(density) { (containerWidthPx.toFloat() / statusTabs.size).toDp() }
+            } else {
+                0.dp
+            }
             val selectedIndex = statusTabs.indexOfFirst { it.first == displayedTab }
 
-            StatusToggleIndicator(
-                segmentWidth = segmentWidth,
-                selectedIndex = selectedIndex,
-                isPressed = isIndicatorPressed
-            )
+            if (segmentWidthDp > 0.dp) {
+                StatusToggleIndicator(
+                    segmentWidth = segmentWidthDp,
+                    selectedIndex = selectedIndex,
+                    isPressed = isIndicatorPressed
+                )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
