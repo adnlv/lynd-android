@@ -166,8 +166,8 @@ fun PayoutCard(
                         )
                         Text(
                             text = total.currency.uppercase(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Normal,
                             color = dateColor
                         )
                     }
