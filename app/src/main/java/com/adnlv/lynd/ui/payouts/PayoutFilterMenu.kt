@@ -66,7 +66,7 @@ fun ColumnScope.PayoutFilterMenuContent(
         )
     }
 
-    if (availableCurrencies.isNotEmpty()) {
+    if (availableCurrencies.size > 1) {
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 8.dp),
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
