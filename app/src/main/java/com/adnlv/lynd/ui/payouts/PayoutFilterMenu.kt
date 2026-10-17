@@ -10,10 +10,11 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +35,9 @@ import com.adnlv.lynd.util.Formatters
 
 private val GroupHeaderHorizontalPadding = 16.dp
 private val GroupHeaderVerticalPadding = 6.dp
+private val StatusRowHorizontalPadding = 16.dp
+private val StatusRowTopPadding = 4.dp
+private val StatusRowBottomPadding = 4.dp
 private val CurrencyRowHorizontalPadding = 16.dp
 private val CurrencyRowTopPadding = 4.dp
 private val CurrencyRowBottomPadding = 4.dp
@@ -54,22 +58,38 @@ fun ColumnScope.PayoutFilterMenuContent(
 ) {
     FilterGroupHeader(title = "Status")
 
-    PayoutTab.entries.forEach { tab ->
-        val isSelected = selectedTab == tab
-        val label = when (tab) {
-            PayoutTab.UPCOMING -> "Upcoming"
-            PayoutTab.RECEIVED -> "Received"
-        }
-        DropdownMenuItem(
-            text = { Text(label) },
-            leadingIcon = {
-                RadioButton(
-                    selected = isSelected,
-                    onClick = null
+    val statusTabs = listOf(
+        PayoutTab.UPCOMING to "Upcoming",
+        PayoutTab.RECEIVED to "Received"
+    )
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                start = StatusRowHorizontalPadding,
+                top = StatusRowTopPadding,
+                end = StatusRowHorizontalPadding,
+                bottom = StatusRowBottomPadding
+            )
+    ) {
+        statusTabs.forEachIndexed { index, (tab, label) ->
+            val isSelected = selectedTab == tab
+            SegmentedButton(
+                selected = isSelected,
+                onClick = { onSelectTab(tab) },
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = statusTabs.size
+                ),
+                icon = {}
+            ) {
+                Text(
+                    text = label,
+                    maxLines = 1,
+                    softWrap = false
                 )
-            },
-            onClick = { onSelectTab(tab) }
-        )
+            }
+        }
     }
 
     if (availableCurrencies.size > 1) {
@@ -79,13 +99,18 @@ fun ColumnScope.PayoutFilterMenuContent(
         )
         FilterGroupHeader(title = "Currency")
         Row(
-            modifier = Modifier.padding(
-                start = CurrencyRowHorizontalPadding,
-                top = CurrencyRowTopPadding,
-                end = CurrencyRowHorizontalPadding,
-                bottom = CurrencyRowBottomPadding
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = CurrencyRowHorizontalPadding,
+                    top = CurrencyRowTopPadding,
+                    end = CurrencyRowHorizontalPadding,
+                    bottom = CurrencyRowBottomPadding
+                ),
+            horizontalArrangement = Arrangement.spacedBy(
+                space = CurrencyPillSpacing,
+                alignment = Alignment.CenterHorizontally
             ),
-            horizontalArrangement = Arrangement.spacedBy(CurrencyPillSpacing),
             verticalAlignment = Alignment.CenterVertically
         ) {
             availableCurrencies.forEach { currency ->
