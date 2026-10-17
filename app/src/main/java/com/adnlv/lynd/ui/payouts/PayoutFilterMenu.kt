@@ -147,6 +147,9 @@ private fun StatusTogglePill(
         PayoutTab.UPCOMING to "Upcoming",
         PayoutTab.RECEIVED to "Received"
     )
+    var pressedTab by remember { mutableStateOf<PayoutTab?>(null) }
+    var isIndicatorPressed by remember { mutableStateOf(false) }
+    val displayedTab = pressedTab ?: selectedTab
 
     Surface(
         modifier = modifier,
@@ -164,12 +167,12 @@ private fun StatusTogglePill(
                 .padding(StatusPillInnerPadding)
         ) {
             val segmentWidth = maxWidth / statusTabs.size
-            val selectedIndex = statusTabs.indexOfFirst { it.first == selectedTab }
+            val selectedIndex = statusTabs.indexOfFirst { it.first == displayedTab }
 
             StatusToggleIndicator(
                 segmentWidth = segmentWidth,
                 selectedIndex = selectedIndex,
-                isPressed = false
+                isPressed = isIndicatorPressed
             )
 
             Row(
@@ -177,41 +180,99 @@ private fun StatusTogglePill(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 statusTabs.forEach { (tab, label) ->
-                    val isSelected = selectedTab == tab
-                    val contentColor = if (isSelected) {
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = StatusSegmentMinHeight)
-                            .clip(CircleShape)
-                            .selectable(
-                                selected = isSelected,
-                                role = Role.RadioButton,
-                                onClick = { onSelectTab(tab) }
-                            )
-                            .padding(
-                                horizontal = StatusSegmentHorizontalPadding,
-                                vertical = StatusSegmentVerticalPadding
-                            )
-                    ) {
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = contentColor,
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                    }
+                    val isSelected = displayedTab == tab
+                    StatusToggleItem(
+                        tab = tab,
+                        label = label,
+                        selected = isSelected,
+                        onPressStart = {
+                            pressedTab = tab
+                            isIndicatorPressed = true
+                        },
+                        onRelease = {
+                            pressedTab = null
+                            isIndicatorPressed = false
+                            if (selectedTab != tab) {
+                                onSelectTab(tab)
+                            }
+                        },
+                        onCancel = {
+                            pressedTab = null
+                            isIndicatorPressed = false
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun StatusToggleItem(
+    tab: PayoutTab,
+    label: String,
+    selected: Boolean,
+    onPressStart: () -> Unit,
+    onRelease: () -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val currentOnPressStart by rememberUpdatedState(onPressStart)
+    val currentOnRelease by rememberUpdatedState(onRelease)
+    val currentOnCancel by rememberUpdatedState(onCancel)
+
+    val contentColor by animateColorAsState(
+        targetValue = if (selected) {
+            MaterialTheme.colorScheme.onSecondaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        animationSpec = tween(durationMillis = 200),
+        label = "status_tab_color"
+    )
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .defaultMinSize(minHeight = StatusSegmentMinHeight)
+            .clip(CircleShape)
+            .semantics {
+                this.selected = selected
+                this.role = Role.RadioButton
+                onClick {
+                    currentOnRelease()
+                    true
+                }
+            }
+            .pointerInput(tab) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    currentOnPressStart()
+                    val up = waitForUpOrCancellation()
+                    if (up != null &&
+                        up.position.x in 0f..size.width.toFloat() &&
+                        up.position.y in 0f..size.height.toFloat()
+                    ) {
+                        currentOnRelease()
+                    } else {
+                        currentOnCancel()
+                    }
+                }
+            }
+            .padding(
+                horizontal = StatusSegmentHorizontalPadding,
+                vertical = StatusSegmentVerticalPadding
+            )
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            color = contentColor,
+            maxLines = 1,
+            softWrap = false
+        )
     }
 }
 
