@@ -139,6 +139,7 @@ fun PayoutCard(
                             fontWeight = FontWeight.Medium,
                             color = totalRowColor
                         )
+                        val dotTrailColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -146,17 +147,16 @@ fun PayoutCard(
                                 .padding(bottom = 5.dp)
                                 .height(1.dp)
                                 .drawBehind {
-                                    val strokeWidth = 1.dp.toPx()
-                                    val dotSize = 2.dp.toPx()
-                                    val dotGap = 3.dp.toPx()
+                                    val strokeWidth = 1.5.dp.toPx()
+                                    val dotInterval = 5.dp.toPx()
                                     drawLine(
-                                        color = totalRowColor,
+                                        color = dotTrailColor,
                                         start = Offset(0f, size.height / 2),
                                         end = Offset(size.width, size.height / 2),
                                         strokeWidth = strokeWidth,
                                         cap = StrokeCap.Round,
                                         pathEffect = PathEffect.dashPathEffect(
-                                            floatArrayOf(dotSize, dotGap),
+                                            floatArrayOf(0.1f, dotInterval),
                                             0f
                                         )
                                     )
