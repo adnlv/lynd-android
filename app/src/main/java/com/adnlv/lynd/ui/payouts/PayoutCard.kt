@@ -123,8 +123,7 @@ fun PayoutCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Total Payout Amounts: Currency code on left, dotted underline, amount on right
-            val totalRowColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            val dotTrailColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -138,9 +137,8 @@ fun PayoutCard(
                             text = total.currency.uppercase(),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Medium,
-                            color = totalRowColor
+                            color = dotTrailColor
                         )
-                        val dotTrailColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
