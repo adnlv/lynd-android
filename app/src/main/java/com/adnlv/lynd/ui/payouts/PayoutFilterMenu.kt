@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
@@ -87,6 +89,7 @@ private val CurrencyPillMinHeight = 36.dp
 private val CurrencyPillHorizontalPadding = 16.dp
 private val CurrencyPillVerticalPadding = 8.dp
 private val PillLabelTopSpacing = 4.dp
+private val HorizontalLayoutBreakpoint = 600.dp
 
 @Composable
 fun PayoutFilterMenuContent(
@@ -98,19 +101,90 @@ fun PayoutFilterMenuContent(
     onSelectCurrency: (String) -> Unit,
     onToggleCurrency: (String) -> Unit,
     onSelectPayoutType: (PayoutType) -> Unit = {},
-    onTogglePayoutType: (PayoutType) -> Unit = {}
+    onTogglePayoutType: (PayoutType) -> Unit = {},
+    modifier: Modifier = Modifier,
+    horizontal: Boolean = LocalConfiguration.current.screenWidthDp.dp >= HorizontalLayoutBreakpoint
 ) {
-    PayoutFilterVerticalMenu(
-        selectedTab = selectedTab,
-        availableCurrencies = availableCurrencies,
-        selectedCurrencies = selectedCurrencies,
-        selectedPayoutTypes = selectedPayoutTypes,
-        onSelectTab = onSelectTab,
-        onSelectCurrency = onSelectCurrency,
-        onToggleCurrency = onToggleCurrency,
-        onSelectPayoutType = onSelectPayoutType,
-        onTogglePayoutType = onTogglePayoutType
-    )
+    if (horizontal) {
+        PayoutFilterHorizontalMenu(
+            selectedTab = selectedTab,
+            availableCurrencies = availableCurrencies,
+            selectedCurrencies = selectedCurrencies,
+            selectedPayoutTypes = selectedPayoutTypes,
+            onSelectTab = onSelectTab,
+            onSelectCurrency = onSelectCurrency,
+            onToggleCurrency = onToggleCurrency,
+            onSelectPayoutType = onSelectPayoutType,
+            onTogglePayoutType = onTogglePayoutType,
+            modifier = modifier
+        )
+    } else {
+        PayoutFilterVerticalMenu(
+            selectedTab = selectedTab,
+            availableCurrencies = availableCurrencies,
+            selectedCurrencies = selectedCurrencies,
+            selectedPayoutTypes = selectedPayoutTypes,
+            onSelectTab = onSelectTab,
+            onSelectCurrency = onSelectCurrency,
+            onToggleCurrency = onToggleCurrency,
+            onSelectPayoutType = onSelectPayoutType,
+            onTogglePayoutType = onTogglePayoutType,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun PayoutFilterHorizontalMenu(
+    selectedTab: PayoutTab,
+    availableCurrencies: List<String>,
+    selectedCurrencies: Set<String>,
+    selectedPayoutTypes: Set<PayoutType>,
+    onSelectTab: (PayoutTab) -> Unit,
+    onSelectCurrency: (String) -> Unit,
+    onToggleCurrency: (String) -> Unit,
+    onSelectPayoutType: (PayoutType) -> Unit,
+    onTogglePayoutType: (PayoutType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.height(IntrinsicSize.Min),
+        verticalAlignment = Alignment.Top
+    ) {
+        StatusFilterSection(
+            selectedTab = selectedTab,
+            onSelectTab = onSelectTab
+        )
+
+        VerticalDivider(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
+        )
+
+        TypeFilterSection(
+            selectedPayoutTypes = selectedPayoutTypes,
+            onSelectPayoutType = onSelectPayoutType,
+            onTogglePayoutType = onTogglePayoutType
+        )
+
+        if (availableCurrencies.size > 1) {
+            VerticalDivider(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
+            )
+
+            CurrencyFilterSection(
+                availableCurrencies = availableCurrencies,
+                selectedCurrencies = selectedCurrencies,
+                onSelectCurrency = onSelectCurrency,
+                onToggleCurrency = onToggleCurrency
+            )
+        }
+    }
 }
 
 @Composable
