@@ -4,8 +4,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -183,7 +183,7 @@ private fun LyndContextualPopupMenu(
         val positionProvider = remember(density) {
             ContextualMenuPositionProvider(density)
         }
-        val transition = updateTransition(expandedState, label = "contextual_popup_transition")
+        val transition = rememberTransition(expandedState, label = "contextual_popup_transition")
         val scale by transition.animateFloat(
             transitionSpec = { tween(durationMillis = PopupAnimationDurationMillis) },
             label = "popup_scale"
