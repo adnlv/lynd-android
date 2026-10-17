@@ -81,8 +81,8 @@ fun PayoutCard(
             ) {
                 Text(
                     text = Formatters.formatDate(group.date),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                 )
                 Row(
