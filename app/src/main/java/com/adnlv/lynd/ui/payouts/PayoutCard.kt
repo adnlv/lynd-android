@@ -12,6 +12,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.PayoutDateGroup
@@ -114,22 +119,55 @@ fun PayoutCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Second Row: Total Payout Amount (side-by-side if multiple currencies)
-            Row(
+            // Total Payout Amounts: Currency code on left, dotted underline, amount on right
+            val totalRowColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 group.totalAmounts.forEach { total ->
-                    val symbol = Formatters.getCurrencySymbol(total.currency)
-                    Text(
-                        text = "${Formatters.formatAmount(total.amount)} $symbol",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Text(
+                            text = total.currency.uppercase(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = totalRowColor
+                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp)
+                                .padding(bottom = 5.dp)
+                                .height(1.dp)
+                                .drawBehind {
+                                    val strokeWidth = 1.dp.toPx()
+                                    val dotSize = 2.dp.toPx()
+                                    val dotGap = 3.dp.toPx()
+                                    drawLine(
+                                        color = totalRowColor,
+                                        start = Offset(0f, size.height / 2),
+                                        end = Offset(size.width, size.height / 2),
+                                        strokeWidth = strokeWidth,
+                                        cap = StrokeCap.Round,
+                                        pathEffect = PathEffect.dashPathEffect(
+                                            floatArrayOf(dotSize, dotGap),
+                                            0f
+                                        )
+                                    )
+                                }
+                        )
+                        Text(
+                            text = Formatters.formatAmount(total.amount),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = totalRowColor
+                        )
+                    }
                 }
             }
 
