@@ -1,38 +1,64 @@
 package com.adnlv.lynd.ui.payouts
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.ui.theme.LyndGlassDefaults
 import com.adnlv.lynd.util.Formatters
 
+private const val StatusIndicatorPressedScale = 0.90f
 private val GroupHeaderHorizontalPadding = 16.dp
 private val GroupHeaderVerticalPadding = 6.dp
 private val StatusRowHorizontalPadding = 16.dp
@@ -131,52 +157,102 @@ private fun StatusTogglePill(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
         )
     ) {
-        Row(
-            modifier = Modifier.padding(StatusPillInnerPadding),
-            verticalAlignment = Alignment.CenterVertically
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+                .padding(StatusPillInnerPadding)
         ) {
-            statusTabs.forEach { (tab, label) ->
-                val isSelected = selectedTab == tab
-                val segmentColor = if (isSelected) {
-                    MaterialTheme.colorScheme.secondaryContainer
-                } else {
-                    Color.Transparent
-                }
-                val contentColor = if (isSelected) {
-                    MaterialTheme.colorScheme.onSecondaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
+            val segmentWidth = maxWidth / statusTabs.size
+            val selectedIndex = statusTabs.indexOfFirst { it.first == selectedTab }
 
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .weight(1f)
-                        .defaultMinSize(minHeight = StatusSegmentMinHeight)
-                        .clip(CircleShape)
-                        .background(color = segmentColor, shape = CircleShape)
-                        .selectable(
-                            selected = isSelected,
-                            role = Role.RadioButton,
-                            onClick = { onSelectTab(tab) }
+            StatusToggleIndicator(
+                segmentWidth = segmentWidth,
+                selectedIndex = selectedIndex,
+                isPressed = false
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                statusTabs.forEach { (tab, label) ->
+                    val isSelected = selectedTab == tab
+                    val contentColor = if (isSelected) {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .defaultMinSize(minHeight = StatusSegmentMinHeight)
+                            .clip(CircleShape)
+                            .selectable(
+                                selected = isSelected,
+                                role = Role.RadioButton,
+                                onClick = { onSelectTab(tab) }
+                            )
+                            .padding(
+                                horizontal = StatusSegmentHorizontalPadding,
+                                vertical = StatusSegmentVerticalPadding
+                            )
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = contentColor,
+                            maxLines = 1,
+                            softWrap = false
                         )
-                        .padding(
-                            horizontal = StatusSegmentHorizontalPadding,
-                            vertical = StatusSegmentVerticalPadding
-                        )
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = contentColor,
-                        maxLines = 1,
-                        softWrap = false
-                    )
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun StatusToggleIndicator(
+    segmentWidth: Dp,
+    selectedIndex: Int,
+    isPressed: Boolean = false
+) {
+    val pillOffset by animateDpAsState(
+        targetValue = segmentWidth * selectedIndex.coerceAtLeast(0),
+        animationSpec = spring(
+            dampingRatio = 0.82f,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "status_pill_offset"
+    )
+
+    val pillScale by animateFloatAsState(
+        targetValue = if (isPressed) StatusIndicatorPressedScale else 1f,
+        animationSpec = spring(
+            dampingRatio = 0.82f,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "status_pill_scale"
+    )
+
+    Box(
+        modifier = Modifier
+            .offset { IntOffset(x = pillOffset.roundToPx(), y = 0) }
+            .width(segmentWidth)
+            .fillMaxHeight()
+            .graphicsLayer {
+                scaleX = pillScale
+                scaleY = pillScale
+            }
+            .background(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = CircleShape
+            )
+    )
 }
 
 private const val GroupHeaderAlpha = 0.6f
