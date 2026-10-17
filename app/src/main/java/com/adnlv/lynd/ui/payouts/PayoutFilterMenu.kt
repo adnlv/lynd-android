@@ -14,8 +14,10 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,6 +78,7 @@ private val CurrencyPillMinWidth = 48.dp
 private val CurrencyPillMinHeight = 36.dp
 private val CurrencyPillHorizontalPadding = 16.dp
 private val CurrencyPillVerticalPadding = 8.dp
+private val PillLabelTopSpacing = 4.dp
 
 @Composable
 fun PayoutFilterMenuContent(
@@ -367,6 +370,11 @@ private fun CurrencySymbolPill(
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
+    val labelColor = if (selected) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
     val border = if (selected) {
         null
     } else {
@@ -376,39 +384,52 @@ private fun CurrencySymbolPill(
         )
     }
 
-    Surface(
-        modifier = modifier
-            .defaultMinSize(minWidth = CurrencyPillMinWidth, minHeight = CurrencyPillMinHeight)
-            .clip(CircleShape)
-            .combinedClickable(
-                role = Role.Checkbox,
-                onClick = onClick,
-                onLongClick = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
-                    onLongClick()
-                }
-            )
-            .semantics {
-                contentDescription = currencyCode
-                this.selected = selected
-            },
-        shape = CircleShape,
-        color = containerColor,
-        contentColor = contentColor,
-        border = border
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.padding(
-                horizontal = CurrencyPillHorizontalPadding,
-                vertical = CurrencyPillVerticalPadding
-            )
+        Surface(
+            modifier = Modifier
+                .defaultMinSize(minWidth = CurrencyPillMinWidth, minHeight = CurrencyPillMinHeight)
+                .clip(CircleShape)
+                .combinedClickable(
+                    role = Role.Checkbox,
+                    onClick = onClick,
+                    onLongClick = {
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onLongClick()
+                    }
+                )
+                .semantics {
+                    contentDescription = currencyCode
+                    this.selected = selected
+                },
+            shape = CircleShape,
+            color = containerColor,
+            contentColor = contentColor,
+            border = border
         ) {
-            Text(
-                text = symbol,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.padding(
+                    horizontal = CurrencyPillHorizontalPadding,
+                    vertical = CurrencyPillVerticalPadding
+                )
+            ) {
+                Text(
+                    text = symbol,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                )
+            }
         }
+        Spacer(modifier = Modifier.height(PillLabelTopSpacing))
+        Text(
+            text = currencyCode.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            color = labelColor,
+            maxLines = 1
+        )
     }
 }
