@@ -24,9 +24,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,7 +42,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -57,6 +61,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.adnlv.lynd.domain.PayoutType
+import com.adnlv.lynd.ui.icons.ConfirmationNumber
+import com.adnlv.lynd.ui.icons.MaterialSymbols
+import com.adnlv.lynd.ui.icons.ModeHeat
 import com.adnlv.lynd.ui.theme.LyndGlassDefaults
 import com.adnlv.lynd.util.Formatters
 
@@ -85,9 +93,12 @@ fun PayoutFilterMenuContent(
     selectedTab: PayoutTab,
     availableCurrencies: List<String>,
     selectedCurrencies: Set<String>,
+    selectedPayoutTypes: Set<PayoutType> = setOf(PayoutType.REDEMPTION, PayoutType.COUPON),
     onSelectTab: (PayoutTab) -> Unit,
     onSelectCurrency: (String) -> Unit,
-    onToggleCurrency: (String) -> Unit
+    onToggleCurrency: (String) -> Unit,
+    onSelectPayoutType: (PayoutType) -> Unit = {},
+    onTogglePayoutType: (PayoutType) -> Unit = {}
 ) {
     FilterGroupHeader(title = "Status")
 
@@ -103,6 +114,40 @@ fun PayoutFilterMenuContent(
                 bottom = StatusRowBottomPadding
             )
     )
+
+    HorizontalDivider(
+        modifier = Modifier.padding(vertical = 8.dp),
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
+    )
+
+    FilterGroupHeader(title = "Type")
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                start = CurrencyRowHorizontalPadding,
+                top = CurrencyRowTopPadding,
+                end = CurrencyRowHorizontalPadding,
+                bottom = CurrencyRowBottomPadding
+            ),
+        horizontalArrangement = Arrangement.spacedBy(
+            space = CurrencyPillSpacing,
+            alignment = Alignment.CenterHorizontally
+        ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val payoutTypes = listOf(PayoutType.REDEMPTION, PayoutType.COUPON)
+        payoutTypes.forEach { type ->
+            val isSelected = type in selectedPayoutTypes
+            PayoutTypeFilterPill(
+                type = type,
+                selected = isSelected,
+                onClick = { onSelectPayoutType(type) },
+                onLongClick = { onTogglePayoutType(type) }
+            )
+        }
+    }
 
     if (availableCurrencies.size > 1) {
         HorizontalDivider(
@@ -426,6 +471,111 @@ private fun CurrencySymbolPill(
         Spacer(modifier = Modifier.height(PillLabelTopSpacing))
         Text(
             text = currencyCode.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            color = labelColor,
+            maxLines = 1
+        )
+    }
+}
+
+private data class PayoutTypePillConfig(
+    val containerColor: Color,
+    val contentColor: Color,
+    val icon: ImageVector,
+    val label: String
+)
+
+@Composable
+private fun PayoutTypeFilterPill(
+    type: PayoutType,
+    selected: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val hapticFeedback = LocalHapticFeedback.current
+    val config = when (type) {
+        PayoutType.REDEMPTION -> PayoutTypePillConfig(
+            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            icon = MaterialSymbols.ModeHeat,
+            label = "Redemption"
+        )
+        PayoutType.COUPON -> PayoutTypePillConfig(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            icon = MaterialSymbols.ConfirmationNumber,
+            label = "Coupon"
+        )
+    }
+
+    val containerColor = if (selected) {
+        config.containerColor
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
+    }
+    val contentColor = if (selected) {
+        config.contentColor
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val labelColor = if (selected) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val border = if (selected) {
+        null
+    } else {
+        BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+        )
+    }
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            modifier = Modifier
+                .defaultMinSize(minWidth = CurrencyPillMinWidth, minHeight = CurrencyPillMinHeight)
+                .clip(CircleShape)
+                .combinedClickable(
+                    role = Role.Checkbox,
+                    onClick = onClick,
+                    onLongClick = {
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onLongClick()
+                    }
+                )
+                .semantics {
+                    contentDescription = config.label
+                    this.selected = selected
+                },
+            shape = CircleShape,
+            color = containerColor,
+            contentColor = contentColor,
+            border = border
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.padding(
+                    horizontal = CurrencyPillHorizontalPadding,
+                    vertical = CurrencyPillVerticalPadding
+                )
+            ) {
+                Icon(
+                    imageVector = config.icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(PillLabelTopSpacing))
+        Text(
+            text = config.label,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             color = labelColor,
