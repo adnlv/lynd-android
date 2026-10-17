@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenuItem
@@ -26,6 +27,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.ui.theme.LyndGlassDefaults
 import com.adnlv.lynd.util.Formatters
@@ -101,6 +103,8 @@ fun ColumnScope.PayoutFilterMenuContent(
     }
 }
 
+private const val GroupHeaderAlpha = 0.6f
+
 @Composable
 private fun FilterGroupHeader(
     title: String,
@@ -110,11 +114,14 @@ private fun FilterGroupHeader(
         text = title,
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(
-            horizontal = GroupHeaderHorizontalPadding,
-            vertical = GroupHeaderVerticalPadding
-        )
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = GroupHeaderAlpha),
+        textAlign = TextAlign.Center,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = GroupHeaderHorizontalPadding,
+                vertical = GroupHeaderVerticalPadding
+            )
     )
 }
 
