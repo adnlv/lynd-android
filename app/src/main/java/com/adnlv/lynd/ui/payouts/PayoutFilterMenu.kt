@@ -93,8 +93,8 @@ fun ColumnScope.PayoutFilterMenuContent(
                     symbol = symbol,
                     currencyCode = currency,
                     selected = isSelected,
-                    onClick = { onToggleCurrency(currency) },
-                    onLongClick = { onSelectCurrency(currency) }
+                    onClick = { onSelectCurrency(currency) },
+                    onLongClick = { onToggleCurrency(currency) }
                 )
             }
         }
