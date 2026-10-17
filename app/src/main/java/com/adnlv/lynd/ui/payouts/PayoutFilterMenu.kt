@@ -1,13 +1,13 @@
 package com.adnlv.lynd.ui.payouts
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -19,8 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,6 +47,7 @@ fun ColumnScope.PayoutFilterMenuContent(
     availableCurrencies: List<String>,
     selectedCurrencies: Set<String>,
     onSelectTab: (PayoutTab) -> Unit,
+    onSelectCurrency: (String) -> Unit,
     onToggleCurrency: (String) -> Unit
 ) {
     FilterGroupHeader(title = "Status")
@@ -89,7 +93,8 @@ fun ColumnScope.PayoutFilterMenuContent(
                     symbol = symbol,
                     currencyCode = currency,
                     selected = isSelected,
-                    onClick = { onToggleCurrency(currency) }
+                    onClick = { onToggleCurrency(currency) },
+                    onLongClick = { onSelectCurrency(currency) }
                 )
             }
         }
@@ -119,8 +124,10 @@ private fun CurrencySymbolPill(
     currencyCode: String,
     selected: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
     val containerColor = if (selected) {
         MaterialTheme.colorScheme.secondaryContainer
     } else {
@@ -144,12 +151,18 @@ private fun CurrencySymbolPill(
         modifier = modifier
             .defaultMinSize(minWidth = CurrencyPillMinWidth, minHeight = CurrencyPillMinHeight)
             .clip(CircleShape)
-            .toggleable(
-                value = selected,
+            .combinedClickable(
                 role = Role.Checkbox,
-                onValueChange = { onClick() }
+                onClick = onClick,
+                onLongClick = {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onLongClick()
+                }
             )
-            .semantics { contentDescription = currencyCode },
+            .semantics {
+                contentDescription = currencyCode
+                this.selected = selected
+            },
         shape = CircleShape,
         color = containerColor,
         contentColor = contentColor,
