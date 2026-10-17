@@ -133,11 +133,14 @@ fun PayoutCard(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Bottom
                     ) {
+                        val symbol = Formatters.getCurrencySymbol(total.currency)
                         Text(
-                            text = total.currency.uppercase(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = dotTrailColor
+                            text = "${Formatters.formatAmount(total.amount)} $symbol",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontFamily = RobotoFlexHeavy,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.5.sp,
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Box(
                             modifier = Modifier
@@ -161,14 +164,11 @@ fun PayoutCard(
                                     )
                                 }
                         )
-                        val symbol = Formatters.getCurrencySymbol(total.currency)
                         Text(
-                            text = "${Formatters.formatAmount(total.amount)} $symbol",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontFamily = RobotoFlexHeavy,
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 0.5.sp,
-                            color = MaterialTheme.colorScheme.primary
+                            text = total.currency.uppercase(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = dotTrailColor
                         )
                     }
                 }
