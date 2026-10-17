@@ -123,18 +123,24 @@ class PayoutsViewModel(
 
                         var couponSum = BigDecimal.ZERO
                         var principalSum = BigDecimal.ZERO
-                        val bondPayoutTypes = mutableSetOf<com.adnlv.lynd.domain.PayoutType>()
+                        val rawPayoutTypes = mutableSetOf<com.adnlv.lynd.domain.PayoutType>()
 
                         isinRows.forEach { row ->
                             val rowAmount = row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong()))
                             val isRedemption = row.payType.equals("redemption", ignoreCase = true) || row.payType == "2"
                             if (isRedemption) {
                                 principalSum = principalSum.add(rowAmount)
-                                bondPayoutTypes.add(com.adnlv.lynd.domain.PayoutType.REDEMPTION)
+                                rawPayoutTypes.add(com.adnlv.lynd.domain.PayoutType.REDEMPTION)
                             } else {
                                 couponSum = couponSum.add(rowAmount)
-                                bondPayoutTypes.add(com.adnlv.lynd.domain.PayoutType.COUPON)
+                                rawPayoutTypes.add(com.adnlv.lynd.domain.PayoutType.COUPON)
                             }
+                        }
+
+                        val bondPayoutTypes = if (com.adnlv.lynd.domain.PayoutType.REDEMPTION in rawPayoutTypes) {
+                            setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION)
+                        } else {
+                            rawPayoutTypes
                         }
 
                         val lots = isinRows

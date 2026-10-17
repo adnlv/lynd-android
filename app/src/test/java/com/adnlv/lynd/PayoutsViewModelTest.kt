@@ -343,7 +343,7 @@ class PayoutsViewModelTest {
         val group = groups[0]
         assertEquals(payDate, group.date)
         assertTrue(group.isSingleBond)
-        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON, com.adnlv.lynd.domain.PayoutType.REDEMPTION), group.payoutTypes)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION), group.payoutTypes)
 
         // Total amount for date: (50 * 15) + (1000 * 15) = 750 + 15000 = 15750.00
         assertEquals(1, group.totalAmounts.size)
@@ -356,7 +356,7 @@ class PayoutsViewModelTest {
         assertEquals(0, BigDecimal("750.00").compareTo(bond.couponAmount))
         assertEquals(0, BigDecimal("15000.00").compareTo(bond.principalAmount))
         assertEquals(0, BigDecimal("15750.00").compareTo(bond.totalAmount))
-        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON, com.adnlv.lynd.domain.PayoutType.REDEMPTION), bond.payoutTypes)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION), bond.payoutTypes)
 
         // Lot breakdown: Lot 1 (qty 10, amount 10500), Lot 2 (qty 5, amount 5250)
         assertEquals(2, bond.lots.size)
@@ -367,6 +367,69 @@ class PayoutsViewModelTest {
         assertEquals(5, bond.lots[1].quantity)
         assertEquals(purchaseDate2, bond.lots[1].purchaseDate)
         assertEquals(0, BigDecimal("5250.00").compareTo(bond.lots[1].amount))
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun dateGroups_separateCouponAndCombinedRedemptionRows_showsBothChipsInGroupAndRedemptionInCombinedRow() = runTest {
+        val today = LocalDate.now()
+        val payDate = today.plusDays(5)
+
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "Coupon Bond",
+                    payDate = payDate,
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 2,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10),
+                    holdingId = 1
+                ),
+                PayoutRow(
+                    isin = "UA2",
+                    bondName = "Combined Bond",
+                    payDate = payDate,
+                    payType = "coupon",
+                    payVal = BigDecimal("40.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10),
+                    holdingId = 2
+                ),
+                PayoutRow(
+                    isin = "UA2",
+                    bondName = "Combined Bond",
+                    payDate = payDate,
+                    payType = "redemption",
+                    payVal = BigDecimal("1000.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10),
+                    holdingId = 2
+                )
+            )
+        }
+
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        val groups = viewModel.uiState.value.dateGroups
+        assertEquals(1, groups.size)
+
+        val group = groups[0]
+        assertEquals(false, group.isSingleBond)
+        assertEquals(2, group.bonds.size)
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON, com.adnlv.lynd.domain.PayoutType.REDEMPTION), group.payoutTypes)
+
+        val couponBond = group.bonds.first { it.isin == "UA1" }
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.COUPON), couponBond.payoutTypes)
+
+        val combinedBond = group.bonds.first { it.isin == "UA2" }
+        assertEquals(setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION), combinedBond.payoutTypes)
 
         collectJob.cancel()
     }
