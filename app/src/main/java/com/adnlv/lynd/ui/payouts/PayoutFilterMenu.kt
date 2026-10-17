@@ -60,6 +60,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -737,6 +738,40 @@ private fun PayoutTypeFilterPill(
             fontWeight = FontWeight.Normal,
             color = labelColor,
             maxLines = 1
+        )
+    }
+}
+
+@Preview(name = "Vertical Menu", showBackground = true, widthDp = 360)
+@Composable
+private fun PayoutFilterMenuVerticalPreview() {
+    MaterialTheme {
+        PayoutFilterMenuContent(
+            selectedTab = PayoutTab.UPCOMING,
+            availableCurrencies = listOf("UAH", "USD", "EUR"),
+            selectedCurrencies = setOf("UAH"),
+            selectedPayoutTypes = setOf(PayoutType.REDEMPTION, PayoutType.COUPON),
+            onSelectTab = {},
+            onSelectCurrency = {},
+            onToggleCurrency = {},
+            horizontal = false
+        )
+    }
+}
+
+@Preview(name = "Horizontal Menu", showBackground = true, widthDp = 700)
+@Composable
+private fun PayoutFilterMenuHorizontalPreview() {
+    MaterialTheme {
+        PayoutFilterMenuContent(
+            selectedTab = PayoutTab.UPCOMING,
+            availableCurrencies = listOf("UAH", "USD", "EUR"),
+            selectedCurrencies = setOf("UAH"),
+            selectedPayoutTypes = setOf(PayoutType.REDEMPTION, PayoutType.COUPON),
+            onSelectTab = {},
+            onSelectCurrency = {},
+            onToggleCurrency = {},
+            horizontal = true
         )
     }
 }
