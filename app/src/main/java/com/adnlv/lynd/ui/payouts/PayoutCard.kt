@@ -18,10 +18,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.PayoutDateGroup
 import com.adnlv.lynd.domain.PayoutLot
 import com.adnlv.lynd.domain.PayoutType
+import com.adnlv.lynd.ui.icons.Event
+import com.adnlv.lynd.ui.icons.MaterialSymbols
 import com.adnlv.lynd.util.Formatters
 
 @Composable
@@ -73,18 +77,30 @@ fun PayoutCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Header Row: Prominent Date and Summary Badges
+            // Header Row: Prominent Date with Event Icon and Summary Badges
+            val dateColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = Formatters.formatDate(group.date),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = MaterialSymbols.Event,
+                        contentDescription = null,
+                        tint = dateColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = Formatters.formatDate(group.date),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Normal,
+                        color = dateColor
+                    )
+                }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
