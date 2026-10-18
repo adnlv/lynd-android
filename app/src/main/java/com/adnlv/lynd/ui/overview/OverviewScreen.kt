@@ -22,11 +22,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import com.adnlv.lynd.ui.components.LyndEmptyState
+
 @Composable
 fun OverviewScreen(
     viewModel: OverviewViewModel,
     modifier: Modifier = Modifier,
-    listState: LazyListState = rememberLazyListState()
+    listState: LazyListState = rememberLazyListState(),
+    onNavigateToHoldings: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -36,27 +42,23 @@ fun OverviewScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         if (uiState.summaries.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                ) {
-                    Text(
-                        text = "No portfolio data yet.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    OutlinedButton(
-                        onClick = { viewModel.loadTestPortfolio() }
-                    ) {
-                        Text("Load test portfolio")
-                    }
-                }
-            }
+            Text(
+                text = "Overview",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)
+            )
+            LyndEmptyState(
+                title = "No portfolio data",
+                description = "Add your bond holdings to see cash flows, balances, and maturity timelines.",
+                primaryActionLabel = "Add Holding",
+                onPrimaryAction = onNavigateToHoldings,
+                onLoadTestPortfolio = { viewModel.loadTestPortfolio() },
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            )
         } else {
             val pagerState = rememberPagerState(pageCount = { uiState.summaries.size })
             val activeSummary = uiState.summaries.getOrNull(pagerState.currentPage)

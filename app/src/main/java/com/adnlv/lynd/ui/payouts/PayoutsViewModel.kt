@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.adnlv.lynd.data.TestPortfolioData
+import com.adnlv.lynd.data.db.BondDao
+import com.adnlv.lynd.data.db.HoldingDao
 import com.adnlv.lynd.data.db.PayoutDao
 import com.adnlv.lynd.domain.PayoutItem
 import com.adnlv.lynd.domain.PayoutType
@@ -13,7 +16,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -29,13 +34,16 @@ data class PayoutsUiState(
     val selectedPayoutTypes: Set<PayoutType> = setOf(PayoutType.REDEMPTION, PayoutType.COUPON),
     val selectedTab: PayoutTab = PayoutTab.UPCOMING,
     val payouts: List<PayoutItem> = emptyList(),
-    val dateGroups: List<com.adnlv.lynd.domain.PayoutDateGroup> = emptyList()
+    val dateGroups: List<com.adnlv.lynd.domain.PayoutDateGroup> = emptyList(),
+    val isPortfolioEmpty: Boolean = false
 ) {
     val selectedCurrency: String get() = selectedCurrencies.firstOrNull() ?: ""
 }
 
 class PayoutsViewModel(
-    payoutDao: PayoutDao
+    payoutDao: PayoutDao,
+    private val holdingDao: HoldingDao? = null,
+    private val bondDao: BondDao? = null
 ) : ViewModel() {
 
     private val _selectedCurrencies = MutableStateFlow<Set<String>>(setOf("UAH"))
@@ -50,13 +58,16 @@ class PayoutsViewModel(
     val selectedTab: StateFlow<PayoutTab> = _selectedTab.asStateFlow()
 
     private val allPayouts = payoutDao.getAllPayoutRows()
+    private val allHoldings = holdingDao?.getAllHoldings() ?: flowOf(null)
 
     val uiState: StateFlow<PayoutsUiState> = combine(
         allPayouts,
+        allHoldings,
         _selectedCurrencies,
         _selectedPayoutTypes,
         _selectedTab
-    ) { rows, selectedCurrs, selectedTypes, currentTab ->
+    ) { rows, holdings, selectedCurrs, selectedTypes, currentTab ->
+        val isPortfolioEmpty = if (holdings != null) holdings.isEmpty() else rows.isEmpty()
         data class PayoutWithPurchase(
             val item: PayoutItem,
             val payoutType: PayoutType,
@@ -237,13 +248,22 @@ class PayoutsViewModel(
             selectedPayoutTypes = selectedTypes,
             selectedTab = currentTab,
             payouts = activePayouts,
-            dateGroups = dateGroups
+            dateGroups = dateGroups,
+            isPortfolioEmpty = isPortfolioEmpty
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = PayoutsUiState()
     )
+
+    fun loadTestPortfolio() {
+        val bDao = bondDao ?: return
+        val hDao = holdingDao ?: return
+        viewModelScope.launch {
+            TestPortfolioData.seed(bDao, hDao)
+        }
+    }
 
     fun selectCurrency(currency: String) {
         _selectedCurrencies.value = setOf(currency)
@@ -286,9 +306,13 @@ class PayoutsViewModel(
     }
 
     companion object {
-        fun provideFactory(payoutDao: PayoutDao): ViewModelProvider.Factory = viewModelFactory {
+        fun provideFactory(
+            payoutDao: PayoutDao,
+            holdingDao: HoldingDao? = null,
+            bondDao: BondDao? = null
+        ): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                PayoutsViewModel(payoutDao)
+                PayoutsViewModel(payoutDao, holdingDao, bondDao)
             }
         }
     }

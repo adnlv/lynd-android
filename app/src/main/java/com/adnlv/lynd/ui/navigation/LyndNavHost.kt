@@ -60,7 +60,12 @@ fun LyndNavHost(
             )
             OverviewScreen(
                 viewModel = overviewViewModel,
-                listState = listState
+                listState = listState,
+                onNavigateToHoldings = {
+                    navController.navigate(Screen.Holdings.route) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
         composable(Screen.Planner.route) {
@@ -79,7 +84,12 @@ fun LyndNavHost(
             )
             PlannerScreen(
                 viewModel = plannerViewModel,
-                listState = listState
+                listState = listState,
+                onNavigateToHoldings = {
+                    navController.navigate(Screen.Holdings.route) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
         composable(Screen.Holdings.route) {
@@ -115,7 +125,11 @@ fun LyndNavHost(
                 listState = listState
             )
             val payoutsViewModel: PayoutsViewModel = viewModel(
-                factory = PayoutsViewModel.provideFactory(appContainer.database.payoutDao())
+                factory = PayoutsViewModel.provideFactory(
+                    payoutDao = appContainer.database.payoutDao(),
+                    holdingDao = appContainer.database.holdingDao(),
+                    bondDao = appContainer.database.bondDao()
+                )
             )
             PayoutsScreen(
                 viewModel = payoutsViewModel,
