@@ -13,7 +13,6 @@ object HapticFeedbackHelper {
         view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
     }
 
-
     fun vibratePrimaryAction(view: View) {
         view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
