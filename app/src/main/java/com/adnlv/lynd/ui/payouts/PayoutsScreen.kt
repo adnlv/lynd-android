@@ -48,6 +48,7 @@ fun PayoutsScreen(
                         selectedTab = uiState.selectedTab,
                         availableCurrencies = uiState.availableCurrencies,
                         selectedCurrencies = uiState.selectedCurrencies,
+                        availablePayoutTypes = uiState.availablePayoutTypes,
                         selectedPayoutTypes = uiState.selectedPayoutTypes,
                         onSelectTab = viewModel::selectTab,
                         onSelectCurrency = viewModel::selectCurrency,
