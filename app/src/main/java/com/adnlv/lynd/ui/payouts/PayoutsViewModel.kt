@@ -25,6 +25,7 @@ enum class PayoutTab {
 data class PayoutsUiState(
     val availableCurrencies: List<String> = emptyList(),
     val selectedCurrencies: Set<String> = setOf("UAH"),
+    val availablePayoutTypes: Set<PayoutType> = emptySet(),
     val selectedPayoutTypes: Set<PayoutType> = setOf(PayoutType.REDEMPTION, PayoutType.COUPON),
     val selectedTab: PayoutTab = PayoutTab.UPCOMING,
     val payouts: List<PayoutItem> = emptyList(),
@@ -113,6 +114,19 @@ class PayoutsViewModel(
         }
 
         val today = LocalDate.now()
+        val matchingCurrencyEntries = itemsWithPurchase.filter { item ->
+            effectiveCurrencies.isEmpty() ||
+                effectiveCurrencies.any { it.equals(item.item.currency, ignoreCase = true) }
+        }
+
+        val tabEntries = when (currentTab) {
+            PayoutTab.UPCOMING -> matchingCurrencyEntries.filter { !it.item.payDate.isBefore(today) }
+            PayoutTab.RECEIVED -> matchingCurrencyEntries.filter {
+                it.item.payDate.isBefore(today) && !it.item.payDate.isBefore(it.purchaseDate)
+            }
+        }
+        val availablePayoutTypes = tabEntries.map { it.payoutType }.toSet()
+
         val upcomingEntries = filtered
             .filter { !it.item.payDate.isBefore(today) }
             .sortedBy { it.item.payDate }
@@ -219,6 +233,7 @@ class PayoutsViewModel(
         PayoutsUiState(
             availableCurrencies = orderedCurrencies,
             selectedCurrencies = effectiveCurrencies,
+            availablePayoutTypes = availablePayoutTypes,
             selectedPayoutTypes = selectedTypes,
             selectedTab = currentTab,
             payouts = activePayouts,

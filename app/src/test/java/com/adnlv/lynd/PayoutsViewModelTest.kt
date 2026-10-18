@@ -658,4 +658,174 @@ class PayoutsViewModelTest {
 
         collectJob.cancel()
     }
+
+    @Test
+    fun availablePayoutTypes_emptyWhenNoRowsExist() = runTest {
+        val fakeDao = FakePayoutDao()
+        val viewModel = PayoutsViewModel(fakeDao)
+
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertTrue(viewModel.uiState.value.availablePayoutTypes.isEmpty())
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun availablePayoutTypes_singleTypeWhenOnlyCouponsExist() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "Coupon Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals(
+            setOf(com.adnlv.lynd.domain.PayoutType.COUPON),
+            viewModel.uiState.value.availablePayoutTypes
+        )
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun availablePayoutTypes_bothTypesWhenCouponsAndRedemptionsExist() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "Coupon Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "UA2",
+                    bondName = "Redemption Bond",
+                    payDate = today.plusDays(5),
+                    payType = "redemption",
+                    payVal = BigDecimal("1000.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        assertEquals(
+            setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION, com.adnlv.lynd.domain.PayoutType.COUPON),
+            viewModel.uiState.value.availablePayoutTypes
+        )
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun availablePayoutTypes_updatesDynamicallyWhenSwitchingTabs() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "Upcoming Coupon Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "UA2",
+                    bondName = "Received Redemption Bond",
+                    payDate = today.minusDays(5),
+                    payType = "redemption",
+                    payVal = BigDecimal("1000.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(20)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        // Upcoming tab has only coupon
+        assertEquals(PayoutTab.UPCOMING, viewModel.uiState.value.selectedTab)
+        assertEquals(
+            setOf(com.adnlv.lynd.domain.PayoutType.COUPON),
+            viewModel.uiState.value.availablePayoutTypes
+        )
+
+        // Switch to Received tab -> has only redemption
+        viewModel.selectTab(PayoutTab.RECEIVED)
+        assertEquals(PayoutTab.RECEIVED, viewModel.uiState.value.selectedTab)
+        assertEquals(
+            setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION),
+            viewModel.uiState.value.availablePayoutTypes
+        )
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun availablePayoutTypes_retainsBothTypesWhenSingleTypeSelected() = runTest {
+        val today = LocalDate.now()
+        val fakeDao = FakePayoutDao().apply {
+            rowsFlow.value = listOf(
+                PayoutRow(
+                    isin = "UA1",
+                    bondName = "Coupon Bond",
+                    payDate = today.plusDays(5),
+                    payType = "coupon",
+                    payVal = BigDecimal("50.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                ),
+                PayoutRow(
+                    isin = "UA2",
+                    bondName = "Redemption Bond",
+                    payDate = today.plusDays(5),
+                    payType = "redemption",
+                    payVal = BigDecimal("1000.00"),
+                    quantity = 1,
+                    currency = "UAH",
+                    purchaseDate = today.minusDays(10)
+                )
+            )
+        }
+        val viewModel = PayoutsViewModel(fakeDao)
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect {} }
+
+        // Filter by coupon only
+        viewModel.selectPayoutType(com.adnlv.lynd.domain.PayoutType.COUPON)
+        assertEquals(1, viewModel.uiState.value.payouts.size)
+
+        // availablePayoutTypes remains both so user can unfilter
+        assertEquals(
+            setOf(com.adnlv.lynd.domain.PayoutType.REDEMPTION, com.adnlv.lynd.domain.PayoutType.COUPON),
+            viewModel.uiState.value.availablePayoutTypes
+        )
+
+        collectJob.cancel()
+    }
 }
+
