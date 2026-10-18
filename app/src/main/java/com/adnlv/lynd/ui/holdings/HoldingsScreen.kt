@@ -106,9 +106,9 @@ fun HoldingsScreen(
         )
     }
 
-    LaunchedEffect(holdings, hasSeenSwipePeek) {
-        if (!hasSeenSwipePeek && holdings.isNotEmpty()) {
-            val firstHolding = holdings.first()
+    LaunchedEffect(groupedHoldings, hasSeenSwipePeek) {
+        if (!hasSeenSwipePeek && groupedHoldings.isNotEmpty()) {
+            val firstHolding = groupedHoldings.first().items.firstOrNull() ?: return@LaunchedEffect
             delay(500)
             peekingHoldingId = firstHolding.id
             delay(1400)
