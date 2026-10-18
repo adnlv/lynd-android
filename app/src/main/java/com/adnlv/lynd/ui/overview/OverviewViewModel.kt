@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.adnlv.lynd.core.AppConstants
 import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.BondDao
 import com.adnlv.lynd.data.db.HoldingDao
@@ -53,7 +54,7 @@ class OverviewViewModel(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.WhileSubscribed(AppConstants.VIEW_MODEL_STOP_TIMEOUT_MS),
         initialValue = OverviewUiState()
     )
 

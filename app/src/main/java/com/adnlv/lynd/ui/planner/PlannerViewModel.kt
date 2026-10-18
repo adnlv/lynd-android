@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.adnlv.lynd.core.AppConstants
 import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.BondDao
 import com.adnlv.lynd.data.db.HoldingDao
@@ -25,8 +26,8 @@ import kotlinx.coroutines.launch
 
 data class PlannerUiState(
     val summaries: List<PortfolioSummary> = emptyList(),
-    val plannerHorizonMonths: Int = 12,
-    val plannerSelectedCurrency: String = "UAH",
+    val plannerHorizonMonths: Int = AppConstants.DEFAULT_ANALYSIS_HORIZON_MONTHS,
+    val plannerSelectedCurrency: String = AppConstants.DEFAULT_CURRENCY,
     val actionableGaps: List<ActionableGap> = emptyList(),
     val isPlannerLoading: Boolean = false,
     val incomeGaps: List<IncomeGap> = emptyList(),
@@ -39,8 +40,8 @@ class PlannerViewModel(
     private val payoutDao: PayoutDao
 ) : ViewModel() {
 
-    private val _plannerHorizon = MutableStateFlow(12)
-    private val _plannerCurrency = MutableStateFlow("UAH")
+    private val _plannerHorizon = MutableStateFlow(AppConstants.DEFAULT_ANALYSIS_HORIZON_MONTHS)
+    private val _plannerCurrency = MutableStateFlow(AppConstants.DEFAULT_CURRENCY)
 
     val uiState: StateFlow<PlannerUiState> = combine(
         combine(_plannerHorizon, _plannerCurrency) { h, c -> h to c },
@@ -76,7 +77,7 @@ class PlannerViewModel(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.WhileSubscribed(AppConstants.VIEW_MODEL_STOP_TIMEOUT_MS),
         initialValue = PlannerUiState()
     )
 

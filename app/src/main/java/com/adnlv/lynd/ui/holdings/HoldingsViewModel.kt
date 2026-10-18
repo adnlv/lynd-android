@@ -5,13 +5,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.adnlv.lynd.core.AppConstants
 import com.adnlv.lynd.data.TestPortfolioData
 import com.adnlv.lynd.data.db.BondDao
+import com.adnlv.lynd.data.db.BondEntity
 import com.adnlv.lynd.data.db.HoldingDao
-import com.adnlv.lynd.data.network.NbuRepository
 import com.adnlv.lynd.data.db.HoldingEntity
+import com.adnlv.lynd.data.network.NbuRepository
+import com.adnlv.lynd.domain.ApproximateStringMatcher
 import com.adnlv.lynd.domain.HoldingGroup
 import com.adnlv.lynd.domain.HoldingItem
+import com.adnlv.lynd.domain.PortfolioCalculator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +37,7 @@ class HoldingsViewModel(
     private val _syncError = MutableStateFlow<String?>(null)
     val syncError: StateFlow<String?> = _syncError.asStateFlow()
 
-    private val _isinPrefixes = MutableStateFlow<List<String>>(listOf("UA4000"))
+    private val _isinPrefixes = MutableStateFlow<List<String>>(listOf(NbuRepository.FALLBACK_ISIN_PREFIX))
     val isinPrefixes: StateFlow<List<String>> = _isinPrefixes.asStateFlow()
 
     private var recentlyDeletedHolding: HoldingEntity? = null
@@ -48,7 +52,7 @@ class HoldingsViewModel(
             try {
                 val prefixes = bondDao.getDistinctIsinPrefixes()
                 if (prefixes.isNotEmpty()) {
-                    val defaultPrefix = "UA4000"
+                    val defaultPrefix = NbuRepository.FALLBACK_ISIN_PREFIX
                     val orderedPrefixes = if (prefixes.contains(defaultPrefix)) {
                         listOf(defaultPrefix) + prefixes.filter { it != defaultPrefix }
                     } else {
@@ -67,10 +71,10 @@ class HoldingsViewModel(
 
     suspend fun searchBonds(prefix: String, codeQuery: String): List<String> {
         val candidates = bondDao.getBondsByPrefix(prefix)
-        return com.adnlv.lynd.domain.ApproximateStringMatcher.filterAndSort(candidates, prefix, codeQuery)
+        return ApproximateStringMatcher.filterAndSort(candidates, prefix, codeQuery)
     }
 
-    suspend fun getBond(isin: String): com.adnlv.lynd.data.db.BondEntity? {
+    suspend fun getBond(isin: String): BondEntity? {
         return bondDao.getBond(isin)
     }
 
@@ -127,10 +131,10 @@ class HoldingsViewModel(
         holdingDao.getAllHoldings(),
         holdingDao.getPaymentsForHoldings()
     ) { holdingsList, paymentsList ->
-        com.adnlv.lynd.domain.PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
+        PortfolioCalculator.mapHoldingsWithPayments(holdingsList, paymentsList)
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.WhileSubscribed(AppConstants.VIEW_MODEL_STOP_TIMEOUT_MS),
         initialValue = emptyList()
     )
 
