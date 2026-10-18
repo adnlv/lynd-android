@@ -24,6 +24,7 @@ import com.adnlv.lynd.ui.payouts.PayoutsScreen
 import com.adnlv.lynd.ui.payouts.PayoutsViewModel
 import com.adnlv.lynd.ui.planner.PlannerScreen
 import com.adnlv.lynd.ui.planner.PlannerViewModel
+import com.adnlv.lynd.ui.theme.LyndLayoutDefaults
 import kotlinx.coroutines.launch
 
 @Composable
@@ -172,7 +173,7 @@ private fun RegisterScrollToTopHandler(
                     listState.animateScrollBy(
                         value = -totalDistance,
                         animationSpec = tween(
-                            durationMillis = 400,
+                            durationMillis = LyndLayoutDefaults.ScrollToTopDurationMs,
                             easing = CubicBezierEasing(0.165f, 0.84f, 0.44f, 1f)
                         )
                     )

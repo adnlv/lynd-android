@@ -9,10 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.ui.components.LyndGlassSurface
-
-val FloatingBarHeight = 64.dp
+import com.adnlv.lynd.ui.theme.LyndLayoutDefaults
 
 @Composable
 fun LyndBottomBarCircleButton(
@@ -22,7 +20,7 @@ fun LyndBottomBarCircleButton(
 ) {
     LyndGlassSurface(
         shape = CircleShape,
-        modifier = modifier.size(FloatingBarHeight)
+        modifier = modifier.size(LyndLayoutDefaults.FloatingBarHeight)
     ) {
         Box(
             modifier = Modifier

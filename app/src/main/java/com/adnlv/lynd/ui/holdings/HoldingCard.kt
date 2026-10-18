@@ -68,6 +68,7 @@ import com.adnlv.lynd.domain.HoldingItem
 import com.adnlv.lynd.ui.components.MetricItem
 import com.adnlv.lynd.ui.holdings.components.HoldingCardActionButtons
 import com.adnlv.lynd.ui.holdings.components.HoldingCardExpandedDetails
+import com.adnlv.lynd.ui.theme.LyndLayoutDefaults
 import com.adnlv.lynd.util.Formatters
 import com.adnlv.lynd.util.HapticFeedbackHelper
 import kotlinx.coroutines.launch
@@ -87,7 +88,7 @@ fun HoldingCard(
     canSwipe: Boolean = true,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    shape: Shape = RoundedCornerShape(16.dp),
+    shape: Shape = RoundedCornerShape(LyndLayoutDefaults.CardCornerRadius),
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
@@ -115,7 +116,7 @@ fun HoldingCard(
             val peekDistance = -actionButtonsWidthPx * 0.6f
             offsetX.animateTo(
                 targetValue = peekDistance,
-                animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)
+                animationSpec = tween(durationMillis = LyndLayoutDefaults.LongAnimationDurationMs, easing = FastOutSlowInEasing)
             )
         } else if (offsetX.value != 0f) {
             offsetX.animateTo(

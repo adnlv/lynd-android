@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.domain.HoldingGroup
 import com.adnlv.lynd.domain.HoldingItem
+import com.adnlv.lynd.ui.theme.LyndLayoutDefaults
 
 @Composable
 fun HoldingGroupCard(
@@ -103,10 +104,20 @@ fun HoldingGroupCard(
         ) {
             group.items.forEachIndexed { index, holding ->
                 val itemShape = when {
-                    group.items.size == 1 -> RoundedCornerShape(16.dp)
-                    index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-                    index == group.items.lastIndex -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
-                    else -> RoundedCornerShape(4.dp)
+                    group.items.size == 1 -> RoundedCornerShape(LyndLayoutDefaults.CardCornerRadius)
+                    index == 0 -> RoundedCornerShape(
+                        topStart = LyndLayoutDefaults.CardCornerRadius,
+                        topEnd = LyndLayoutDefaults.CardCornerRadius,
+                        bottomStart = LyndLayoutDefaults.CardCornerRadiusSmall,
+                        bottomEnd = LyndLayoutDefaults.CardCornerRadiusSmall
+                    )
+                    index == group.items.lastIndex -> RoundedCornerShape(
+                        topStart = LyndLayoutDefaults.CardCornerRadiusSmall,
+                        topEnd = LyndLayoutDefaults.CardCornerRadiusSmall,
+                        bottomStart = LyndLayoutDefaults.CardCornerRadius,
+                        bottomEnd = LyndLayoutDefaults.CardCornerRadius
+                    )
+                    else -> RoundedCornerShape(LyndLayoutDefaults.CardCornerRadiusSmall)
                 }
                 key(holding.id) {
                     HoldingCard(

@@ -29,6 +29,9 @@ object LyndGlassDefaults {
     const val DarkTintAlpha = 0.90f
     const val FallbackAlpha = 0.95f
     const val BorderAlpha = 0.35f
+    const val SpotShadowAlpha = 0.20f
+    const val AmbientShadowAlpha = 0.08f
+    const val LuminanceThreshold = 0.5f
 }
 
 /**
@@ -39,7 +42,7 @@ object LyndGlassDefaults {
 fun rememberLyndGlassStyle(
     containerColor: Color = MaterialTheme.colorScheme.surface
 ): HazeBlurStyle = remember(containerColor) {
-    val tintAlpha = if (containerColor.luminance() >= 0.5f) {
+    val tintAlpha = if (containerColor.luminance() >= LyndGlassDefaults.LuminanceThreshold) {
         LyndGlassDefaults.LightTintAlpha
     } else {
         LyndGlassDefaults.DarkTintAlpha

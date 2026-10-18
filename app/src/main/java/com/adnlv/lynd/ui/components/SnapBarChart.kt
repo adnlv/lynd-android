@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import com.adnlv.lynd.ui.theme.LyndLayoutDefaults
 import com.adnlv.lynd.util.HapticFeedbackHelper
 import kotlin.math.abs
 
@@ -35,8 +35,8 @@ fun <T> SnapBarChart(
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    barWidthDp: Dp = 48.dp,
-    chartHeight: Dp = 140.dp,
+    barWidthDp: Dp = LyndLayoutDefaults.ChartBarWidth,
+    chartHeight: Dp = LyndLayoutDefaults.ChartHeight,
     barContent: @Composable (item: T, index: Int, isSelected: Boolean) -> Unit
 ) {
     val density = LocalDensity.current

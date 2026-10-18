@@ -47,8 +47,8 @@ fun LyndGlassSurface(
             .shadow(
                 elevation = LyndGlassDefaults.ShadowElevation,
                 shape = shape,
-                spotColor = colorScheme.onSurface.copy(alpha = 0.20f),
-                ambientColor = colorScheme.onSurface.copy(alpha = 0.08f)
+                spotColor = colorScheme.onSurface.copy(alpha = LyndGlassDefaults.SpotShadowAlpha),
+                ambientColor = colorScheme.onSurface.copy(alpha = LyndGlassDefaults.AmbientShadowAlpha)
             )
             .clip(shape)
             .then(backdropModifier)

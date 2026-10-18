@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.adnlv.lynd.ui.components.LyndGlassSurface
+import com.adnlv.lynd.ui.theme.LyndLayoutDefaults
 
 private const val IndicatorPressedScale = 0.90f
 private val ContainerInnerPaddingHorizontal = 4.dp
@@ -47,7 +48,7 @@ fun LyndBottomBarPill(
     var isIndicatorPressed by remember { mutableStateOf(false) }
     LyndGlassSurface(
         shape = CircleShape,
-        modifier = modifier.height(FloatingBarHeight)
+        modifier = modifier.height(LyndLayoutDefaults.FloatingBarHeight)
     ) {
         BoxWithConstraints(
             modifier = Modifier
@@ -133,7 +134,7 @@ private fun LyndBottomBarIndicator(
 
     val pillAlpha by animateFloatAsState(
         targetValue = if (isVisible) 1f else 0f,
-        animationSpec = tween(durationMillis = 200),
+        animationSpec = tween(durationMillis = LyndLayoutDefaults.DefaultAnimationDurationMs),
         label = "pill_alpha"
     )
 
