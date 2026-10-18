@@ -189,8 +189,28 @@ fun HoldingsScreen(
             )
 
             if (holdings.isEmpty()) {
-                HoldingsEmptyState(
-                    onLoadTestPortfolio = { viewModel.loadTestPortfolio() }
+                Text(
+                    text = "Holdings",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                )
+                com.adnlv.lynd.ui.components.LyndEmptyState(
+                    title = "No holdings yet",
+                    description = "Add your first bond holding to start tracking your investment portfolio.",
+                    primaryActionLabel = "Add Holding",
+                    onPrimaryAction = {
+                        if (onNavigateToAdd != null) {
+                            onNavigateToAdd.invoke()
+                        } else {
+                            showAddDialog = true
+                        }
+                    },
+                    onLoadTestPortfolio = { viewModel.loadTestPortfolio() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
                 )
             } else {
                 LazyColumn(

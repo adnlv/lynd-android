@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.adnlv.lynd.ui.components.LyndEmptyState
 import com.adnlv.lynd.ui.icons.FilterList
 import com.adnlv.lynd.ui.icons.MaterialSymbols
 import com.adnlv.lynd.ui.navigation.BottomBarAction
@@ -95,24 +97,37 @@ fun PayoutsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                HoldingsSuggestionCard(
-                    onClick = onNavigateToHoldings
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val emptyMessage = when (uiState.selectedTab) {
-                        PayoutTab.UPCOMING -> "No upcoming payouts found."
-                        PayoutTab.RECEIVED -> "No received payouts found."
-                    }
-                    Text(
-                        text = emptyMessage,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                if (uiState.isPortfolioEmpty) {
+                    LyndEmptyState(
+                        title = "No scheduled payouts",
+                        description = "Add bond holdings to track upcoming coupon payments and bond redemptions.",
+                        primaryActionLabel = "Add Holding",
+                        onPrimaryAction = onNavigateToHoldings,
+                        onLoadTestPortfolio = { viewModel.loadTestPortfolio() },
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
                     )
+                } else {
+                    HoldingsSuggestionCard(
+                        onClick = onNavigateToHoldings
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val emptyMessage = when (uiState.selectedTab) {
+                            PayoutTab.UPCOMING -> "No upcoming payouts found."
+                            PayoutTab.RECEIVED -> "No received payouts found."
+                        }
+                        Text(
+                            text = emptyMessage,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         } else {
