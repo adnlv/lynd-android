@@ -100,6 +100,7 @@ fun PayoutFilterMenuContent(
     selectedTab: PayoutTab,
     availableCurrencies: List<String>,
     selectedCurrencies: Set<String>,
+    availablePayoutTypes: Set<PayoutType> = setOf(PayoutType.REDEMPTION, PayoutType.COUPON),
     selectedPayoutTypes: Set<PayoutType> = setOf(PayoutType.REDEMPTION, PayoutType.COUPON),
     onSelectTab: (PayoutTab) -> Unit,
     onSelectCurrency: (String) -> Unit,
@@ -115,6 +116,7 @@ fun PayoutFilterMenuContent(
             selectedTab = selectedTab,
             availableCurrencies = availableCurrencies,
             selectedCurrencies = selectedCurrencies,
+            availablePayoutTypes = availablePayoutTypes,
             selectedPayoutTypes = selectedPayoutTypes,
             onSelectTab = onSelectTab,
             onSelectCurrency = onSelectCurrency,
@@ -128,6 +130,7 @@ fun PayoutFilterMenuContent(
             selectedTab = selectedTab,
             availableCurrencies = availableCurrencies,
             selectedCurrencies = selectedCurrencies,
+            availablePayoutTypes = availablePayoutTypes,
             selectedPayoutTypes = selectedPayoutTypes,
             onSelectTab = onSelectTab,
             onSelectCurrency = onSelectCurrency,
@@ -144,6 +147,7 @@ private fun PayoutFilterHorizontalMenu(
     selectedTab: PayoutTab,
     availableCurrencies: List<String>,
     selectedCurrencies: Set<String>,
+    availablePayoutTypes: Set<PayoutType>,
     selectedPayoutTypes: Set<PayoutType>,
     onSelectTab: (PayoutTab) -> Unit,
     onSelectCurrency: (String) -> Unit,
@@ -164,19 +168,21 @@ private fun PayoutFilterHorizontalMenu(
             modifier = Modifier.width(IntrinsicSize.Min)
         )
 
-        VerticalDivider(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(vertical = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
-        )
+        if (availablePayoutTypes.size > 1) {
+            VerticalDivider(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
+            )
 
-        TypeFilterSection(
-            selectedPayoutTypes = selectedPayoutTypes,
-            onSelectPayoutType = onSelectPayoutType,
-            onTogglePayoutType = onTogglePayoutType,
-            modifier = Modifier.width(IntrinsicSize.Min)
-        )
+            TypeFilterSection(
+                selectedPayoutTypes = selectedPayoutTypes,
+                onSelectPayoutType = onSelectPayoutType,
+                onTogglePayoutType = onTogglePayoutType,
+                modifier = Modifier.width(IntrinsicSize.Min)
+            )
+        }
 
         if (availableCurrencies.size > 1) {
             VerticalDivider(
@@ -202,6 +208,7 @@ private fun PayoutFilterVerticalMenu(
     selectedTab: PayoutTab,
     availableCurrencies: List<String>,
     selectedCurrencies: Set<String>,
+    availablePayoutTypes: Set<PayoutType>,
     selectedPayoutTypes: Set<PayoutType>,
     onSelectTab: (PayoutTab) -> Unit,
     onSelectCurrency: (String) -> Unit,
@@ -217,17 +224,19 @@ private fun PayoutFilterVerticalMenu(
             modifier = Modifier.fillMaxWidth()
         )
 
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
-        )
+        if (availablePayoutTypes.size > 1) {
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = LyndGlassDefaults.BorderAlpha)
+            )
 
-        TypeFilterSection(
-            selectedPayoutTypes = selectedPayoutTypes,
-            onSelectPayoutType = onSelectPayoutType,
-            onTogglePayoutType = onTogglePayoutType,
-            modifier = Modifier.fillMaxWidth()
-        )
+            TypeFilterSection(
+                selectedPayoutTypes = selectedPayoutTypes,
+                onSelectPayoutType = onSelectPayoutType,
+                onTogglePayoutType = onTogglePayoutType,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         if (availableCurrencies.size > 1) {
             HorizontalDivider(
