@@ -145,6 +145,7 @@ class HoldingsViewModel(
                         items = items
                     )
                 }
+                .sortedBy { it.isin }
         }
         .stateIn(
             scope = viewModelScope,

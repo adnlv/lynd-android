@@ -173,4 +173,102 @@ class HoldingsViewModelTest {
         val bond = viewModel.getBond("UA4000187348")
         assertEquals("USD", bond?.currency)
     }
+
+    @Test
+    fun groupedHoldings_sortsByIsinAndIgnoresPurchaseDate() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao()
+        val repository = NbuRepository(FakeNbuApiService(), bondDao, FakeSyncMetadataDao().apply {
+            lastSync = System.currentTimeMillis()
+        })
+        val viewModel = HoldingsViewModel(holdingDao, repository, bondDao)
+
+        val itemA = HoldingWithBond(
+            id = 1,
+            isin = "UA4000200000",
+            bondName = "Bond B",
+            quantity = 2,
+            pricePerBond = BigDecimal("1000.00"),
+            totalPaidAmount = BigDecimal("2000.00"),
+            purchaseDate = LocalDate.of(2026, 10, 1),
+            currency = "UAH",
+            couponRate = BigDecimal.ZERO
+        )
+        val itemB = HoldingWithBond(
+            id = 2,
+            isin = "UA4000100000",
+            bondName = "Bond A",
+            quantity = 5,
+            pricePerBond = BigDecimal("1000.00"),
+            totalPaidAmount = BigDecimal("5000.00"),
+            purchaseDate = LocalDate.of(2026, 1, 1),
+            currency = "UAH",
+            couponRate = BigDecimal.ZERO
+        )
+
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.groupedHoldings.collect {}
+        }
+
+        holdingDao.allHoldingsFlow.value = listOf(itemA, itemB)
+
+        val groups = viewModel.groupedHoldings.value
+        assertEquals(2, groups.size)
+        assertEquals("UA4000100000", groups[0].isin)
+        assertEquals("UA4000200000", groups[1].isin)
+    }
+
+    @Test
+    fun groupedHoldings_orderRemainsStableWhenHoldingRemoved() = runTest {
+        val holdingDao = FakeHoldingDao()
+        val bondDao = FakeBondDao()
+        val repository = NbuRepository(FakeNbuApiService(), bondDao, FakeSyncMetadataDao().apply {
+            lastSync = System.currentTimeMillis()
+        })
+        val viewModel = HoldingsViewModel(holdingDao, repository, bondDao)
+
+        val bond1 = HoldingWithBond(
+            id = 1,
+            isin = "UA4000100000",
+            bondName = "Bond 1",
+            quantity = 1,
+            pricePerBond = BigDecimal("1000.00"),
+            totalPaidAmount = BigDecimal("1000.00"),
+            purchaseDate = LocalDate.of(2026, 1, 1),
+            currency = "UAH",
+            couponRate = BigDecimal.ZERO
+        )
+        val bond2 = HoldingWithBond(
+            id = 2,
+            isin = "UA4000200000",
+            bondName = "Bond 2",
+            quantity = 2,
+            pricePerBond = BigDecimal("1000.00"),
+            totalPaidAmount = BigDecimal("2000.00"),
+            purchaseDate = LocalDate.of(2026, 5, 1),
+            currency = "UAH",
+            couponRate = BigDecimal.ZERO
+        )
+        val bond3 = HoldingWithBond(
+            id = 3,
+            isin = "UA4000300000",
+            bondName = "Bond 3",
+            quantity = 3,
+            pricePerBond = BigDecimal("1000.00"),
+            totalPaidAmount = BigDecimal("3000.00"),
+            purchaseDate = LocalDate.of(2026, 3, 1),
+            currency = "UAH",
+            couponRate = BigDecimal.ZERO
+        )
+
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.groupedHoldings.collect {}
+        }
+
+        holdingDao.allHoldingsFlow.value = listOf(bond1, bond2, bond3)
+        assertEquals(listOf("UA4000100000", "UA4000200000", "UA4000300000"), viewModel.groupedHoldings.value.map { it.isin })
+
+        holdingDao.allHoldingsFlow.value = listOf(bond1, bond3)
+        assertEquals(listOf("UA4000100000", "UA4000300000"), viewModel.groupedHoldings.value.map { it.isin })
+    }
 }

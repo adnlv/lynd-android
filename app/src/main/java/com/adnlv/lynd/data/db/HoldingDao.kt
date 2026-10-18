@@ -46,7 +46,7 @@ interface HoldingDao {
             COALESCE(b.coupon_rate, '0') AS couponRate
         FROM holdings h
         LEFT JOIN bonds b ON h.isin = b.isin
-        ORDER BY h.purchase_date DESC
+        ORDER BY h.isin ASC, h.purchase_date DESC
     """)
     fun getAllHoldings(): Flow<List<HoldingWithBond>>
 
