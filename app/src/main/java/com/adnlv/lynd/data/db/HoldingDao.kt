@@ -6,17 +6,19 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
+import java.time.LocalDate
 
 data class HoldingWithBond(
     val id: Int,
     val isin: String,
     val bondName: String,
     val quantity: Int,
-    val pricePerBond: java.math.BigDecimal,
-    val totalPaidAmount: java.math.BigDecimal,
-    val purchaseDate: java.time.LocalDate,
+    val pricePerBond: BigDecimal,
+    val totalPaidAmount: BigDecimal,
+    val purchaseDate: LocalDate,
     val currency: String,
-    val couponRate: java.math.BigDecimal
+    val couponRate: BigDecimal
 )
 
 @Dao

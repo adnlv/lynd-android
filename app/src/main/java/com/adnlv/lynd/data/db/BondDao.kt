@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BondDao {
@@ -35,8 +36,8 @@ interface BondDao {
     suspend fun getDistinctIsinPrefixes(): List<String>
 
     @Query("SELECT * FROM bonds ORDER BY name ASC")
-    fun getAllBonds(): kotlinx.coroutines.flow.Flow<List<BondEntity>>
+    fun getAllBonds(): Flow<List<BondEntity>>
 
     @Query("SELECT * FROM bond_payments ORDER BY pay_date ASC")
-    fun getAllPayments(): kotlinx.coroutines.flow.Flow<List<BondPaymentEntity>>
+    fun getAllPayments(): Flow<List<BondPaymentEntity>>
 }

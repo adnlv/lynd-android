@@ -20,10 +20,19 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 
 class AppContainer(context: Context) {
+
+    companion object {
+        const val DATABASE_NAME = "lynd_database"
+        const val BASE_URL = "https://bank.gov.ua/"
+        const val CONNECT_TIMEOUT_SECONDS = 30L
+        const val READ_TIMEOUT_SECONDS = 30L
+        private const val JSON_MEDIA_TYPE = "application/json"
+    }
+
     val database: AppDatabase = Room.databaseBuilder(
         context.applicationContext,
         AppDatabase::class.java,
-        "lynd_database"
+        DATABASE_NAME
     )
         .fallbackToDestructiveMigration(dropAllTables = true)
         .addCallback(object : RoomDatabase.Callback() {
@@ -43,17 +52,17 @@ class AppContainer(context: Context) {
     }
 
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
         })
         .build()
 
     private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl("https://bank.gov.ua/")
+        .baseUrl(BASE_URL)
         .client(okHttpClient)
-        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .addConverterFactory(json.asConverterFactory(JSON_MEDIA_TYPE.toMediaType()))
         .build()
 
     val nbuApiService: NbuApiService = retrofit.create(NbuApiService::class.java)

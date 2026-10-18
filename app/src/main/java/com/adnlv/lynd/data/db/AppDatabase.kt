@@ -4,6 +4,8 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
+const val DATABASE_VERSION = 4
+
 @Database(
     entities = [
         BondEntity::class,
@@ -11,7 +13,7 @@ import androidx.room.TypeConverters
         HoldingEntity::class,
         SyncMetadataEntity::class
     ],
-    version = 4,
+    version = DATABASE_VERSION,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
