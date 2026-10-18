@@ -1,16 +1,20 @@
 package com.adnlv.lynd.domain
 
+import com.adnlv.lynd.core.AppConstants
 import com.adnlv.lynd.data.db.PayoutRow
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
 object IncomeGapDetector {
+
+    private const val CONSECUTIVE_MONTH_STEP = 1L
+
     fun detectGaps(
         payoutRows: List<PayoutRow>,
         currency: String,
         startDate: LocalDate = LocalDate.now(),
-        monthCount: Int = 12
+        monthCount: Int = AppConstants.DEFAULT_ANALYSIS_HORIZON_MONTHS
     ): List<IncomeGap> {
         val allCashFlows = PortfolioCalculator.calculateMonthlyCashFlows(
             payoutRows = payoutRows,
@@ -59,7 +63,7 @@ object IncomeGapDetector {
                 currentStreak.add(month)
             } else {
                 val last = currentStreak.last()
-                if (last.plusMonths(1) == month) {
+                if (last.plusMonths(CONSECUTIVE_MONTH_STEP) == month) {
                     currentStreak.add(month)
                 } else {
                     streaks.add(currentStreak.toList())

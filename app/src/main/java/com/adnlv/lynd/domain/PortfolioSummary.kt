@@ -1,9 +1,13 @@
 package com.adnlv.lynd.domain
 
+import com.adnlv.lynd.core.AppConstants
 import com.adnlv.lynd.data.db.BondPaymentEntity
 import com.adnlv.lynd.data.db.HoldingWithBond
+import com.adnlv.lynd.data.db.PayoutRow
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
+import java.time.YearMonth
 
 data class PortfolioSummary(
     val currency: String,
@@ -31,8 +35,8 @@ object PortfolioCalculator {
             val profitAmount = totalPayout.subtract(item.totalPaidAmount)
 
             val profitPercent = if (item.totalPaidAmount > BigDecimal.ZERO) {
-                profitAmount.multiply(BigDecimal("100"))
-                    .divide(item.totalPaidAmount, 4, RoundingMode.HALF_UP)
+                profitAmount.multiply(AppConstants.PERCENTAGE_MULTIPLIER)
+                    .divide(item.totalPaidAmount, AppConstants.PERCENTAGE_DECIMAL_SCALE, RoundingMode.HALF_UP)
             } else {
                 BigDecimal.ZERO
             }
@@ -69,7 +73,7 @@ object PortfolioCalculator {
         }
 
         val avgRate = if (invested > BigDecimal.ZERO) {
-            weightedRateSum.divide(invested, 4, RoundingMode.HALF_UP)
+            weightedRateSum.divide(invested, AppConstants.PERCENTAGE_DECIMAL_SCALE, RoundingMode.HALF_UP)
         } else {
             BigDecimal.ZERO
         }
@@ -91,12 +95,12 @@ object PortfolioCalculator {
     }
 
     fun calculateMonthlyCashFlows(
-        payoutRows: List<com.adnlv.lynd.data.db.PayoutRow>,
-        startDate: java.time.LocalDate = java.time.LocalDate.now(),
-        monthCount: Int = 12
+        payoutRows: List<PayoutRow>,
+        startDate: LocalDate = LocalDate.now(),
+        monthCount: Int = AppConstants.DEFAULT_ANALYSIS_HORIZON_MONTHS
     ): Map<String, List<MonthlyCashFlow>> {
         val currencies = payoutRows.map { it.currency }.distinct()
-        val startYearMonth = java.time.YearMonth.from(startDate)
+        val startYearMonth = YearMonth.from(startDate)
         val targetMonths = (0 until monthCount).map { startYearMonth.plusMonths(it.toLong()) }
 
         val upcomingRows = payoutRows.filter {
@@ -105,7 +109,7 @@ object PortfolioCalculator {
 
         return currencies.associateWith { currency ->
             val currencyRows = upcomingRows.filter { it.currency.equals(currency, ignoreCase = true) }
-            val rowsByMonth = currencyRows.groupBy { java.time.YearMonth.from(it.payDate) }
+            val rowsByMonth = currencyRows.groupBy { YearMonth.from(it.payDate) }
 
             targetMonths.map { ym ->
                 val monthRows = rowsByMonth[ym].orEmpty()
@@ -113,9 +117,8 @@ object PortfolioCalculator {
                 var principalSum = BigDecimal.ZERO
 
                 for (row in monthRows) {
-                    val payout = row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong()))
-                    val isRedemption = row.payType.equals("redemption", ignoreCase = true) || row.payType == "2"
-                    if (isRedemption) {
+                    val payout = row.calculateTotalAmount()
+                    if (row.isRedemption) {
                         principalSum = principalSum.add(payout)
                     } else {
                         couponSum = couponSum.add(payout)
@@ -133,15 +136,14 @@ object PortfolioCalculator {
     }
 
     fun calculateYearlyMaturitySchedule(
-        payoutRows: List<com.adnlv.lynd.data.db.PayoutRow>,
-        startDate: java.time.LocalDate = java.time.LocalDate.now()
+        payoutRows: List<PayoutRow>,
+        startDate: LocalDate = LocalDate.now()
     ): Map<String, List<YearlyMaturity>> {
         val currencies = payoutRows.map { it.currency }.distinct()
         val currentYear = startDate.year
 
         val upcomingRedemptions = payoutRows.filter {
-            val isRedemption = it.payType.equals("redemption", ignoreCase = true) || it.payType == "2"
-            isRedemption && !it.payDate.isBefore(startDate) && !it.payDate.isBefore(it.purchaseDate)
+            it.isRedemption && !it.payDate.isBefore(startDate) && !it.payDate.isBefore(it.purchaseDate)
         }
 
         return currencies.associateWith { currency ->
@@ -155,7 +157,7 @@ object PortfolioCalculator {
                 (currentYear..maxYear).map { year ->
                     val yearRows = redemptionsByYear[year].orEmpty()
                     val totalYearAmount = yearRows.fold(BigDecimal.ZERO) { acc, row ->
-                        acc.add(row.payVal.multiply(BigDecimal.valueOf(row.quantity.toLong())))
+                        acc.add(row.calculateTotalAmount())
                     }
                     YearlyMaturity(
                         year = year,

@@ -2,6 +2,8 @@ package com.adnlv.lynd.domain
 
 import com.adnlv.lynd.data.db.BondEntity
 import com.adnlv.lynd.data.db.BondPaymentEntity
+import com.adnlv.lynd.data.network.PAYMENT_TYPE_COUPON
+import com.adnlv.lynd.data.network.PAYMENT_TYPE_REDEMPTION
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
@@ -40,8 +42,8 @@ object SmartLadderMatcher {
                 val monthPayments = paymentsByIsinAndMonth[bond.isin]?.get(gap.yearMonth).orEmpty()
                 if (monthPayments.isEmpty()) return@mapNotNull null
 
-                val hasCoupon = monthPayments.any { it.payType.equals("coupon", ignoreCase = true) }
-                val hasRedemption = monthPayments.any { it.payType.equals("redemption", ignoreCase = true) }
+                val hasCoupon = monthPayments.any { it.payType.equals(PAYMENT_TYPE_COUPON, ignoreCase = true) }
+                val hasRedemption = monthPayments.any { it.payType.equals(PAYMENT_TYPE_REDEMPTION, ignoreCase = true) }
 
                 val paymentType = when {
                     hasCoupon && hasRedemption -> LadderPaymentType.COUPON_AND_REDEMPTION

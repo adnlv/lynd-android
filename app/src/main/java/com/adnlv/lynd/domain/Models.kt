@@ -1,7 +1,9 @@
 package com.adnlv.lynd.domain
 
+import com.adnlv.lynd.core.AppConstants
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.YearMonth
 
 data class PayoutItem(
     val isin: String,
@@ -59,7 +61,7 @@ data class HoldingItem(
     val pricePerBond: BigDecimal,
     val totalPaidAmount: BigDecimal,
     val purchaseDate: LocalDate,
-    val currency: String = "UAH",
+    val currency: String = AppConstants.DEFAULT_CURRENCY,
     val couponRate: BigDecimal = BigDecimal.ZERO,
     val totalPayoutAmount: BigDecimal = BigDecimal.ZERO,
     val totalProfitAmount: BigDecimal = BigDecimal.ZERO,
@@ -74,7 +76,7 @@ data class HoldingGroup(
 )
 
 data class MonthlyCashFlow(
-    val yearMonth: java.time.YearMonth,
+    val yearMonth: YearMonth,
     val couponAmount: BigDecimal,
     val principalAmount: BigDecimal,
     val totalAmount: BigDecimal
@@ -84,4 +86,3 @@ data class YearlyMaturity(
     val year: Int,
     val amount: BigDecimal
 )
-
